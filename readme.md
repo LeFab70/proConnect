@@ -38,15 +38,9 @@ L’objectif est de fournir une architecture propre, simple à cloner, lancer et
 git clone https://github.com/Kayleb-Aubie/ProConnectNB.git
 cd ProConnectNB
 
-# 🖥️ Installation du Backend (ASP.NET Core)
+# 🖥️ Configuration de fichiers
 
-### 1. Aller dans le dossier backend
-cd backend
-
-### 2. Installer les dépendances
-dotnet restore
-
-### 3. Configurer les variables d’environnement pour prevenir le spam sur le serveur Azure (future)
+### 1. Configurer les variables d’environnement pour prevenir le spam sur le serveur Azure (future)
 Créer le fichier :
 frontend/lib/secrets.dart
 
@@ -54,9 +48,6 @@ class Secrets
 {
   static const String apiKey = "";
 }
-
-### 4. Lancer l’API
-dotnet run
 
 # 📱 Installation du Frontend (Flutter)
 
