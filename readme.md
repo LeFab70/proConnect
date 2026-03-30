@@ -38,7 +38,39 @@ L’objectif est de fournir une architecture propre, simple à cloner, lancer et
 git clone https://github.com/Kayleb-Aubie/ProConnectNB.git
 cd ProConnectNB
 
-# 🖥️ Configuration de fichiers
+## 🖥️ Configuration (Backend)
+
+### Variables d’environnement requises
+Le backend lit la connexion DB et l’auth JWT depuis des variables d’environnement.
+
+- **`DefaultConnection`**: connection string PostgreSQL (Neon)
+- **`JWT__Key`**: clé symétrique (min 32 chars recommandé)
+- **`JWT__Issuer`**: ex `ProConnectNB` (optionnel)
+- **`JWT__Audience`**: ex `ProConnectNB` (optionnel)
+- **`JWT__ExpiresMinutes`**: ex `120` (optionnel)
+- **`DEV_AUTH_SECRET`**: secret pour générer un token en dev via `/api/auth/token`
+
+### Lancer le backend
+Dans un terminal:
+
+```bash
+cd backend
+dotnet restore
+dotnet run
+```
+
+Swagger (en dev): `http://localhost:5xxx/swagger`
+
+### Obtenir un JWT (dev)
+POST `api/auth/token` avec:
+
+- `email`
+- `role` (ex: `Admin`)
+- `secret` (= `DEV_AUTH_SECRET`)
+
+Puis dans Swagger, bouton **Authorize** → `Bearer <token>`.
+
+## 🖥️ Configuration de fichiers (Frontend)
 
 ### 1. Configurer les variables d’environnement pour prevenir le spam sur le serveur Azure (future)
 Créer le fichier :

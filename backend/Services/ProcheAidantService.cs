@@ -1,0 +1,70 @@
+using backend.Dtos.Common;
+using backend.Dtos.ProchesAidants;
+using backend.Infrastructure;
+using backend.Models;
+using backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace backend.Services;
+
+public class ProcheAidantService(AppDbContext db) : IProcheAidantService
+{
+    private readonly AppDbContext _db = db;
+
+    public async Task<ProcheAidantResponseDto?> GetById(long id)
+    {
+        return await _db.ProchesAidants
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => new ProcheAidantResponseDto
+            {
+                Id = p.Id,
+                Nom = p.Nom,
+                Prenom = p.Prenom,
+                Telephone = p.Telephone,
+                Email = p.Email,
+                Relation = p.Relation
+            })
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<IdResponseDto> Create(UpsertProcheAidantRequestDto dto)
+    {
+        var entity = new ProcheAidant
+        {
+            Nom = dto.Nom,
+            Prenom = dto.Prenom,
+            Telephone = dto.Telephone,
+            Email = dto.Email,
+            Relation = dto.Relation
+        };
+        _db.ProchesAidants.Add(entity);
+        await _db.SaveChangesAsync();
+        return new IdResponseDto { Id = entity.Id };
+    }
+
+    public async Task<bool> Update(long id, UpsertProcheAidantRequestDto dto)
+    {
+        var entity = await _db.ProchesAidants.FirstOrDefaultAsync(p => p.Id == id);
+        if (entity == null) return false;
+
+        entity.Nom = dto.Nom;
+        entity.Prenom = dto.Prenom;
+        entity.Telephone = dto.Telephone;
+        entity.Email = dto.Email;
+        entity.Relation = dto.Relation;
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> Delete(long id)
+    {
+        var entity = await _db.ProchesAidants.FirstOrDefaultAsync(p => p.Id == id);
+        if (entity == null) return false;
+        _db.ProchesAidants.Remove(entity);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+}
+

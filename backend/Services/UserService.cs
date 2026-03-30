@@ -1,44 +1,69 @@
-using Dapper;
-using Npgsql;
+using backend.Dtos.Common;
+using backend.Dtos.Users;
+using backend.Infrastructure;
 using backend.Models;
-using Microsoft.VisualBasic;
+using backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
-public class UserService()//IConfiguration config) // Injection de dependance (en constructeur) de la configuration a partir du Program.cs (addScoped necessaire car se nest pas un controller) (Mais on a pas azure payant)
+public class UserService(AppDbContext db) : IUserService
 {
-    //private readonly IConfiguration _config = config; // assignment de la configuration (serait utiliser dans le cas ou on aurait azure payant car free tier naccepte pas linjection des connections strings (seulement les vraiables dans le app settings))
+    private readonly AppDbContext _db = db;
 
-    public async Task<User?> GetUserById(int id) // Methode pour obtenir un utilisateur par son ID
+    public async Task<UserResponseDto?> GetById(long id)
     {
-        try
-        {
-            var connectionString = Environment.GetEnvironmentVariable("DefaultConnection"); // Obtention de la chaine de connexion a la base de donnees
-
-            using NpgsqlConnection conn = new NpgsqlConnection(connectionString); // Creation de la connexion a la base de donnees
-
-            await conn.OpenAsync(); // Force l'ouverture pour détecter les erreurs de connexion
-
-            var sql = "SELECT id AS Id, prenom AS Prenom FROM users WHERE id = @id"; // Requete SQL pour obtenir l'utilisateur par ID
-            var user = await conn.QueryFirstOrDefaultAsync<User>(sql, new { id }); // Execution de la requete avec Dapper
-
-            return user;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur lors de l'obtention de l'utilisateur: {ex.Message}");
-            return null;
-        }
+        return await _db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == id)
+            .Select(u => new UserResponseDto
+            {
+                Id = u.Id,
+                Nom = u.Nom,
+                Prenom = u.Prenom,
+                Telephone = u.Telephone,
+                Email = u.Email,
+                Role = u.Role
+            })
+            .FirstOrDefaultAsync();
     }
 
-    public async Task<string> GetTestMessage()
+    public async Task<IdResponseDto> Create(UpsertUserRequestDto dto)
     {
-        String? conn = Environment.GetEnvironmentVariable("DefaultConnection");
-
-        if (conn == null)
-            return "NUlllll";
-        else
-            return conn;
+        var entity = new User
+        {
+            Nom = dto.Nom,
+            Prenom = dto.Prenom,
+            Telephone = dto.Telephone,
+            Email = dto.Email,
+            Role = dto.Role
+        };
+        _db.Users.Add(entity);
+        await _db.SaveChangesAsync();
+        return new IdResponseDto { Id = entity.Id };
     }
 
+    public async Task<bool> Update(long id, UpsertUserRequestDto dto)
+    {
+        var entity = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (entity == null) return false;
+
+        entity.Nom = dto.Nom;
+        entity.Prenom = dto.Prenom;
+        entity.Telephone = dto.Telephone;
+        entity.Email = dto.Email;
+        entity.Role = dto.Role;
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> Delete(long id)
+    {
+        var entity = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (entity == null) return false;
+        _db.Users.Remove(entity);
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }

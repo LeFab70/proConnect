@@ -1,4 +1,6 @@
-using backend.Services;
+using backend.Dtos.Users;
+using backend.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
@@ -7,29 +9,39 @@ namespace backend.Controllers;
 [Route("api/users")] // l'URL de base pour ce controller
 
 //class qui gere les endpoints relatifs aux utilisateurs
-public class UserController(UserService service) : ControllerBase // Injection de dependance (en constructeur) du service layer (addScoped non-necessaire car cest un controller)
+public class UserController(IUserService service) : ControllerBase
 {
-    private readonly UserService _service = service; // assignement d'injection de dependance du service layer
+    private readonly IUserService _service = service;
 
-    [HttpGet("{id}")] // api/users/1 (associer avec GetUser) (Donc le retour de cette methode sera pour les requetes GET a cette URL)
-    public async Task<IActionResult> GetUser(int id) { // id vien de l'URL (endpoint handler)
-
-        var user = await _service.GetUserById(id); // Appel au service layer pour obtenir l'utilisateur (besoin de await pour les methodes async)
-
-        if (user == null) 
-        {
-            return NotFound($"Aucun utilisateur trouver avec l'ID {id}"); // Retourne un code 404 (utilisateur non trouve) // Affiche dans la console sur le navigateur
-        }
-
-        return Ok(user); // Retourne un code 200 (tout a fonctionner) avec l'utilisateur en format JSON
+    [HttpGet("{id:long}")]
+    [Authorize]
+    public async Task<IActionResult> GetById(long id)
+    {
+        var user = await _service.GetById(id);
+        return user == null ? NotFound() : Ok(user);
     }
     
-    [HttpGet("test")] // api/users/test
-    public async Task<IActionResult> GetTest()  // requete GET a cette URL
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create([FromBody] UpsertUserRequestDto dto)
     {
-        var message = await _service.GetTestMessage(); // Appel au service layer pour obtenir un message de test
-
-        return Ok(message); // Retourne un code 200 avec le message en format JSON
+        var created = await _service.Create(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
+    [HttpPut("{id:long}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Update(long id, [FromBody] UpsertUserRequestDto dto)
+    {
+        var ok = await _service.Update(id, dto);
+        return ok ? NoContent() : NotFound();
+    }
+
+    [HttpDelete("{id:long}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        var ok = await _service.Delete(id);
+        return ok ? NoContent() : NotFound();
+    }
 }
