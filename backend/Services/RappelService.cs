@@ -11,6 +11,23 @@ public class RappelService(AppDbContext db) : IRappelService
 {
     private readonly AppDbContext _db = db;
 
+    public async Task<IReadOnlyList<RappelResponseDto>> GetAll()
+    {
+        return await _db.Rappels
+            .AsNoTracking()
+            .OrderBy(r => r.Id)
+            .Select(r => new RappelResponseDto
+            {
+                Id = r.Id,
+                DateHeure = r.DateHeure,
+                Type = r.Type,
+                Actif = r.Actif,
+                MedicamentId = r.MedicamentId,
+                RendezVousMedicalId = r.RendezVousMedicalId
+            })
+            .ToListAsync();
+    }
+
     public async Task<RappelResponseDto?> GetById(long id)
     {
         return await _db.Rappels

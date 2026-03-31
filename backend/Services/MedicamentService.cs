@@ -11,6 +11,22 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
 {
     private readonly AppDbContext _db = db;
 
+    public async Task<IReadOnlyList<MedicamentResponseDto>> GetAll()
+    {
+        return await _db.Medicaments
+            .AsNoTracking()
+            .OrderBy(m => m.Id)
+            .Select(m => new MedicamentResponseDto
+            {
+                Id = m.Id,
+                Nom = m.Nom,
+                Dosage = m.Dosage,
+                Frequence = m.Frequence,
+                AineId = m.AineId
+            })
+            .ToListAsync();
+    }
+
     public async Task<MedicamentResponseDto?> GetById(long id)
     {
         return await _db.Medicaments

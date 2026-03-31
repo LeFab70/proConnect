@@ -11,6 +11,23 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
 {
     private readonly AppDbContext _db = db;
 
+    public async Task<IReadOnlyList<RendezVousMedicalResponseDto>> GetAll()
+    {
+        return await _db.RendezVousMedicaux
+            .AsNoTracking()
+            .OrderBy(r => r.Id)
+            .Select(r => new RendezVousMedicalResponseDto
+            {
+                Id = r.Id,
+                DateHeure = r.DateHeure,
+                Lieu = r.Lieu,
+                Specialiste = r.Specialiste,
+                Notes = r.Notes,
+                AineId = r.AineId
+            })
+            .ToListAsync();
+    }
+
     public async Task<RendezVousMedicalResponseDto?> GetById(long id)
     {
         return await _db.RendezVousMedicaux

@@ -49,6 +49,7 @@ Le backend lit la connexion DB et l’auth JWT depuis des variables d’environn
 - **`JWT__Audience`**: ex `ProConnectNB` (optionnel)
 - **`JWT__ExpiresMinutes`**: ex `120` (optionnel)
 - **`DEV_AUTH_SECRET`**: secret pour générer un token en dev via `/api/auth/token`
+- **`SEED_DATA`**: mettre `true` pour insérer des données de démonstration au démarrage (après migrations)
 
 ### Lancer le backend
 Dans un terminal:
@@ -69,6 +70,33 @@ POST `api/auth/token` avec:
 - `secret` (= `DEV_AUTH_SECRET`)
 
 Puis dans Swagger, bouton **Authorize** → `Bearer <token>`.
+
+### 🔐 Endpoints protégés
+- La majorité des endpoints API sont en **`[Authorize]`** (token obligatoire).
+- Les opérations d’écriture (POST/PUT/DELETE) sont généralement **`[Authorize(Roles="Admin")]`**.
+
+### Minimal API (MapGet/MapPost/MapPut/MapDelete)
+Le backend utilise maintenant les **Minimal APIs** (route groups) au lieu des controllers MVC.
+
+### 🧬 Migrations EF Core
+Le backend applique automatiquement les migrations au démarrage.
+
+Pour générer une migration:
+
+```bash
+cd backend
+dotnet ef migrations add Initial
+```
+
+Pour appliquer manuellement:
+
+```bash
+cd backend
+dotnet ef database update
+```
+
+### 🌱 Seed (données de démo)
+Si `SEED_DATA=true`, le backend insère des données de démonstration (admin/test + aîné + proche aidant + médicament + rendez-vous + rappel) au démarrage.
 
 ## 🖥️ Configuration de fichiers (Frontend)
 
@@ -103,3 +131,9 @@ Ne jamais commit ces fichiers.
 - Ne jamais commit les dossiers de build
 - Respecter le .gitignore
 - Garder backend et frontend synchronisés lors de modifications des modèles API
+
+## 👥 Équipe / Auteurs
+- Kayleb
+- Grace
+- Perez
+- Fabrice

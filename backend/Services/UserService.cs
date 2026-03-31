@@ -11,6 +11,23 @@ public class UserService(AppDbContext db) : IUserService
 {
     private readonly AppDbContext _db = db;
 
+    public async Task<IReadOnlyList<UserResponseDto>> GetAll()
+    {
+        return await _db.Users
+            .AsNoTracking()
+            .OrderBy(u => u.Id)
+            .Select(u => new UserResponseDto
+            {
+                Id = u.Id,
+                Nom = u.Nom,
+                Prenom = u.Prenom,
+                Telephone = u.Telephone,
+                Email = u.Email,
+                Role = u.Role
+            })
+            .ToListAsync();
+    }
+
     public async Task<UserResponseDto?> GetById(long id)
     {
         return await _db.Users

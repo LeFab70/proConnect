@@ -5,6 +5,7 @@ namespace backend.Services.Interfaces;
 
 public interface IProcheAidantService
 {
+    Task<IReadOnlyList<ProcheAidantResponseDto>> GetAll();
     Task<ProcheAidantResponseDto?> GetById(long id);
     Task<IdResponseDto> Create(UpsertProcheAidantRequestDto dto);
     Task<bool> Update(long id, UpsertProcheAidantRequestDto dto);

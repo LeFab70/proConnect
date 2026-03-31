@@ -11,6 +11,21 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
 {
     private readonly AppDbContext _db = db;
 
+    public async Task<IReadOnlyList<PartageSuiviResponseDto>> GetAll()
+    {
+        return await _db.PartagesSuivi
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .Select(p => new PartageSuiviResponseDto
+            {
+                Id = p.Id,
+                Autorisation = p.Autorisation,
+                AineId = p.AineId,
+                ProcheAidantId = p.ProcheAidantId
+            })
+            .ToListAsync();
+    }
+
     public async Task<PartageSuiviResponseDto?> GetById(long id)
     {
         return await _db.PartagesSuivi

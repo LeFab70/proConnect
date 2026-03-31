@@ -11,6 +11,23 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
 {
     private readonly AppDbContext _db = db;
 
+    public async Task<IReadOnlyList<ProcheAidantResponseDto>> GetAll()
+    {
+        return await _db.ProchesAidants
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .Select(p => new ProcheAidantResponseDto
+            {
+                Id = p.Id,
+                Nom = p.Nom,
+                Prenom = p.Prenom,
+                Telephone = p.Telephone,
+                Email = p.Email,
+                Relation = p.Relation
+            })
+            .ToListAsync();
+    }
+
     public async Task<ProcheAidantResponseDto?> GetById(long id)
     {
         return await _db.ProchesAidants

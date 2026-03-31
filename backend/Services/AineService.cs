@@ -11,6 +11,24 @@ public class AineService(AppDbContext db) : IAineService
 {
     private readonly AppDbContext _db = db;
 
+    public async Task<IReadOnlyList<AineResponseDto>> GetAll()
+    {
+        return await _db.Aines
+            .AsNoTracking()
+            .OrderBy(a => a.Id)
+            .Select(a => new AineResponseDto
+            {
+                Id = a.Id,
+                Nom = a.Nom,
+                Prenom = a.Prenom,
+                Telephone = a.Telephone,
+                Email = a.Email,
+                DateNaissance = a.DateNaissance,
+                Adresse = a.Adresse
+            })
+            .ToListAsync();
+    }
+
     public async Task<AineResponseDto?> GetById(long id)
     {
         return await _db.Aines
