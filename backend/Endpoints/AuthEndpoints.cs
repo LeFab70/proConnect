@@ -7,9 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace backend.Endpoints;
 
+// Classe pour gerer les endpoints d'authentification (ex: génération de JWT pour dev)
 public static class AuthEndpoints
 {
-    public static void MapAuthEndpoints(this WebApplication app)
+    public static void MapAuthEndpoints(this WebApplication app) // Methode d'extension pour ajouter les endpoints à l'application
     {
         app.MapPost("/api/auth/token", Token)
             .WithTags("Auth")
@@ -25,7 +26,7 @@ public static class AuthEndpoints
             });
     }
 
-    private static IResult Token(TokenRequestDto dto)
+    private static IResult Token(TokenRequestDto dto) // Endpoint pour générer un JWT (dev)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -71,4 +72,3 @@ public static class AuthEndpoints
         });
     }
 }
-

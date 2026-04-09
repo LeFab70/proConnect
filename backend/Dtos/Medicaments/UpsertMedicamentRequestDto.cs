@@ -9,6 +9,11 @@ public class UpsertMedicamentRequestDto
     [MaxLength(200, ErrorMessage = "Le nom du médicament ne doit pas dépasser 200 caractères.")]
     public required string Nom { get; set; }
 
+    [Required(ErrorMessage = "La marque du médicament est obligatoire.")]
+    [MinLength(1, ErrorMessage = "La marque du médicament ne peut pas être vide.")]
+    [MaxLength(100, ErrorMessage = "La marque du médicament ne doit pas dépasser 100 caractères.")]
+    public required string Marque { get; set; }
+
     [Required(ErrorMessage = "Le dosage est obligatoire.")]
     [MinLength(1, ErrorMessage = "Le dosage ne peut pas être vide.")]
     [MaxLength(100, ErrorMessage = "Le dosage ne doit pas dépasser 100 caractères.")]

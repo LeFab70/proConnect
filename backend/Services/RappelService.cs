@@ -7,11 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
+// Service pour gérer les rappels de médicaments et de rendez-vous médicaux
 public class RappelService(AppDbContext db) : IRappelService
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db = db; // Injection du contexte de base de données
 
-    public async Task<IReadOnlyList<RappelResponseDto>> GetAll()
+    public async Task<IReadOnlyList<RappelResponseDto>> GetAll() // Récupère tous les rappels
     {
         return await _db.Rappels
             .AsNoTracking()
@@ -28,7 +29,7 @@ public class RappelService(AppDbContext db) : IRappelService
             .ToListAsync();
     }
 
-    public async Task<RappelResponseDto?> GetById(long id)
+    public async Task<RappelResponseDto?> GetById(long id) // Récupère un rappel par son ID
     {
         return await _db.Rappels
             .AsNoTracking()
@@ -45,7 +46,7 @@ public class RappelService(AppDbContext db) : IRappelService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertRappelRequestDto dto)
+    public async Task<IdResponseDto> Create(UpsertRappelRequestDto dto) // Crée un nouveau rappel
     {
         var entity = new Rappel
         {
@@ -60,7 +61,7 @@ public class RappelService(AppDbContext db) : IRappelService
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertRappelRequestDto dto)
+    public async Task<bool> Update(long id, UpsertRappelRequestDto dto) // Met à jour un rappel existant
     {
         var entity = await _db.Rappels.FirstOrDefaultAsync(r => r.Id == id);
         if (entity == null) return false;
@@ -75,7 +76,7 @@ public class RappelService(AppDbContext db) : IRappelService
         return true;
     }
 
-    public async Task<bool> Delete(long id)
+    public async Task<bool> Delete(long id) // Supprime un rappel par son ID
     {
         var entity = await _db.Rappels.FirstOrDefaultAsync(r => r.Id == id);
         if (entity == null) return false;
@@ -84,4 +85,3 @@ public class RappelService(AppDbContext db) : IRappelService
         return true;
     }
 }
-

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace backend.Infrastructure;
 
+// Classe statique pour la validation des DTOs (Data Transfer Objects) à l'aide de Data Annotations
 public static class DtoValidation
 {
     public static IResult? Validate<T>(T dto)
@@ -32,4 +33,3 @@ public static class DtoValidation
         return Results.ValidationProblem(errors);
     }
 }
-

@@ -3,6 +3,7 @@ using backend.Dtos.RendezVous;
 
 namespace backend.Services.Interfaces;
 
+// Interface pour le service de gestion des rendez-vous médicaux
 public interface IRendezVousMedicalService
 {
     Task<IReadOnlyList<RendezVousMedicalResponseDto>> GetAll();
@@ -11,4 +12,3 @@ public interface IRendezVousMedicalService
     Task<bool> Update(long id, UpsertRendezVousMedicalRequestDto dto);
     Task<bool> Delete(long id);
 }
-

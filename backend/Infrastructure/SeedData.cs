@@ -3,12 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Infrastructure;
 
+// Classe utilitaire pour appliquer les migrations et insérer des données de test dans la base de données. Les données ne seront insérées que si la variable d'environnement SEED_DATA est définie sur "true". Cela permet de contrôler facilement l'insertion de données de test en fonction de l'environnement (développement, staging, production).
 public static class SeedData
 {
     public static async Task ApplyMigrationsAndSeedAsync(IServiceProvider services, CancellationToken ct = default)
     {
         using var scope = services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>(); // Récupère une instance d'AppDbContext à partir du conteneur de services
 
         await db.Database.MigrateAsync(ct);
 
@@ -33,7 +34,9 @@ public static class SeedData
                 Telephone = "333-333-3333",
                 Email = "marie.dupont@proconnect.local",
                 DateNaissance = new DateOnly(1948, 5, 12),
-                Adresse = "123 Rue Principale, Moncton, NB"
+                Adresse = "123 Rue Principale, Moncton, NB",
+                Docteur = "Dr. Mimiche",
+                NumeroTelephoneDocteur = "506-783-4567"
             });
         }
 
@@ -58,7 +61,8 @@ public static class SeedData
             db.Medicaments.Add(new Medicament
             {
                 Nom = "Vitamine D",
-                Dosage = "1000 UI",
+                Marque = "D-Vit",
+                Dosage = "1000 MG",
                 Frequence = "1x/jour",
                 AineId = aine.Id
             });
@@ -70,7 +74,7 @@ public static class SeedData
             {
                 DateHeure = DateTime.UtcNow.AddDays(14),
                 Lieu = "Clinique NB",
-                Specialiste = "Cardiologue",
+                Docteur = "Cardiologue",
                 Notes = "Suivi annuel",
                 AineId = aine.Id
             });

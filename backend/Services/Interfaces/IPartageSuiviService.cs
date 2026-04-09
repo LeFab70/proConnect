@@ -3,6 +3,7 @@ using backend.Dtos.Partages;
 
 namespace backend.Services.Interfaces;
 
+// Interface pour le service de gestion des PartageSuivi
 public interface IPartageSuiviService
 {
     Task<IReadOnlyList<PartageSuiviResponseDto>> GetAll();
@@ -11,4 +12,3 @@ public interface IPartageSuiviService
     Task<bool> Update(long id, UpsertPartageSuiviRequestDto dto);
     Task<bool> Delete(long id);
 }
-

@@ -12,10 +12,10 @@ public class UpsertRendezVousMedicalRequestDto
     [MaxLength(200, ErrorMessage = "Le lieu ne doit pas dépasser 200 caractères.")]
     public required string Lieu { get; set; }
 
-    [Required(ErrorMessage = "Le spécialiste est obligatoire.")]
-    [MinLength(1, ErrorMessage = "Le spécialiste ne peut pas être vide.")]
-    [MaxLength(200, ErrorMessage = "Le spécialiste ne doit pas dépasser 200 caractères.")]
-    public required string Specialiste { get; set; }
+    [Required(ErrorMessage = "Le docteur est obligatoire.")]
+    [MinLength(1, ErrorMessage = "Le docteur ne peut pas être vide.")]
+    [MaxLength(200, ErrorMessage = "Le docteur ne doit pas dépasser 200 caractères.")]
+    public required string Docteur { get; set; }
 
     [MaxLength(1000, ErrorMessage = "Les notes ne doivent pas dépasser 1000 caractères.")]
     public string? Notes { get; set; }

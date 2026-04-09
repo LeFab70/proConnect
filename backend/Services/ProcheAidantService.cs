@@ -7,11 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
+// Service pour gérer les proches aidants
 public class ProcheAidantService(AppDbContext db) : IProcheAidantService
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db = db; // Injection de dépendance du contexte de base de données
 
-    public async Task<IReadOnlyList<ProcheAidantResponseDto>> GetAll()
+    public async Task<IReadOnlyList<ProcheAidantResponseDto>> GetAll() // Récupère tous les proches aidants
     {
         return await _db.ProchesAidants
             .AsNoTracking()
@@ -28,7 +29,7 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
             .ToListAsync();
     }
 
-    public async Task<ProcheAidantResponseDto?> GetById(long id)
+    public async Task<ProcheAidantResponseDto?> GetById(long id) // Récupère un proche aidant par son ID
     {
         return await _db.ProchesAidants
             .AsNoTracking()
@@ -45,7 +46,7 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertProcheAidantRequestDto dto)
+    public async Task<IdResponseDto> Create(UpsertProcheAidantRequestDto dto) // Crée un nouveau proche aidant
     {
         var entity = new ProcheAidant
         {
@@ -60,7 +61,7 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertProcheAidantRequestDto dto)
+    public async Task<bool> Update(long id, UpsertProcheAidantRequestDto dto) // Met à jour un proche aidant existant
     {
         var entity = await _db.ProchesAidants.FirstOrDefaultAsync(p => p.Id == id);
         if (entity == null) return false;
@@ -75,7 +76,7 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
         return true;
     }
 
-    public async Task<bool> Delete(long id)
+    public async Task<bool> Delete(long id) // Supprime un proche aidant par son ID
     {
         var entity = await _db.ProchesAidants.FirstOrDefaultAsync(p => p.Id == id);
         if (entity == null) return false;
@@ -84,4 +85,3 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
         return true;
     }
 }
-

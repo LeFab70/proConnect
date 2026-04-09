@@ -31,5 +31,10 @@ public class UpsertAineRequestDto
     [MinLength(3, ErrorMessage = "L'adresse doit contenir au moins 3 caractères.")]
     [MaxLength(300, ErrorMessage = "L'adresse ne doit pas dépasser 300 caractères.")]
     public required string Adresse { get; set; }
-}
 
+    [MaxLength(200, ErrorMessage = "Le nom du docteur ne doit pas dépasser 200 caractères.")]
+    public string Docteur { get; set; }
+
+    [MaxLength(30, ErrorMessage = "Le numéro de téléphone du docteur ne doit pas dépasser 30 caractères.")]
+    public string NumeroTelephoneDocteur { get; set; }
+}
