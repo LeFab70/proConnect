@@ -5,7 +5,7 @@ name: Build and Deploy .NET Backend
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "kayleb" ]
 
 jobs:
   build:
@@ -19,8 +19,25 @@ jobs:
         with:
           dotnet-version: '8.x'
 
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef
+
       - name: Restore
         run: dotnet restore ./backend/backend.csproj
+
+      - name: Generate EF Core Migration
+        run: |
+          dotnet ef migrations add AutoMigration_$(Get-Date -Format yyyyMMddHHmmss) --project ./backend/backend.csproj --startup-project ./backend/backend.csproj
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+
+      - name: Commit migration
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add .
+          git commit -m "Auto EF Migration" || echo "No changes to commit"
+          git push
 
       - name: Build
         run: dotnet build ./backend/backend.csproj --configuration Release --no-restore
