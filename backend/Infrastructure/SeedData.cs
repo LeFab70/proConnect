@@ -97,4 +97,3 @@ public static class SeedData
         await db.SaveChangesAsync(ct);
     }
 }
-
