@@ -12,11 +12,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
-AppDomain.CurrentDomain.FirstChanceException += (sender, eventArgs) =>
-{
-    Console.WriteLine("FIRST CHANCE EXCEPTION: " + eventArgs.Exception.ToString());
-};
-
 var builder = WebApplication.CreateBuilder(args); // Configuration et services DI (Dependency Injection), variable environnement etc..
 
 builder.Services.AddEndpointsApiExplorer();

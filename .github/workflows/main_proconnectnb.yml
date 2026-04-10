@@ -27,7 +27,8 @@ jobs:
 
       - name: Generate EF Core Migration
         run: |
-          dotnet ef migrations add AutoMigration_$(Get-Date -Format yyyyMMddHHmmss) --project ./backend/backend.csproj --startup-project ./backend/backend.csproj
+          $timestamp = Get-Date -Format "yyyyMMddHHmmss"
+          dotnet ef migrations add AutoMigration_$timestamp --project ./backend/backend.csproj --startup-project ./backend/backend.csproj
         env:
           ASPNETCORE_ENVIRONMENT: Development
 
@@ -35,7 +36,7 @@ jobs:
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
-          git add .
+          git add backend/Migrations
           git commit -m "Auto EF Migration" || echo "No changes to commit"
           git push
 
