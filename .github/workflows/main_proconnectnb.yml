@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and Deploy Backend (No Empty Migrations)
+name: Build and Deploy Backend
 
 on:
   push:
@@ -29,23 +29,14 @@ jobs:
         run: dotnet build ./backend/backend.csproj --configuration Release
 
       # ---------------------------------------------------
-      # 1. Générer migration auto (seulement si nécessaire)
+      # 1. Générer migration auto (toujours)
       # ---------------------------------------------------
       - name: Generate EF Core Migration
         run: |
           $timestamp = Get-Date -Format "yyyyMMdd-HH-mm"
-          $hasChanges = dotnet ef migrations has-pending-model-changes `
+          dotnet ef migrations add AutoMigration_$timestamp `
             --project ./backend/backend.csproj `
-            --startup-project ./backend/backend.csproj `
-            --json | ConvertFrom-Json
-
-          if ($hasChanges.HasChanges -eq $true) {
-              dotnet ef migrations add AutoMigration_$timestamp `
-                --project ./backend/backend.csproj `
-                --startup-project ./backend/backend.csproj
-          } else {
-              echo "Aucun changement — aucune migration créée."
-          }
+            --startup-project ./backend/backend.csproj
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.NEON_CONNECTION_STRING }}
 
