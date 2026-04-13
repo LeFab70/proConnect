@@ -34,9 +34,18 @@ jobs:
       - name: Generate EF Core Migration
         run: |
           $timestamp = Get-Date -Format "yyyyMMdd-HH-mm"
-          dotnet ef migrations add AutoMigration_$timestamp `
+          $hasChanges = dotnet ef migrations has-pending-model-changes `
             --project ./backend/backend.csproj `
-            --startup-project ./backend/backend.csproj
+            --startup-project ./backend/backend.csproj `
+            --json | ConvertFrom-Json
+
+          if ($hasChanges.HasChanges -eq $true) {
+              dotnet ef migrations add AutoMigration_$timestamp `
+                --project ./backend/backend.csproj `
+                --startup-project ./backend/backend.csproj
+          } else {
+              echo "Aucun changement — aucune migration créée."
+          }
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.NEON_CONNECTION_STRING }}
 
