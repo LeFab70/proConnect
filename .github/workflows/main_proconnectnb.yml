@@ -25,15 +25,12 @@ jobs:
       - name: Restore
         run: dotnet restore ./backend/backend.csproj
 
-      # -----------------------------
-      # 0. Build AVANT migration
-      # -----------------------------
       - name: Test Build
         run: dotnet build ./backend/backend.csproj --configuration Release
 
-      # -----------------------------
+      # ---------------------------------------------------
       # 1. Générer migration auto
-      # -----------------------------
+      # ---------------------------------------------------
       - name: Generate EF Core Migration
         run: |
           $timestamp = Get-Date -Format "yyyyMMddHHmm"
@@ -41,34 +38,46 @@ jobs:
             --project ./backend/backend.csproj `
             --startup-project ./backend/backend.csproj
         env:
-          ASPNETCORE_ENVIRONMENT: Development
+          ConnectionStrings__DefaultConnection: ${{ secrets.NEON_CONNECTION_STRING }}
 
-      # -----------------------------
-      # 2. Commit migration
-      # -----------------------------
+      # ---------------------------------------------------
+      # 2. Appliquer migration sur Neon
+      # ---------------------------------------------------
+      - name: Apply Migration to Neon
+        run: |
+          dotnet ef database update `
+            --project ./backend/backend.csproj `
+            --startup-project ./backend/backend.csproj `
+            --connection "$env:ConnectionStrings__DefaultConnection"
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.NEON_CONNECTION_STRING }}
+
+      # ---------------------------------------------------
+      # 3. Commit migration
+      # ---------------------------------------------------
       - name: Commit migration
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
-          git add backend/Migration
+          git add backend/Migrations
           git commit -m "Auto EF Migration" || echo "No changes to commit"
           git push
 
-      # -----------------------------
-      # 3. Build final
-      # -----------------------------
+      # ---------------------------------------------------
+      # 4. Build final
+      # ---------------------------------------------------
       - name: Build
         run: dotnet build ./backend/backend.csproj --configuration Release --no-restore
 
-      # -----------------------------
-      # 4. Publish
-      # -----------------------------
+      # ---------------------------------------------------
+      # 5. Publish
+      # ---------------------------------------------------
       - name: Publish
         run: dotnet publish ./backend/backend.csproj -c Release -o ./publish
 
-      # -----------------------------
-      # 5. Upload artifact
-      # -----------------------------
+      # ---------------------------------------------------
+      # 6. Upload artifact
+      # ---------------------------------------------------
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
