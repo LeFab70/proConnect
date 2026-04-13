@@ -25,27 +25,50 @@ jobs:
       - name: Restore
         run: dotnet restore ./backend/backend.csproj
 
+      # -----------------------------
+      # 0. Build AVANT migration
+      # -----------------------------
+      - name: Test Build
+        run: dotnet build ./backend/backend.csproj --configuration Release
+
+      # -----------------------------
+      # 1. Générer migration auto
+      # -----------------------------
       - name: Generate EF Core Migration
         run: |
-          $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-          dotnet ef migrations add AutoMigration_$timestamp --project ./backend/backend.csproj --startup-project ./backend/backend.csproj
+          $timestamp = Get-Date -Format "yyyyMMddHHmm"
+          dotnet ef migrations add AutoMigration_$timestamp `
+            --project ./backend/backend.csproj `
+            --startup-project ./backend/backend.csproj
         env:
           ASPNETCORE_ENVIRONMENT: Development
 
+      # -----------------------------
+      # 2. Commit migration
+      # -----------------------------
       - name: Commit migration
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
-          git add backend/Migrations
+          git add backend/Migration
           git commit -m "Auto EF Migration" || echo "No changes to commit"
           git push
 
+      # -----------------------------
+      # 3. Build final
+      # -----------------------------
       - name: Build
         run: dotnet build ./backend/backend.csproj --configuration Release --no-restore
 
+      # -----------------------------
+      # 4. Publish
+      # -----------------------------
       - name: Publish
         run: dotnet publish ./backend/backend.csproj -c Release -o ./publish
 
+      # -----------------------------
+      # 5. Upload artifact
+      # -----------------------------
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
