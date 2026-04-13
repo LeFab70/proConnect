@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-
+Console.WriteLine("APP STARTING");
 var builder = WebApplication.CreateBuilder(args); // Configuration et services DI (Dependency Injection), variable environnement etc..
-
+Console.WriteLine("APP STARTING");
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddValidation();
 builder.Services.AddSwaggerGen(c =>
