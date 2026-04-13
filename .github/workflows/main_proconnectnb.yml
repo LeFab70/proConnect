@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and Deploy .NET Backend
+name: Build and Deploy Backend (No Empty Migrations)
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
         run: dotnet build ./backend/backend.csproj --configuration Release
 
       # ---------------------------------------------------
-      # 1. Générer migration auto
+      # 1. Générer migration auto (seulement si nécessaire)
       # ---------------------------------------------------
       - name: Generate EF Core Migration
         run: |
