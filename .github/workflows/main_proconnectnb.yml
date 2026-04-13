@@ -51,7 +51,6 @@ jobs:
             --connection "$env:ConnectionStrings__DefaultConnection"
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.NEON_CONNECTION_STRING }}
-          SEED_DATA: "true"
 
       # ---------------------------------------------------
       # 3. Commit migration

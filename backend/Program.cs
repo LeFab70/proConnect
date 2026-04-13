@@ -91,9 +91,9 @@ builder.Services.AddAuthorization(o =>
 });
 
 WebApplication app = builder.Build(); // Construction de l'application (apres avoir configurer les services et le builder)
-
+Console.WriteLine("APP STARTING");
 await SeedData.ApplyMigrationsAndSeedAsync(app.Services);
-
+Console.WriteLine("APP STARTING");
 // TODO: Enlever les commentaires si on veut utiliser l'API Key
 // Middleware pour la gestion de l'API Key (regarder si on a la bonne clef dans les headers)
 /*
