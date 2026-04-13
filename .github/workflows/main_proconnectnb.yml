@@ -33,7 +33,7 @@ jobs:
       # ---------------------------------------------------
       - name: Generate EF Core Migration
         run: |
-          $timestamp = Get-Date -Format "yyyyMMddHHmm"
+          $timestamp = Get-Date -Format "yyyy/MM/dd-HH-mm"
           dotnet ef migrations add AutoMigration_$timestamp `
             --project ./backend/backend.csproj `
             --startup-project ./backend/backend.csproj
@@ -51,6 +51,7 @@ jobs:
             --connection "$env:ConnectionStrings__DefaultConnection"
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.NEON_CONNECTION_STRING }}
+          SEED_DATA: "true"
 
       # ---------------------------------------------------
       # 3. Commit migration
