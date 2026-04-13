@@ -93,7 +93,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend
-          path: ./backend
+          path: ./publish
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
@@ -101,4 +101,4 @@ jobs:
           app-name: 'ProConnectNB'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          package: ./backend
+          package: ./publish

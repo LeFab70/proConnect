@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-Console.WriteLine("APP STARTING");
+
 var builder = WebApplication.CreateBuilder(args); // Configuration et services DI (Dependency Injection), variable environnement etc..
-Console.WriteLine("APP STARTING");
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddValidation();
 builder.Services.AddSwaggerGen(c =>
@@ -91,9 +91,9 @@ builder.Services.AddAuthorization(o =>
 });
 
 WebApplication app = builder.Build(); // Construction de l'application (apres avoir configurer les services et le builder)
-Console.WriteLine("APP STARTING");
+
 await SeedData.ApplyMigrationsAndSeedAsync(app.Services);
-Console.WriteLine("APP STARTING");
+
 // TODO: Enlever les commentaires si on veut utiliser l'API Key
 // Middleware pour la gestion de l'API Key (regarder si on a la bonne clef dans les headers)
 /*
