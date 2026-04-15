@@ -20,11 +20,11 @@ public class UserService(AppDbContext db) : IUserService
             .Select(u => new UserResponseDto
             {
                 Id = u.Id,
+                KeycloakId = u.KeycloakId,
                 Nom = u.Nom,
                 Prenom = u.Prenom,
                 Telephone = u.Telephone,
-                Email = u.Email,
-                Role = u.Role
+                Email = u.Email
             })
             .ToListAsync();
     }
@@ -37,24 +37,75 @@ public class UserService(AppDbContext db) : IUserService
             .Select(u => new UserResponseDto
             {
                 Id = u.Id,
+                KeycloakId = u.KeycloakId,
                 Nom = u.Nom,
                 Prenom = u.Prenom,
                 Telephone = u.Telephone,
-                Email = u.Email,
-                Role = u.Role
+                Email = u.Email
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertUserRequestDto dto) // Crée un nouvel utilisateur
+    public async Task<UserResponseDto> GetOrCreateMe(string keycloakId, string email, string? nom, string? prenom)
     {
-        var entity = new User
+        var existing = await _db.Users.AsNoTracking()
+            .Where(u => u.KeycloakId == keycloakId)
+            .Select(u => new UserResponseDto
+            {
+                Id = u.Id,
+                KeycloakId = u.KeycloakId,
+                Nom = u.Nom,
+                Prenom = u.Prenom,
+                Telephone = u.Telephone,
+                Email = u.Email
+            })
+            .FirstOrDefaultAsync();
+
+        if (existing != null) return existing;
+
+        var entity = new StandardUser
         {
+            KeycloakId = keycloakId,
+            Email = email,
+            Nom = nom ?? "Inconnu",
+            Prenom = prenom ?? "Inconnu",
+            Telephone = "N/A"
+        };
+        _db.Users.Add(entity);
+        await _db.SaveChangesAsync();
+
+        return new UserResponseDto
+        {
+            Id = entity.Id,
+            KeycloakId = entity.KeycloakId,
+            Nom = entity.Nom,
+            Prenom = entity.Prenom,
+            Telephone = entity.Telephone,
+            Email = entity.Email
+        };
+    }
+
+    public async Task<bool> UpdateMe(string keycloakId, UpsertMyProfileRequestDto dto)
+    {
+        var entity = await _db.Users.FirstOrDefaultAsync(u => u.KeycloakId == keycloakId);
+        if (entity == null) return false;
+
+        entity.Nom = dto.Nom;
+        entity.Prenom = dto.Prenom;
+        entity.Telephone = dto.Telephone;
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<IdResponseDto> Create(UpsertUserRequestDto dto)
+    {
+        var entity = new StandardUser
+        {
+            KeycloakId = dto.KeycloakId,
             Nom = dto.Nom,
             Prenom = dto.Prenom,
             Telephone = dto.Telephone,
             Email = dto.Email,
-            Role = dto.Role
         };
         _db.Users.Add(entity);
         await _db.SaveChangesAsync();
@@ -70,7 +121,7 @@ public class UserService(AppDbContext db) : IUserService
         entity.Prenom = dto.Prenom;
         entity.Telephone = dto.Telephone;
         entity.Email = dto.Email;
-        entity.Role = dto.Role;
+        entity.KeycloakId = dto.KeycloakId;
 
         await _db.SaveChangesAsync();
         return true;

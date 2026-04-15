@@ -56,6 +56,7 @@ public class AineService(AppDbContext db) : IAineService
     {
         var entity = new Aine
         {
+            KeycloakId = Guid.NewGuid().ToString(),
             Nom = dto.Nom,
             Prenom = dto.Prenom,
             Telephone = dto.Telephone,

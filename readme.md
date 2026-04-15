@@ -44,11 +44,8 @@ cd ProConnectNB
 Le backend lit la connexion DB et l’auth JWT depuis des variables d’environnement.
 
 - **`DefaultConnection`**: connection string PostgreSQL (Neon)
-- **`JWT__Key`**: clé symétrique (min 32 chars recommandé)
-- **`JWT__Issuer`**: ex `ProConnectNB` (optionnel)
-- **`JWT__Audience`**: ex `ProConnectNB` (optionnel)
-- **`JWT__ExpiresMinutes`**: ex `120` (optionnel)
-- **`DEV_AUTH_SECRET`**: secret pour générer un token en dev via `/api/auth/token`
+- **`KEYCLOAK__AUTHORITY`**: URL realm (ex: `https://<host>/realms/<realm>`)
+- **`KEYCLOAK__AUDIENCE`**: audience/client id attendu dans le token
 - **`SEED_DATA`**: mettre `true` pour insérer des données de démonstration au démarrage (après migrations)
 
 ### Lancer le backend
@@ -63,17 +60,20 @@ dotnet run
 Swagger (en dev): `http://localhost:5xxx/swagger`
 
 ### Obtenir un JWT (dev)
-POST `api/auth/token` avec:
-
-- `email`
-- `role` (ex: `Admin`)
-- `secret` (= `DEV_AUTH_SECRET`)
-
-Puis dans Swagger, bouton **Authorize** → `Bearer <token>`.
+Authentifie-toi via Keycloak côté client, puis dans Swagger bouton **Authorize** → `Bearer <token>`.
 
 ### 🔐 Endpoints protégés
 - La majorité des endpoints API sont en **`[Authorize]`** (token obligatoire).
-- Les opérations d’écriture (POST/PUT/DELETE) sont généralement **`[Authorize(Roles="Admin")]`**.
+- Les opérations d’écriture (POST/PUT/DELETE) sont généralement **`AdminOnly`** (rôle `Admin` fourni par Keycloak).
+
+### 🧩 Synchronisation utilisateur (KeycloakId)
+- L’API stocke `keycloak_id` (= claim `sub`) dans la table `users`.
+- Endpoint utile: `GET /api/users/me` crée/retourne l’utilisateur local à partir du token Keycloak.
+
+### 🧬 Héritage (User abstrait)
+- `User` est une **classe abstraite**.
+- `Aine` et `ProcheAidant` **héritent** de `User` (sans dupliquer les champs).
+- Mapping EF Core en **TPH**: une seule table `users` avec une colonne `type` (discriminateur).
 
 ### Minimal API (MapGet/MapPost/MapPut/MapDelete)
 Le backend utilise maintenant les **Minimal APIs** (route groups) au lieu des controllers MVC.
@@ -96,7 +96,7 @@ dotnet ef database update
 ```
 
 ### 🌱 Seed (données de démo)
-Si `SEED_DATA=true`, le backend insère des données de démonstration (admin/test + aîné + proche aidant + médicament + rendez-vous + rappel) au démarrage.
+Si `SEED_DATA=true`, le backend insère des données de démonstration (Fabrice/Kayleb/Perez/Grace + aîné + proche aidant + médicament + rendez-vous + rappel) au démarrage.
 
 # 📱 Installation du Frontend (Flutter)
 
@@ -115,7 +115,7 @@ flutter run
 - Respecter le .gitignore
 - Garder backend et frontend synchronisés lors de modifications des modèles API
 
-## 👥 Équipe / Auteurs
+## 👥 Développeurs du projet
 - Kayleb
 - Grace
 - Perez

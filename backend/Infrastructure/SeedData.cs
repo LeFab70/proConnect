@@ -19,9 +19,10 @@ public static class SeedData
         if (!await db.Users.AnyAsync(ct))
         {
             db.Users.AddRange(
-                new User { Nom = "Admin", Prenom = "ProConnect", Telephone = "000-000-0000", Email = "admin@proconnect.local", Role = "Admin" },
-                new User { Nom = "Test", Prenom = "Aine", Telephone = "111-111-1111", Email = "aine@proconnect.local", Role = "Aine" },
-                new User { Nom = "Test", Prenom = "Proche", Telephone = "222-222-2222", Email = "proche@proconnect.local", Role = "ProcheAidant" }
+                new StandardUser { KeycloakId = "seed-fabrice-sub", Nom = "Kouonang", Prenom = "Fabrice", Telephone = "506-000-0001", Email = "fabrice@proconnect.local" },
+                new StandardUser { KeycloakId = "seed-kayleb-sub", Nom = "Aubie", Prenom = "Kayleb", Telephone = "506-000-0002", Email = "kayleb@proconnect.local" },
+                new StandardUser { KeycloakId = "seed-perez-sub", Nom = "Perez", Prenom = "Perez", Telephone = "506-000-0003", Email = "perez@proconnect.local" },
+                new StandardUser { KeycloakId = "seed-grace-sub", Nom = "Grace", Prenom = "Grace", Telephone = "506-000-0004", Email = "grace@proconnect.local" }
             );
         }
 
@@ -29,6 +30,7 @@ public static class SeedData
         {
             db.Aines.Add(new Aine
             {
+                KeycloakId = "seed-aine-sub",
                 Nom = "Dupont",
                 Prenom = "Marie",
                 Telephone = "333-333-3333",
@@ -44,6 +46,7 @@ public static class SeedData
         {
             db.ProchesAidants.Add(new ProcheAidant
             {
+                KeycloakId = "seed-proche-sub",
                 Nom = "Martin",
                 Prenom = "Alex",
                 Telephone = "444-444-4444",

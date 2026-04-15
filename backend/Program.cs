@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using backend.Dtos.Auth;
 using backend.Endpoints;
 using backend.Infrastructure;
 using backend.Services;
@@ -61,27 +60,59 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-var jwtKey = Environment.GetEnvironmentVariable("JWT__Key");
-if (string.IsNullOrWhiteSpace(jwtKey))
+var keycloakAuthority = Environment.GetEnvironmentVariable("KEYCLOAK__AUTHORITY");
+var keycloakAudience = Environment.GetEnvironmentVariable("KEYCLOAK__AUDIENCE");
+if (string.IsNullOrWhiteSpace(keycloakAuthority) || string.IsNullOrWhiteSpace(keycloakAudience))
 {
-    Console.WriteLine("WARNING: Missing JWT__Key. Using dummy key.");
-    jwtKey = "THIS_IS_A_DEV_FALLBACK_KEY_1234567890";
+    throw new InvalidOperationException("Missing env vars: KEYCLOAK__AUTHORITY and/or KEYCLOAK__AUDIENCE.");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var issuer = Environment.GetEnvironmentVariable("JWT__Issuer") ?? "ProConnectNB";
-        var audience = Environment.GetEnvironmentVariable("JWT__Audience") ?? "ProConnectNB";
+        options.Authority = keycloakAuthority;
+        options.Audience = keycloakAudience;
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            NameClaimType = "preferred_username"
+        };
+
+        // Keycloak: mapper realm_access.roles -> ClaimTypes.Role
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var identity = context.Principal?.Identity as ClaimsIdentity;
+                var realmAccess = context.Principal?.FindFirst("realm_access")?.Value;
+                if (identity != null && !string.IsNullOrWhiteSpace(realmAccess))
+                {
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(realmAccess);
+                        if (doc.RootElement.TryGetProperty("roles", out var roles) && roles.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        {
+                            foreach (var r in roles.EnumerateArray())
+                            {
+                                var role = r.GetString();
+                                if (!string.IsNullOrWhiteSpace(role))
+                                {
+                                    identity.AddClaim(new Claim(ClaimTypes.Role, role));
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore malformed realm_access
+                    }
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -132,7 +163,6 @@ app.UseAuthorization();
 
 app.MapRootEndpoints();
 app.MapHealthEndpoints();
-app.MapAuthEndpoints();
 app.MapUsersEndpoints();
 app.MapAinesEndpoints();
 app.MapProchesAidantsEndpoints();
