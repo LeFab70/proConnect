@@ -6,6 +6,7 @@ namespace backend.Infrastructure;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<StandardUser> StandardUsers => Set<StandardUser>();
     public DbSet<Aine> Aines => Set<Aine>();
     public DbSet<ProcheAidant> ProchesAidants => Set<ProcheAidant>();
     public DbSet<Medicament> Medicaments => Set<Medicament>();
@@ -21,33 +22,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.ToTable("users");
             e.HasKey(x => x.Id);
+            e.HasDiscriminator<string>("type")
+                .HasValue<StandardUser>("User")
+                .HasValue<Aine>("Aine")
+                .HasValue<ProcheAidant>("ProcheAidant");
+            e.Property<string>("type").HasColumnName("type");
+            e.Property(x => x.KeycloakId).HasColumnName("keycloak_id");
             e.Property(x => x.Nom).HasColumnName("nom");
             e.Property(x => x.Prenom).HasColumnName("prenom");
             e.Property(x => x.Telephone).HasColumnName("telephone");
             e.Property(x => x.Email).HasColumnName("email");
-            e.Property(x => x.Role).HasColumnName("role");
+            e.HasIndex(x => x.KeycloakId).IsUnique();
         });
 
         modelBuilder.Entity<Aine>(e =>
         {
-            e.ToTable("aines");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Nom).HasColumnName("nom");
-            e.Property(x => x.Prenom).HasColumnName("prenom");
-            e.Property(x => x.Telephone).HasColumnName("telephone");
-            e.Property(x => x.Email).HasColumnName("email");
+            // TPH: les colonnes spécifiques à Aine restent dans "users"
             e.Property(x => x.DateNaissance).HasColumnName("date_naissance");
             e.Property(x => x.Adresse).HasColumnName("adresse");
         });
 
         modelBuilder.Entity<ProcheAidant>(e =>
         {
-            e.ToTable("proches_aidants");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.Nom).HasColumnName("nom");
-            e.Property(x => x.Prenom).HasColumnName("prenom");
-            e.Property(x => x.Telephone).HasColumnName("telephone");
-            e.Property(x => x.Email).HasColumnName("email");
+            // TPH: les colonnes spécifiques à ProcheAidant restent dans "users"
             e.Property(x => x.Relation).HasColumnName("relation");
         });
 

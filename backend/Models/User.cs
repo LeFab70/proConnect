@@ -1,11 +1,12 @@
 namespace backend.Models;
 
-public class User
+public abstract class User
 {
     public long Id { get; set; }
+    public required string KeycloakId { get; set; } // Keycloak "sub"
     public required string Nom { get; set; }
     public required string Prenom { get; set; }
     public required string Telephone { get; set; }
     public required string Email { get; set; }
-    public string? Role { get; set; } // ex: "Aine", "ProcheAidant", "Admin"
+    // Les rôles/autorisations viennent de Keycloak (claims JWT)
 }

@@ -49,6 +49,7 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
     {
         var entity = new ProcheAidant
         {
+            KeycloakId = Guid.NewGuid().ToString(),
             Nom = dto.Nom,
             Prenom = dto.Prenom,
             Telephone = dto.Telephone,
