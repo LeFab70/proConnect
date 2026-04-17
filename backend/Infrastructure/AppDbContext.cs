@@ -27,12 +27,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .HasValue<Aine>("Aine")
                 .HasValue<ProcheAidant>("ProcheAidant");
             e.Property<string>("type").HasColumnName("type");
-            e.Property(x => x.KeycloakId).HasColumnName("keycloak_id");
             e.Property(x => x.Nom).HasColumnName("nom");
             e.Property(x => x.Prenom).HasColumnName("prenom");
             e.Property(x => x.Telephone).HasColumnName("telephone");
             e.Property(x => x.Email).HasColumnName("email");
-            e.HasIndex(x => x.KeycloakId).IsUnique();
+            e.Property(x => x.PasswordHash).HasColumnName("password_hash");
+            e.Property(x => x.PasswordResetTokenHash).HasColumnName("password_reset_token_hash");
+            e.Property(x => x.PasswordResetTokenExpiresAtUtc).HasColumnName("password_reset_token_expires_at_utc");
+            e.HasIndex(x => x.Email).IsUnique();
         });
 
         modelBuilder.Entity<Aine>(e =>
