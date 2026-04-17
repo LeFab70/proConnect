@@ -42,6 +42,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             // TPH: les colonnes spécifiques à Aine restent dans "users"
             e.Property(x => x.DateNaissance).HasColumnName("date_naissance");
             e.Property(x => x.Adresse).HasColumnName("adresse");
+            e.Property(x => x.Docteur).HasColumnName("docteur");
+            e.Property(x => x.NumeroTelephoneDocteur).HasColumnName("numero_telephone_docteur");
         });
 
         modelBuilder.Entity<ProcheAidant>(e =>
@@ -55,6 +57,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.ToTable("medicaments");
             e.HasKey(x => x.Id);
             e.Property(x => x.Nom).HasColumnName("nom");
+            e.Property(x => x.Marque).HasColumnName("marque");
             e.Property(x => x.Dosage).HasColumnName("dosage");
             e.Property(x => x.Frequence).HasColumnName("frequence");
             e.Property(x => x.AineId).HasColumnName("aine_id");
@@ -66,7 +69,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasKey(x => x.Id);
             e.Property(x => x.DateHeure).HasColumnName("date_heure");
             e.Property(x => x.Lieu).HasColumnName("lieu");
-            e.Property(x => x.Specialiste).HasColumnName("specialiste");
+            e.Property(x => x.Docteur).HasColumnName("docteur");
             e.Property(x => x.Notes).HasColumnName("notes");
             e.Property(x => x.AineId).HasColumnName("aine_id");
         });

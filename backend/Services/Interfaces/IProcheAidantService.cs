@@ -3,6 +3,7 @@ using backend.Dtos.ProchesAidants;
 
 namespace backend.Services.Interfaces;
 
+// Interface pour le service de gestion des proches aidants
 public interface IProcheAidantService
 {
     Task<IReadOnlyList<ProcheAidantResponseDto>> GetAll();
@@ -11,4 +12,3 @@ public interface IProcheAidantService
     Task<bool> Update(long id, UpsertProcheAidantRequestDto dto);
     Task<bool> Delete(long id);
 }
-

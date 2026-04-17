@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http; // Import du package http pour les requetes HTTP qui sont plus universelles
-import 'secrets.dart'; // Import du fichier secrets.dart pour acceder a la cle API
 
 class Api 
 {
@@ -71,15 +70,6 @@ class Api
     {
       client.close();
     }
-  }
-
-  Map<String, String> defaultHeaders() 
-  {
-    return
-    {
-      "Content-Type": "application/json",
-      "x-api-key": Secrets.apiKey
-    };
   }
 
 }

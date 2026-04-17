@@ -7,11 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
+// Service pour gérer les opérations liées aux utilisateurs
 public class UserService(AppDbContext db) : IUserService
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db = db; // Injection de la dépendance pour accéder à la base de données
 
-    public async Task<IReadOnlyList<UserResponseDto>> GetAll()
+    public async Task<IReadOnlyList<UserResponseDto>> GetAll() // Récupère tous les utilisateurs
     {
         return await _db.Users
             .AsNoTracking()
@@ -27,7 +28,7 @@ public class UserService(AppDbContext db) : IUserService
             .ToListAsync();
     }
 
-    public async Task<UserResponseDto?> GetById(long id)
+    public async Task<UserResponseDto?> GetById(long id) // Récupère un utilisateur par son ID
     {
         return await _db.Users
             .AsNoTracking()
@@ -58,7 +59,7 @@ public class UserService(AppDbContext db) : IUserService
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertUserRequestDto dto)
+    public async Task<bool> Update(long id, UpsertUserRequestDto dto) // Met à jour un utilisateur existant
     {
         var entity = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
         if (entity == null) return false;
@@ -72,7 +73,7 @@ public class UserService(AppDbContext db) : IUserService
         return true;
     }
 
-    public async Task<bool> Delete(long id)
+    public async Task<bool> Delete(long id) // Supprime un utilisateur par son ID
     {
         var entity = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
         if (entity == null) return false;

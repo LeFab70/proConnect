@@ -4,9 +4,10 @@ using backend.Services.Interfaces;
 
 namespace backend.Endpoints;
 
+// Classe pour gerer les endpoints liés aux aînés
 public static class AinesEndpoints
 {
-    public static void MapAinesEndpoints(this WebApplication app)
+    public static void MapAinesEndpoints(this WebApplication app) // Methode d'extension pour ajouter les endpoints à l'application
     {
         var route = app.MapGroup("/api/aines").WithTags("Aines").RequireAuthorization();
 
@@ -36,19 +37,19 @@ public static class AinesEndpoints
             .WithSummary("Supprime un aîné (Admin)");
     }
 
-    private static async Task<IResult> GetAll(IAineService svc)
+    private static async Task<IResult> GetAll(IAineService svc) // Endpoint pour récupérer tous les aînés
     {
         var items = await svc.GetAll();
         return Results.Ok(items);
     }
 
-    private static async Task<IResult> GetById(long id, IAineService svc)
+    private static async Task<IResult> GetById(long id, IAineService svc) // Endpoint pour récupérer un aîné par id
     {
         var r = await svc.GetById(id);
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(UpsertAineRequestDto dto, IAineService svc)
+    private static async Task<IResult> Create(UpsertAineRequestDto dto, IAineService svc) // Endpoint pour créer un aîné
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -57,7 +58,7 @@ public static class AinesEndpoints
         return Results.Created($"/api/aines/{created.Id}", created);
     }
 
-    private static async Task<IResult> Update(long id, UpsertAineRequestDto dto, IAineService svc)
+    private static async Task<IResult> Update(long id, UpsertAineRequestDto dto, IAineService svc) // Endpoint pour mettre à jour un aîné
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -66,10 +67,9 @@ public static class AinesEndpoints
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(long id, IAineService svc)
+    private static async Task<IResult> Delete(long id, IAineService svc) // Endpoint pour supprimer un aîné
     {
         var ok = await svc.Delete(id);
         return ok ? Results.NoContent() : Results.NotFound();
     }
 }
-

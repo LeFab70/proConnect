@@ -9,5 +9,6 @@ public class AineResponseDto
     public required string Email { get; set; }
     public DateOnly DateNaissance { get; set; }
     public required string Adresse { get; set; }
+    public string Docteur { get; set; }
+    public string NumeroTelephoneDocteur { get; set; }
 }
-

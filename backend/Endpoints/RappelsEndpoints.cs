@@ -4,9 +4,10 @@ using backend.Services.Interfaces;
 
 namespace backend.Endpoints;
 
+// Classe pour les endpoints de rappels
 public static class RappelsEndpoints
 {
-    public static void MapRappelsEndpoints(this WebApplication app)
+    public static void MapRappelsEndpoints(this WebApplication app) // Methode d'extension pour ajouter les endpoints à l'application
     {
         var route = app.MapGroup("/api/rappels").WithTags("Rappels").RequireAuthorization();
 
@@ -36,19 +37,19 @@ public static class RappelsEndpoints
             .WithSummary("Supprime un rappel (Admin)");
     }
 
-    private static async Task<IResult> GetAll(IRappelService svc)
+    private static async Task<IResult> GetAll(IRappelService svc) // Injection du service pour récupérer les rappels
     {
         var items = await svc.GetAll();
         return Results.Ok(items);
     }
 
-    private static async Task<IResult> GetById(long id, IRappelService svc)
+    private static async Task<IResult> GetById(long id, IRappelService svc) // Injection du service pour récupérer un rappel par id
     {
         var r = await svc.GetById(id);
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(UpsertRappelRequestDto dto, IRappelService svc)
+    private static async Task<IResult> Create(UpsertRappelRequestDto dto, IRappelService svc) // Injection du service pour créer un rappel
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -57,7 +58,7 @@ public static class RappelsEndpoints
         return Results.Created($"/api/rappels/{created.Id}", created);
     }
 
-    private static async Task<IResult> Update(long id, UpsertRappelRequestDto dto, IRappelService svc)
+    private static async Task<IResult> Update(long id, UpsertRappelRequestDto dto, IRappelService svc) // Injection du service pour mettre à jour un rappel
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -66,10 +67,9 @@ public static class RappelsEndpoints
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(long id, IRappelService svc)
+    private static async Task<IResult> Delete(long id, IRappelService svc) // Injection du service pour supprimer un rappel
     {
         var ok = await svc.Delete(id);
         return ok ? Results.NoContent() : Results.NotFound();
     }
 }
-

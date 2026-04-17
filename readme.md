@@ -104,17 +104,6 @@ dotnet ef database update
 ### 🌱 Seed (données de démo)
 Si `SEED_DATA=true`, le backend insère des données de démonstration (Fabrice/Kayleb/Perez/Grace + aîné + proche aidant + médicament + rendez-vous + rappel) au démarrage.
 
-## 🖥️ Configuration de fichiers (Frontend)
-
-### 1. Configurer les variables d’environnement pour prevenir le spam sur le serveur Azure (future)
-Créer le fichier :
-frontend/lib/secrets.dart
-
-class Secrets
-{
-  static const String apiKey = "";
-}
-
 # 📱 Installation du Frontend (Flutter)
 
 ### 1. Aller dans le dossier frontend
@@ -125,12 +114,6 @@ flutter pub get
 
 ### 3. Lancer l’application
 flutter run
-
-# 🔐 Variables d’Environnement
-Chaque membre doit créer :
-- secrets.dart (ApiKey)
-
-Ne jamais commit ces fichiers.
 
 # 🧠 Notes pour l’Équipe
 - Ne jamais commit de secrets ou fichiers d’environnement

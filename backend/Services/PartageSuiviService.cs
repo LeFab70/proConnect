@@ -7,11 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
+// Service pour gérer les partages de suivi entre aînés et proches aidants
 public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db = db; // Injection du contexte de base de données
 
-    public async Task<IReadOnlyList<PartageSuiviResponseDto>> GetAll()
+    public async Task<IReadOnlyList<PartageSuiviResponseDto>> GetAll() // Récupère tous les partages de suivi
     {
         return await _db.PartagesSuivi
             .AsNoTracking()
@@ -26,7 +27,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
             .ToListAsync();
     }
 
-    public async Task<PartageSuiviResponseDto?> GetById(long id)
+    public async Task<PartageSuiviResponseDto?> GetById(long id) // Récupère un partage de suivi par son ID
     {
         return await _db.PartagesSuivi
             .AsNoTracking()
@@ -41,7 +42,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertPartageSuiviRequestDto dto)
+    public async Task<IdResponseDto> Create(UpsertPartageSuiviRequestDto dto) // Crée un nouveau partage de suivi
     {
         var entity = new PartageSuivi
         {
@@ -54,7 +55,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertPartageSuiviRequestDto dto)
+    public async Task<bool> Update(long id, UpsertPartageSuiviRequestDto dto) // Met à jour un partage de suivi existant
     {
         var entity = await _db.PartagesSuivi.FirstOrDefaultAsync(p => p.Id == id);
         if (entity == null) return false;
@@ -67,7 +68,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
         return true;
     }
 
-    public async Task<bool> Delete(long id)
+    public async Task<bool> Delete(long id) // Supprime un partage de suivi par son ID
     {
         var entity = await _db.PartagesSuivi.FirstOrDefaultAsync(p => p.Id == id);
         if (entity == null) return false;
@@ -76,4 +77,3 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
         return true;
     }
 }
-

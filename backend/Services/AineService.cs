@@ -7,11 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
+// Service pour gérer les opérations CRUD sur les aînés
 public class AineService(AppDbContext db) : IAineService
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db = db; // Injection de dépendance du contexte de base de données
 
-    public async Task<IReadOnlyList<AineResponseDto>> GetAll()
+    public async Task<IReadOnlyList<AineResponseDto>> GetAll() // Récupère tous les aînés de la base de données et les mappe en DTOs
     {
         return await _db.Aines
             .AsNoTracking()
@@ -24,12 +25,14 @@ public class AineService(AppDbContext db) : IAineService
                 Telephone = a.Telephone,
                 Email = a.Email,
                 DateNaissance = a.DateNaissance,
-                Adresse = a.Adresse
+                Adresse = a.Adresse,
+                Docteur = a.Docteur,
+                NumeroTelephoneDocteur = a.NumeroTelephoneDocteur
             })
             .ToListAsync();
     }
 
-    public async Task<AineResponseDto?> GetById(long id)
+    public async Task<AineResponseDto?> GetById(long id) // Récupère un aîné spécifique par son ID et le mappe en DTO
     {
         return await _db.Aines
             .AsNoTracking()
@@ -42,12 +45,14 @@ public class AineService(AppDbContext db) : IAineService
                 Telephone = a.Telephone,
                 Email = a.Email,
                 DateNaissance = a.DateNaissance,
-                Adresse = a.Adresse
+                Adresse = a.Adresse,
+                Docteur = a.Docteur,
+                NumeroTelephoneDocteur = a.NumeroTelephoneDocteur
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertAineRequestDto dto)
+    public async Task<IdResponseDto> Create(UpsertAineRequestDto dto) // Crée un nouvel aîné à partir des données fournies dans le DTO et retourne l'ID de l'entité créée
     {
         var entity = new Aine
         {
@@ -57,14 +62,16 @@ public class AineService(AppDbContext db) : IAineService
             Email = dto.Email,
             PasswordHash = "N/A",
             DateNaissance = dto.DateNaissance,
-            Adresse = dto.Adresse
+            Adresse = dto.Adresse,
+            Docteur = dto.Docteur,
+            NumeroTelephoneDocteur = dto.NumeroTelephoneDocteur
         };
         _db.Aines.Add(entity);
         await _db.SaveChangesAsync();
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertAineRequestDto dto)
+    public async Task<bool> Update(long id, UpsertAineRequestDto dto) // Met à jour un aîné existant avec les nouvelles données fournies dans le DTO, retourne true si la mise à jour a réussi, sinon false si l'aîné n'existe pas
     {
         var entity = await _db.Aines.FirstOrDefaultAsync(a => a.Id == id);
         if (entity == null) return false;
@@ -75,12 +82,14 @@ public class AineService(AppDbContext db) : IAineService
         entity.Email = dto.Email;
         entity.DateNaissance = dto.DateNaissance;
         entity.Adresse = dto.Adresse;
+        entity.Docteur = dto.Docteur;
+        entity.NumeroTelephoneDocteur = dto.NumeroTelephoneDocteur;
 
         await _db.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> Delete(long id)
+    public async Task<bool> Delete(long id) // Supprime un aîné de la base de données en fonction de son ID, retourne true si la suppression a réussi, sinon false si l'aîné n'existe pas
     {
         var entity = await _db.Aines.FirstOrDefaultAsync(a => a.Id == id);
         if (entity == null) return false;
@@ -89,4 +98,3 @@ public class AineService(AppDbContext db) : IAineService
         return true;
     }
 }
-

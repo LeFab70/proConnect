@@ -7,11 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
+// Service pour gérer les rendez-vous médicaux des aînés
 public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalService
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db = db; // Injection de dépendance du contexte de base de données
 
-    public async Task<IReadOnlyList<RendezVousMedicalResponseDto>> GetAll()
+    public async Task<IReadOnlyList<RendezVousMedicalResponseDto>> GetAll() // Récupère tous les rendez-vous médicaux
     {
         return await _db.RendezVousMedicaux
             .AsNoTracking()
@@ -21,14 +22,14 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
                 Id = r.Id,
                 DateHeure = r.DateHeure,
                 Lieu = r.Lieu,
-                Specialiste = r.Specialiste,
+                Docteur = r.Docteur,
                 Notes = r.Notes,
                 AineId = r.AineId
             })
             .ToListAsync();
     }
 
-    public async Task<RendezVousMedicalResponseDto?> GetById(long id)
+    public async Task<RendezVousMedicalResponseDto?> GetById(long id) // Récupère un rendez-vous médical par son ID
     {
         return await _db.RendezVousMedicaux
             .AsNoTracking()
@@ -38,20 +39,20 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
                 Id = r.Id,
                 DateHeure = r.DateHeure,
                 Lieu = r.Lieu,
-                Specialiste = r.Specialiste,
+                Docteur = r.Docteur,
                 Notes = r.Notes,
                 AineId = r.AineId
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertRendezVousMedicalRequestDto dto)
+    public async Task<IdResponseDto> Create(UpsertRendezVousMedicalRequestDto dto) // Crée un nouveau rendez-vous médical
     {
         var entity = new RendezVousMedical
         {
             DateHeure = dto.DateHeure,
             Lieu = dto.Lieu,
-            Specialiste = dto.Specialiste,
+            Docteur = dto.Docteur,
             Notes = dto.Notes,
             AineId = dto.AineId
         };
@@ -60,14 +61,14 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertRendezVousMedicalRequestDto dto)
+    public async Task<bool> Update(long id, UpsertRendezVousMedicalRequestDto dto) // Met à jour un rendez-vous médical existant
     {
         var entity = await _db.RendezVousMedicaux.FirstOrDefaultAsync(r => r.Id == id);
         if (entity == null) return false;
 
         entity.DateHeure = dto.DateHeure;
         entity.Lieu = dto.Lieu;
-        entity.Specialiste = dto.Specialiste;
+        entity.Docteur = dto.Docteur;
         entity.Notes = dto.Notes;
         entity.AineId = dto.AineId;
 
@@ -75,7 +76,7 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         return true;
     }
 
-    public async Task<bool> Delete(long id)
+    public async Task<bool> Delete(long id) // Supprime un rendez-vous médical par son ID
     {
         var entity = await _db.RendezVousMedicaux.FirstOrDefaultAsync(r => r.Id == id);
         if (entity == null) return false;
@@ -84,4 +85,3 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         return true;
     }
 }
-
