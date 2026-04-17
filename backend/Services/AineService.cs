@@ -51,11 +51,11 @@ public class AineService(AppDbContext db) : IAineService
     {
         var entity = new Aine
         {
-            KeycloakId = Guid.NewGuid().ToString(),
             Nom = dto.Nom,
             Prenom = dto.Prenom,
             Telephone = dto.Telephone,
             Email = dto.Email,
+            PasswordHash = "N/A",
             DateNaissance = dto.DateNaissance,
             Adresse = dto.Adresse
         };

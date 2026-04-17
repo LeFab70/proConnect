@@ -44,9 +44,16 @@ cd ProConnectNB
 Le backend lit la connexion DB et l’auth JWT depuis des variables d’environnement.
 
 - **`DefaultConnection`**: connection string PostgreSQL (Neon)
-- **`KEYCLOAK__AUTHORITY`**: URL realm (ex: `https://<host>/realms/<realm>`)
-- **`KEYCLOAK__AUDIENCE`**: audience/client id attendu dans le token
+- **`JWT__Key`**: clé symétrique (min 32 chars recommandé)
+- **`JWT__Issuer`**: ex `ProConnectNB` (optionnel)
+- **`JWT__Audience`**: ex `ProConnectNB` (optionnel)
+- **`JWT__ExpiresMinutes`**: ex `120` (optionnel)
 - **`SEED_DATA`**: mettre `true` pour insérer des données de démonstration au démarrage (après migrations)
+- **`SEED_PASSWORD`**: mot de passe des users seed (défaut `Password123!`)
+
+### Email reset password (optionnel)
+- **`SMTP__HOST`**, **`SMTP__PORT`**, **`SMTP__USER`**, **`SMTP__PASS`**, **`SMTP__FROM`**
+- **`RESET_PASSWORD__BASE_URL`**: URL front pour construire le lien de reset (ex: `http://localhost:3000/reset-password`)
 
 ### Lancer le backend
 Dans un terminal:
@@ -60,15 +67,14 @@ dotnet run
 Swagger (en dev): `http://localhost:5xxx/swagger`
 
 ### Obtenir un JWT (dev)
-Authentifie-toi via Keycloak côté client, puis dans Swagger bouton **Authorize** → `Bearer <token>`.
+Utilise `POST /api/auth/login` (ou `POST /api/auth/register`) puis dans Swagger bouton **Authorize** → `Bearer <token>`.
+
+Endpoint utile pour vérifier le token:
+- `GET /api/auth/me` (protégé) retourne `userId/email/roles` depuis le JWT.
 
 ### 🔐 Endpoints protégés
 - La majorité des endpoints API sont en **`[Authorize]`** (token obligatoire).
-- Les opérations d’écriture (POST/PUT/DELETE) sont généralement **`AdminOnly`** (rôle `Admin` fourni par Keycloak).
-
-### 🧩 Synchronisation utilisateur (KeycloakId)
-- L’API stocke `keycloak_id` (= claim `sub`) dans la table `users`.
-- Endpoint utile: `GET /api/users/me` crée/retourne l’utilisateur local à partir du token Keycloak.
+- Les opérations d’écriture (POST/PUT/DELETE) sont généralement **AdminOnly** (rôle dans le JWT).
 
 ### 🧬 Héritage (User abstrait)
 - `User` est une **classe abstraite**.
