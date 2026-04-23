@@ -55,6 +55,16 @@ Le backend lit la connexion DB et l’auth JWT depuis des variables d’environn
 - **`SMTP__HOST`**, **`SMTP__PORT`**, **`SMTP__USER`**, **`SMTP__PASS`**, **`SMTP__FROM`**
 - **`RESET_PASSWORD__BASE_URL`**: URL front pour construire le lien de reset (ex: `http://localhost:3000/reset-password`)
 
+### IA (suggestions d’activités communautaires)
+Endpoint:
+- `POST /api/activites/suggestions` (protégé) → renvoie des activités suggérées.
+
+Variables:
+- **`AI_PROVIDER`**: `mock` (défaut) ou `huggingface`
+- **`HF_TOKEN`**: token HuggingFace (si `AI_PROVIDER=huggingface`)
+- **`HF_MODEL`**: modèle HF (optionnel)
+- **`HF_ENDPOINT`**: endpoint d’inférence (optionnel). Par défaut: `https://api-inference.huggingface.co/models/<HF_MODEL>`
+
 ### Lancer le backend
 Dans un terminal:
 
