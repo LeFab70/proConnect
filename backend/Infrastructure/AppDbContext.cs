@@ -46,7 +46,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             // Ajout des propriétés spécifiques à Aine dans la même table "users" grâce à l'héritage TPH
             e.Property(x => x.DateNaissance).HasColumnName("date_naissance");
-            e.Property(x => x.Adresse).HasColumnName("adresse");
+            e.OwnsOne(x => x.Adresse, adresse =>
+            {
+                adresse.Property(a => a.Numero).HasColumnName("lieu_numero");
+                adresse.Property(a => a.Rue).HasColumnName("lieu_rue");
+                adresse.Property(a => a.Ville).HasColumnName("lieu_ville");
+                adresse.Property(a => a.CodePostal).HasColumnName("lieu_code_postal");
+                adresse.Property(a => a.Province).HasColumnName("lieu_province");
+            });
             e.Property(x => x.Docteur).HasColumnName("docteur");
             e.Property(x => x.NumeroTelephoneDocteur).HasColumnName("numero_telephone_docteur");
         });
