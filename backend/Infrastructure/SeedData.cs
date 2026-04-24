@@ -37,7 +37,14 @@ public static class SeedData
                 Email = "marie.dupont@proconnect.local",
                 PasswordHash = "temp",
                 DateNaissance = new DateOnly(1948, 5, 12),
-                Adresse = "123 Rue Principale, Moncton, NB",
+                Adresse = new Adresse
+                {
+                    Numero = "123",
+                    Rue = "Rue Principale",
+                    Ville = "Moncton",
+                    Province = "NB",
+                    CodePostal = "E1A 1A1"
+                },
                 Docteur = "Dr. Mimiche",
                 NumeroTelephoneDocteur = "506-783-4567"
             });
@@ -51,8 +58,7 @@ public static class SeedData
                 Prenom = "Alex",
                 Telephone = "444-444-4444",
                 Email = "alex.martin@proconnect.local",
-                PasswordHash = "temp",
-                Relation = "Fils"
+                PasswordHash = "temp"
             });
         }
 
@@ -89,7 +95,14 @@ public static class SeedData
             db.RendezVousMedicaux.Add(new RendezVousMedical
             {
                 DateHeure = DateTime.UtcNow.AddDays(14),
-                Lieu = "Clinique NB",
+                Lieu = new Adresse
+                {
+                    Numero = "456",
+                    Rue = "Avenue du Centre",
+                    Ville = "Moncton",
+                    Province = "NB",
+                    CodePostal = "E1A 1A2"
+                },
                 Docteur = "Cardiologue",
                 Notes = "Suivi annuel",
                 AineId = aine.Id

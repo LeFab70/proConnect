@@ -21,6 +21,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
             {
                 Id = p.Id,
                 Autorisation = p.Autorisation,
+                Relation = p.Relation,
                 AineId = p.AineId,
                 ProcheAidantId = p.ProcheAidantId
             })
@@ -36,6 +37,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
             {
                 Id = p.Id,
                 Autorisation = p.Autorisation,
+                Relation = p.Relation,
                 AineId = p.AineId,
                 ProcheAidantId = p.ProcheAidantId
             })
@@ -47,6 +49,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
         var entity = new PartageSuivi
         {
             Autorisation = dto.Autorisation,
+            Relation = dto.Relation,
             AineId = dto.AineId,
             ProcheAidantId = dto.ProcheAidantId
         };
@@ -61,6 +64,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
         if (entity == null) return false;
 
         entity.Autorisation = dto.Autorisation;
+        entity.Relation = dto.Relation;
         entity.AineId = dto.AineId;
         entity.ProcheAidantId = dto.ProcheAidantId;
 

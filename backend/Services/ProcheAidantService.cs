@@ -1,5 +1,6 @@
 using backend.Dtos.Common;
 using backend.Dtos.ProchesAidants;
+using backend.Dtos.Partages;
 using backend.Infrastructure;
 using backend.Models;
 using backend.Services.Interfaces;
@@ -24,7 +25,14 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
                 Prenom = p.Prenom,
                 Telephone = p.Telephone,
                 Email = p.Email,
-                Relation = p.Relation
+                Partages = p.Partages.Select(pa => new PartageSuiviResponseDto
+                {
+                    Id = pa.Id,
+                    Autorisation = pa.Autorisation,
+                    Relation = pa.Relation,
+                    AineId = pa.AineId,
+                    ProcheAidantId = pa.ProcheAidantId
+                }).ToList()
             })
             .ToListAsync();
     }
@@ -41,7 +49,14 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
                 Prenom = p.Prenom,
                 Telephone = p.Telephone,
                 Email = p.Email,
-                Relation = p.Relation
+                Partages = p.Partages.Select(pa => new PartageSuiviResponseDto
+                {
+                    Id = pa.Id,
+                    Autorisation = pa.Autorisation,
+                    Relation = pa.Relation,
+                    AineId = pa.AineId,
+                    ProcheAidantId = pa.ProcheAidantId
+                }).ToList()
             })
             .FirstOrDefaultAsync();
     }
@@ -54,8 +69,7 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
             Prenom = dto.Prenom,
             Telephone = dto.Telephone,
             Email = dto.Email,
-            PasswordHash = "N/A",
-            Relation = dto.Relation
+            PasswordHash = "N/A"
         };
         _db.ProchesAidants.Add(entity);
         await _db.SaveChangesAsync();
@@ -71,7 +85,6 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
         entity.Prenom = dto.Prenom;
         entity.Telephone = dto.Telephone;
         entity.Email = dto.Email;
-        entity.Relation = dto.Relation;
 
         await _db.SaveChangesAsync();
         return true;

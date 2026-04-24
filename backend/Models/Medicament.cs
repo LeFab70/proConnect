@@ -1,6 +1,6 @@
+// Modèle représentant un médicament 
 namespace backend.Models;
 
-// Modèle représentant un médicament dans le système de gestion des activités communautaires
 public class Medicament
 {
     public long Id { get; set; } // Identifiant unique du médicament

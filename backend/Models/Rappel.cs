@@ -1,6 +1,6 @@
+// Modèle de données pour représenter un rappel (médicament ou rendez-vous médical)
 namespace backend.Models;
 
-// Modèle de données pour représenter un rappel (médicament ou rendez-vous médical)
 public class Rappel
 {
     public long Id { get; set; } // Clé primaire
