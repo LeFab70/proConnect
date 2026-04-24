@@ -45,6 +45,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient<ICommunityActivitiesAiService, CommunityActivitiesAiService>();
 builder.Services.AddScoped<IAineService, AineService>();
 builder.Services.AddScoped<IProcheAidantService, ProcheAidantService>();
 builder.Services.AddScoped<IMedicamentService, MedicamentService>();
@@ -154,6 +155,7 @@ app.MapRootEndpoints();
 app.MapHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapUsersEndpoints();
+app.MapActivitesAiEndpoints();
 app.MapAinesEndpoints();
 app.MapProchesAidantsEndpoints();
 app.MapMedicamentsEndpoints();

@@ -1,3 +1,4 @@
+// Utilisé pour les migrations Entity Framework Core, permettant de créer une instance d'AppDbContext avec une chaîne de connexion spécifique lors de l'exécution des commandes de migration
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
