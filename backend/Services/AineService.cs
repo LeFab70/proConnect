@@ -1,5 +1,6 @@
 using backend.Dtos.Aines;
 using backend.Dtos.Common;
+using backend.Dtos.Adresse;
 using backend.Infrastructure;
 using backend.Models;
 using backend.Services.Interfaces;
@@ -25,7 +26,14 @@ public class AineService(AppDbContext db) : IAineService
                 Telephone = a.Telephone,
                 Email = a.Email,
                 DateNaissance = a.DateNaissance,
-                Adresse = a.Adresse,
+                Adresse = new AdresseDto
+                {
+                    Numero = a.Adresse.Numero,
+                    Rue = a.Adresse.Rue,
+                    Ville = a.Adresse.Ville,
+                    CodePostal = a.Adresse.CodePostal,
+                    Province = a.Adresse.Province
+                },
                 Docteur = a.Docteur,
                 NumeroTelephoneDocteur = a.NumeroTelephoneDocteur
             })
@@ -45,7 +53,14 @@ public class AineService(AppDbContext db) : IAineService
                 Telephone = a.Telephone,
                 Email = a.Email,
                 DateNaissance = a.DateNaissance,
-                Adresse = a.Adresse,
+                Adresse = new AdresseDto
+                {
+                    Numero = a.Adresse.Numero,
+                    Rue = a.Adresse.Rue,
+                    Ville = a.Adresse.Ville,
+                    CodePostal = a.Adresse.CodePostal,
+                    Province = a.Adresse.Province
+                },
                 Docteur = a.Docteur,
                 NumeroTelephoneDocteur = a.NumeroTelephoneDocteur
             })
@@ -62,7 +77,14 @@ public class AineService(AppDbContext db) : IAineService
             Email = dto.Email,
             PasswordHash = "N/A",
             DateNaissance = dto.DateNaissance,
-            Adresse = dto.Adresse,
+            Adresse = new Adresse
+            {
+                Numero = dto.Adresse.Numero,
+                Rue = dto.Adresse.Rue,
+                Ville = dto.Adresse.Ville,
+                CodePostal = dto.Adresse.CodePostal,
+                Province = dto.Adresse.Province
+            },
             Docteur = dto.Docteur,
             NumeroTelephoneDocteur = dto.NumeroTelephoneDocteur
         };
@@ -81,7 +103,14 @@ public class AineService(AppDbContext db) : IAineService
         entity.Telephone = dto.Telephone;
         entity.Email = dto.Email;
         entity.DateNaissance = dto.DateNaissance;
-        entity.Adresse = dto.Adresse;
+        entity.Adresse = new Adresse
+        {
+            Numero = dto.Adresse.Numero,
+            Rue = dto.Adresse.Rue,
+            Ville = dto.Adresse.Ville,
+            CodePostal = dto.Adresse.CodePostal,
+            Province = dto.Adresse.Province
+        };
         entity.Docteur = dto.Docteur;
         entity.NumeroTelephoneDocteur = dto.NumeroTelephoneDocteur;
 

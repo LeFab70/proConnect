@@ -1,5 +1,6 @@
 using backend.Dtos.Common;
 using backend.Dtos.RendezVous;
+using backend.Dtos.Adresse;
 using backend.Infrastructure;
 using backend.Models;
 using backend.Services.Interfaces;
@@ -21,7 +22,14 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
             {
                 Id = r.Id,
                 DateHeure = r.DateHeure,
-                Lieu = r.Lieu,
+                Lieu = new AdresseDto
+                {
+                    Numero = r.Lieu.Numero,
+                    Rue = r.Lieu.Rue,
+                    Ville = r.Lieu.Ville,
+                    CodePostal = r.Lieu.CodePostal,
+                    Province = r.Lieu.Province
+                },
                 Docteur = r.Docteur,
                 Notes = r.Notes,
                 AineId = r.AineId
@@ -38,7 +46,14 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
             {
                 Id = r.Id,
                 DateHeure = r.DateHeure,
-                Lieu = r.Lieu,
+                Lieu = new AdresseDto
+                {
+                    Numero = r.Lieu.Numero,
+                    Rue = r.Lieu.Rue,
+                    Ville = r.Lieu.Ville,
+                    CodePostal = r.Lieu.CodePostal,
+                    Province = r.Lieu.Province
+                },
                 Docteur = r.Docteur,
                 Notes = r.Notes,
                 AineId = r.AineId
@@ -51,7 +66,14 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         var entity = new RendezVousMedical
         {
             DateHeure = dto.DateHeure,
-            Lieu = dto.Lieu,
+            Lieu = new Adresse
+            {
+                Numero = dto.Lieu.Numero,
+                Rue = dto.Lieu.Rue,
+                Ville = dto.Lieu.Ville,
+                CodePostal = dto.Lieu.CodePostal,
+                Province = dto.Lieu.Province
+            },
             Docteur = dto.Docteur,
             Notes = dto.Notes,
             AineId = dto.AineId
@@ -67,7 +89,14 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         if (entity == null) return false;
 
         entity.DateHeure = dto.DateHeure;
-        entity.Lieu = dto.Lieu;
+        entity.Lieu = new Adresse
+        {
+            Numero = dto.Lieu.Numero,
+            Rue = dto.Lieu.Rue,
+            Ville = dto.Lieu.Ville,
+            CodePostal = dto.Lieu.CodePostal,
+            Province = dto.Lieu.Province
+        };
         entity.Docteur = dto.Docteur;
         entity.Notes = dto.Notes;
         entity.AineId = dto.AineId;
