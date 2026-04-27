@@ -10,12 +10,13 @@ namespace backend.Services;
 // Service pour gérer les médicaments associés aux aînés
 public class MedicamentService(AppDbContext db) : IMedicamentService
 {
-    private readonly AppDbContext _db = db; // Injection du contexte de base de données
+    private readonly AppDbContext _db = db;
 
-    public async Task<IReadOnlyList<MedicamentResponseDto>> GetAll() // Récupère tous les médicaments
+    public async Task<IReadOnlyList<MedicamentResponseDto>> GetAll()
     {
         return await _db.Medicaments
             .AsNoTracking()
+            .Where(m => !m.IsDeleted)
             .OrderBy(m => m.Id)
             .Select(m => new MedicamentResponseDto
             {
@@ -24,16 +25,18 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
                 Marque = m.Marque,
                 Dosage = m.Dosage,
                 Frequence = m.Frequence,
-                AineId = m.AineId
+                AineId = m.AineId,
+                IsActive = m.IsActive,
+                IsDeleted = m.IsDeleted
             })
             .ToListAsync();
     }
 
-    public async Task<MedicamentResponseDto?> GetById(long id) // Récupère un médicament par son ID
+    public async Task<MedicamentResponseDto?> GetById(long id)
     {
         return await _db.Medicaments
             .AsNoTracking()
-            .Where(m => m.Id == id)
+            .Where(m => m.Id == id && !m.IsDeleted)
             .Select(m => new MedicamentResponseDto
             {
                 Id = m.Id,
@@ -41,12 +44,14 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
                 Marque = m.Marque,
                 Dosage = m.Dosage,
                 Frequence = m.Frequence,
-                AineId = m.AineId
+                AineId = m.AineId,
+                IsActive = m.IsActive,
+                IsDeleted = m.IsDeleted
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertMedicamentRequestDto dto) // Crée un nouveau médicament
+    public async Task<IdResponseDto> Create(UpsertMedicamentRequestDto dto)
     {
         var entity = new Medicament
         {
@@ -54,16 +59,18 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
             Marque = dto.Marque,
             Dosage = dto.Dosage,
             Frequence = dto.Frequence,
-            AineId = dto.AineId
+            AineId = dto.AineId,
+            IsActive = dto.IsActive ?? true,
+            IsDeleted = false
         };
         _db.Medicaments.Add(entity);
         await _db.SaveChangesAsync();
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertMedicamentRequestDto dto) // Met à jour un médicament existant
+    public async Task<bool> Update(long id, UpsertMedicamentRequestDto dto)
     {
-        var entity = await _db.Medicaments.FirstOrDefaultAsync(m => m.Id == id);
+        var entity = await _db.Medicaments.FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
         if (entity == null) return false;
 
         entity.Nom = dto.Nom;
@@ -71,16 +78,17 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
         entity.Dosage = dto.Dosage;
         entity.Frequence = dto.Frequence;
         entity.AineId = dto.AineId;
+        entity.IsActive = dto.IsActive ?? true;
 
         await _db.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> Delete(long id) // Supprime un médicament par son ID
+    public async Task<bool> Delete(long id)
     {
-        var entity = await _db.Medicaments.FirstOrDefaultAsync(m => m.Id == id);
+        var entity = await _db.Medicaments.FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
         if (entity == null) return false;
-        _db.Medicaments.Remove(entity);
+        entity.IsDeleted = true;
         await _db.SaveChangesAsync();
         return true;
     }

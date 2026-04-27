@@ -10,48 +10,52 @@ namespace backend.Services;
 // Service pour gérer les rappels de médicaments et de rendez-vous médicaux
 public class RappelService(AppDbContext db) : IRappelService
 {
-    private readonly AppDbContext _db = db; // Injection du contexte de base de données
+    private readonly AppDbContext _db = db;
 
-    public async Task<IReadOnlyList<RappelResponseDto>> GetAll() // Récupère tous les rappels
+    public async Task<string?> GetLinkErrorAsync(UpsertRappelRequestDto dto, CancellationToken ct = default)
     {
-        return await _db.Rappels
+        var type = dto.Type.Trim();
+        if (type.Equals(RappelRequestValidation.TypeMedicament, StringComparison.OrdinalIgnoreCase))
+        {
+            var id = dto.MedicamentId!.Value;
+            var ok = await _db.Medicaments.AsNoTracking().AnyAsync(m => m.Id == id && !m.IsDeleted, ct);
+            return ok ? null : "Médicament introuvable ou supprimé (is_deleted).";
+        }
+
+        if (type.Equals(RappelRequestValidation.TypeRendezVousMedical, StringComparison.OrdinalIgnoreCase))
+        {
+            var id = dto.RendezVousMedicalId!.Value;
+            var ok = await _db.RendezVousMedicaux.AsNoTracking().AnyAsync(r => r.Id == id, ct);
+            return ok ? null : "Rendez-vous médical introuvable.";
+        }
+
+        return null;
+    }
+
+    public async Task<IReadOnlyList<RappelResponseDto>> GetAll()
+    {
+        var rows = await _db.Rappels
             .AsNoTracking()
             .OrderBy(r => r.Id)
-            .Select(r => new RappelResponseDto
-            {
-                Id = r.Id,
-                DateHeure = r.DateHeure,
-                Type = r.Type,
-                Actif = r.Actif,
-                MedicamentId = r.MedicamentId,
-                RendezVousMedicalId = r.RendezVousMedicalId
-            })
             .ToListAsync();
+        return rows.Select(Map).ToList();
     }
 
-    public async Task<RappelResponseDto?> GetById(long id) // Récupère un rappel par son ID
+    public async Task<RappelResponseDto?> GetById(long id)
     {
-        return await _db.Rappels
-            .AsNoTracking()
-            .Where(r => r.Id == id)
-            .Select(r => new RappelResponseDto
-            {
-                Id = r.Id,
-                DateHeure = r.DateHeure,
-                Type = r.Type,
-                Actif = r.Actif,
-                MedicamentId = r.MedicamentId,
-                RendezVousMedicalId = r.RendezVousMedicalId
-            })
-            .FirstOrDefaultAsync();
+        var r = await _db.Rappels.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+        return r == null ? null : Map(r);
     }
 
-    public async Task<IdResponseDto> Create(UpsertRappelRequestDto dto) // Crée un nouveau rappel
+    public async Task<IdResponseDto> Create(UpsertRappelRequestDto dto)
     {
+        var typeCanon = NormalizeType(dto.Type);
         var entity = new Rappel
         {
-            DateHeure = dto.DateHeure,
-            Type = dto.Type,
+            DateDebut = dto.DateDebut,
+            HeureDebut = dto.HeureDebut,
+            MinutesAvantRappel = dto.MinutesAvantRappel,
+            Type = typeCanon,
             Actif = dto.Actif,
             MedicamentId = dto.MedicamentId,
             RendezVousMedicalId = dto.RendezVousMedicalId
@@ -61,13 +65,15 @@ public class RappelService(AppDbContext db) : IRappelService
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertRappelRequestDto dto) // Met à jour un rappel existant
+    public async Task<bool> Update(long id, UpsertRappelRequestDto dto)
     {
         var entity = await _db.Rappels.FirstOrDefaultAsync(r => r.Id == id);
         if (entity == null) return false;
 
-        entity.DateHeure = dto.DateHeure;
-        entity.Type = dto.Type;
+        entity.DateDebut = dto.DateDebut;
+        entity.HeureDebut = dto.HeureDebut;
+        entity.MinutesAvantRappel = dto.MinutesAvantRappel;
+        entity.Type = NormalizeType(dto.Type);
         entity.Actif = dto.Actif;
         entity.MedicamentId = dto.MedicamentId;
         entity.RendezVousMedicalId = dto.RendezVousMedicalId;
@@ -76,12 +82,41 @@ public class RappelService(AppDbContext db) : IRappelService
         return true;
     }
 
-    public async Task<bool> Delete(long id) // Supprime un rappel par son ID
+    public async Task<bool> Delete(long id)
     {
         var entity = await _db.Rappels.FirstOrDefaultAsync(r => r.Id == id);
         if (entity == null) return false;
         _db.Rappels.Remove(entity);
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    private static string NormalizeType(string type)
+    {
+        var t = type.Trim();
+        if (t.Equals(RappelRequestValidation.TypeMedicament, StringComparison.OrdinalIgnoreCase))
+            return RappelRequestValidation.TypeMedicament;
+        if (t.Equals(RappelRequestValidation.TypeRendezVousMedical, StringComparison.OrdinalIgnoreCase))
+            return RappelRequestValidation.TypeRendezVousMedical;
+        return t;
+    }
+
+    private static RappelResponseDto Map(Rappel r)
+    {
+        var prise = RappelScheduling.DateHeurePrise(r.DateDebut, r.HeureDebut);
+        var notif = RappelScheduling.DateHeureNotification(r.DateDebut, r.HeureDebut, r.MinutesAvantRappel);
+        return new RappelResponseDto
+        {
+            Id = r.Id,
+            DateDebut = r.DateDebut,
+            HeureDebut = r.HeureDebut,
+            MinutesAvantRappel = r.MinutesAvantRappel,
+            DateHeurePrise = prise,
+            DateHeureNotification = notif,
+            Type = r.Type,
+            Actif = r.Actif,
+            MedicamentId = r.MedicamentId,
+            RendezVousMedicalId = r.RendezVousMedicalId
+        };
     }
 }

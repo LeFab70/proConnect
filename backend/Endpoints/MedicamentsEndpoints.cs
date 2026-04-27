@@ -4,16 +4,15 @@ using backend.Services.Interfaces;
 
 namespace backend.Endpoints;
 
-// Classe pour les endpoints de médicaments
 public static class MedicamentsEndpoints
 {
-    public static void MapMedicamentsEndpoints(this WebApplication app) // Methode d'extension pour ajouter les endpoints à l'application
+    public static void MapMedicamentsEndpoints(this WebApplication app)
     {
         var route = app.MapGroup("/api/medicaments").WithTags("Medicaments").RequireAuthorization();
 
         route.MapGet("/", GetAll)
             .Produces<IReadOnlyList<MedicamentResponseDto>>(StatusCodes.Status200OK)
-            .WithSummary("Récupère tous les médicaments");
+            .WithSummary("Récupère les médicaments non supprimés (is_deleted = false). Utiliser is_active côté front pour les notifications.");
         route.MapGet("/{id:long}", GetById)
             .Produces<MedicamentResponseDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
@@ -34,22 +33,22 @@ public static class MedicamentsEndpoints
             .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Supprime un médicament (Admin)");
+            .WithSummary("Marque le médicament comme supprimé (is_deleted = true), soft delete (Admin)");
     }
 
-    private static async Task<IResult> GetAll(IMedicamentService svc) // Injection du service pour récupérer les médicaments
+    private static async Task<IResult> GetAll(IMedicamentService svc)
     {
         var items = await svc.GetAll();
         return Results.Ok(items);
     }
 
-    private static async Task<IResult> GetById(long id, IMedicamentService svc) // Injection du service pour récupérer un médicament par id
+    private static async Task<IResult> GetById(long id, IMedicamentService svc)
     {
         var r = await svc.GetById(id);
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(UpsertMedicamentRequestDto dto, IMedicamentService svc) // Injection du service pour créer un médicament
+    private static async Task<IResult> Create(UpsertMedicamentRequestDto dto, IMedicamentService svc)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -58,7 +57,7 @@ public static class MedicamentsEndpoints
         return Results.Created($"/api/medicaments/{created.Id}", created);
     }
 
-    private static async Task<IResult> Update(long id, UpsertMedicamentRequestDto dto, IMedicamentService svc) // Injection du service pour mettre à jour un médicament
+    private static async Task<IResult> Update(long id, UpsertMedicamentRequestDto dto, IMedicamentService svc)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -67,7 +66,7 @@ public static class MedicamentsEndpoints
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(long id, IMedicamentService svc) // Injection du service pour supprimer un médicament
+    private static async Task<IResult> Delete(long id, IMedicamentService svc)
     {
         var ok = await svc.Delete(id);
         return ok ? Results.NoContent() : Results.NotFound();
