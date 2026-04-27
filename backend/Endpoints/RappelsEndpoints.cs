@@ -4,10 +4,9 @@ using backend.Services.Interfaces;
 
 namespace backend.Endpoints;
 
-// Classe pour les endpoints de rappels
 public static class RappelsEndpoints
 {
-    public static void MapRappelsEndpoints(this WebApplication app) // Methode d'extension pour ajouter les endpoints à l'application
+    public static void MapRappelsEndpoints(this WebApplication app)
     {
         var route = app.MapGroup("/api/rappels").WithTags("Rappels").RequireAuthorization();
 
@@ -22,7 +21,8 @@ public static class RappelsEndpoints
         route.MapPost("/", Create)
             .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
-            .WithSummary("Crée un rappel (Admin)");
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithSummary("Crée un rappel (Admin). Type: Medicament (medicament_id) ou RendezVousMedical (rendez_vous_medical_id). MinutesAvantRappel = décalage avant la prise ou le RDV.");
 
         route.MapPut("/{id:long}", Update)
             .RequireAuthorization("AdminOnly")
@@ -37,37 +37,49 @@ public static class RappelsEndpoints
             .WithSummary("Supprime un rappel (Admin)");
     }
 
-    private static async Task<IResult> GetAll(IRappelService svc) // Injection du service pour récupérer les rappels
+    private static async Task<IResult> GetAll(IRappelService svc)
     {
         var items = await svc.GetAll();
         return Results.Ok(items);
     }
 
-    private static async Task<IResult> GetById(long id, IRappelService svc) // Injection du service pour récupérer un rappel par id
+    private static async Task<IResult> GetById(long id, IRappelService svc)
     {
         var r = await svc.GetById(id);
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(UpsertRappelRequestDto dto, IRappelService svc) // Injection du service pour créer un rappel
+    private static async Task<IResult> Create(UpsertRappelRequestDto dto, IRappelService svc, CancellationToken ct)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
+
+        var err = RappelRequestValidation.GetError(dto);
+        if (err != null) return Results.BadRequest(new { message = err });
+
+        var linkErr = await svc.GetLinkErrorAsync(dto, ct);
+        if (linkErr != null) return Results.BadRequest(new { message = linkErr });
 
         var created = await svc.Create(dto);
         return Results.Created($"/api/rappels/{created.Id}", created);
     }
 
-    private static async Task<IResult> Update(long id, UpsertRappelRequestDto dto, IRappelService svc) // Injection du service pour mettre à jour un rappel
+    private static async Task<IResult> Update(long id, UpsertRappelRequestDto dto, IRappelService svc, CancellationToken ct)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
+
+        var err = RappelRequestValidation.GetError(dto);
+        if (err != null) return Results.BadRequest(new { message = err });
+
+        var linkErr = await svc.GetLinkErrorAsync(dto, ct);
+        if (linkErr != null) return Results.BadRequest(new { message = linkErr });
 
         var ok = await svc.Update(id, dto);
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(long id, IRappelService svc) // Injection du service pour supprimer un rappel
+    private static async Task<IResult> Delete(long id, IRappelService svc)
     {
         var ok = await svc.Delete(id);
         return ok ? Results.NoContent() : Results.NotFound();

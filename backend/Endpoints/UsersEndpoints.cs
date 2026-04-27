@@ -4,14 +4,12 @@ using backend.Services.Interfaces;
 
 namespace backend.Endpoints;
 
-// Classe pour les endpoints liés aux utilisateurs
 public static class UsersEndpoints
 {
-    public static void MapUsersEndpoints(this WebApplication app) // Methode d'extension pour ajouter les endpoints à l'application
+    public static void MapUsersEndpoints(this WebApplication app)
     {
         var route = app.MapGroup("/api/users").WithTags("Users");
 
-        // read: protected
         route.RequireAuthorization();
 
         route.MapGet("/", GetAll)
@@ -22,13 +20,11 @@ public static class UsersEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .WithSummary("Récupère un utilisateur par id");
 
-        // create: admin only
         route.MapPost("/", Create)
             .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
             .WithSummary("Crée un utilisateur local (Admin)");
 
-        // write: admin
         route.MapPut("/{id:long}", Update)
             .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
@@ -42,7 +38,7 @@ public static class UsersEndpoints
             .WithSummary("Supprime un utilisateur (Admin)");
     }
 
-    private static async Task<IResult> GetAll(IUserService svc) // Methode pour récupérer tous les utilisateurs
+    private static async Task<IResult> GetAll(IUserService svc)
     {
         var users = await svc.GetAll();
         return Results.Ok(users);
@@ -54,7 +50,7 @@ public static class UsersEndpoints
         return u == null ? Results.NotFound() : Results.Ok(u);
     }
 
-    private static async Task<IResult> Create(UpsertUserRequestDto dto, IUserService svc) // Endpoint pour créer un utilisateur
+    private static async Task<IResult> Create(UpsertUserRequestDto dto, IUserService svc)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -63,7 +59,7 @@ public static class UsersEndpoints
         return Results.Created($"/api/users/{created.Id}", created);
     }
 
-    private static async Task<IResult> Update(long id, UpsertUserRequestDto dto, IUserService svc) // Endpoint pour mettre à jour un utilisateur
+    private static async Task<IResult> Update(long id, UpsertUserRequestDto dto, IUserService svc)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -72,7 +68,7 @@ public static class UsersEndpoints
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(long id, IUserService svc) // Endpoint pour supprimer un utilisateur
+    private static async Task<IResult> Delete(long id, IUserService svc)
     {
         var ok = await svc.Delete(id);
         return ok ? Results.NoContent() : Results.NotFound();

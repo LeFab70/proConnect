@@ -4,10 +4,9 @@ using backend.Services.Interfaces;
 
 namespace backend.Endpoints;
 
-// Classe pour les endpoints de gestion des rendez-vous médicaux
 public static class RendezVousMedicauxEndpoints
 {
-    public static void MapRendezVousMedicauxEndpoints(this WebApplication app) // Methode d'extension pour ajouter les endpoints à l'application
+    public static void MapRendezVousMedicauxEndpoints(this WebApplication app)
     {
         var route = app.MapGroup("/api/rendez-vous-medicaux").WithTags("RendezVousMedicaux").RequireAuthorization();
 
@@ -37,19 +36,19 @@ public static class RendezVousMedicauxEndpoints
             .WithSummary("Supprime un rendez-vous médical (Admin)");
     }
 
-    private static async Task<IResult> GetAll(IRendezVousMedicalService svc) // Endpoint pour récupérer tous les rendez-vous médicaux
+    private static async Task<IResult> GetAll(IRendezVousMedicalService svc)
     {
         var items = await svc.GetAll();
         return Results.Ok(items);
     }
 
-    private static async Task<IResult> GetById(long id, IRendezVousMedicalService svc) // Endpoint pour récupérer un rendez-vous médical par id
+    private static async Task<IResult> GetById(long id, IRendezVousMedicalService svc)
     {
         var r = await svc.GetById(id);
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc) // Endpoint pour créer un nouveau rendez-vous médical
+    private static async Task<IResult> Create(UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -58,7 +57,7 @@ public static class RendezVousMedicauxEndpoints
         return Results.Created($"/api/rendez-vous-medicaux/{created.Id}", created);
     }
 
-    private static async Task<IResult> Update(long id, UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc) // Endpoint pour mettre à jour un rendez-vous médical existant
+    private static async Task<IResult> Update(long id, UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -67,7 +66,7 @@ public static class RendezVousMedicauxEndpoints
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(long id, IRendezVousMedicalService svc) // Endpoint pour supprimer un rendez-vous médical
+    private static async Task<IResult> Delete(long id, IRendezVousMedicalService svc)
     {
         var ok = await svc.Delete(id);
         return ok ? Results.NoContent() : Results.NotFound();

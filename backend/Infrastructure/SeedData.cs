@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Infrastructure;
 
-// Classe utilitaire pour appliquer les migrations et insérer des données de test dans la base de données. Les données ne seront insérées que si la variable d'environnement SEED_DATA est définie sur "true". Cela permet de contrôler facilement l'insertion de données de test en fonction de l'environnement (développement, staging, production).
+/// <summary>Migrations au démarrage ; seed si <c>SEED_DATA=true</c>.</summary>
 public static class SeedData
 {
     public static async Task ApplyMigrationsAndSeedAsync(IServiceProvider services, CancellationToken ct = default)
@@ -64,7 +64,6 @@ public static class SeedData
 
         await db.SaveChangesAsync(ct);
 
-        // Hash password for seeded users (default: "Password123!")
         var plain = Environment.GetEnvironmentVariable("SEED_PASSWORD") ?? "Password123!";
         var toUpdate = await db.Users.ToListAsync(ct);
         foreach (var u in toUpdate)
@@ -76,7 +75,6 @@ public static class SeedData
         }
         await db.SaveChangesAsync(ct);
 
-        // Seed dépendant des IDs (après SaveChanges)
         var aine = await db.Aines.AsNoTracking().FirstOrDefaultAsync(ct);
         if (aine != null && !await db.Medicaments.AnyAsync(ct))
         {
@@ -86,7 +84,9 @@ public static class SeedData
                 Marque = "D-Vit",
                 Dosage = "1000 MG",
                 Frequence = "1x/jour",
-                AineId = aine.Id
+                AineId = aine.Id,
+                IsActive = true,
+                IsDeleted = false
             });
         }
 
@@ -114,13 +114,19 @@ public static class SeedData
         if (!await db.Rappels.AnyAsync(ct))
         {
             var med = await db.Medicaments.AsNoTracking().FirstOrDefaultAsync(ct);
-            db.Rappels.Add(new Rappel
+            if (med != null)
             {
-                DateHeure = DateTime.UtcNow.AddHours(6),
-                Type = "Medicament",
-                Actif = true,
-                MedicamentId = med?.Id
-            });
+                var when = DateTime.UtcNow.AddHours(6);
+                db.Rappels.Add(new Rappel
+                {
+                    DateDebut = DateOnly.FromDateTime(when),
+                    HeureDebut = TimeOnly.FromDateTime(when),
+                    MinutesAvantRappel = 15,
+                    Type = "Medicament",
+                    Actif = true,
+                    MedicamentId = med.Id
+                });
+            }
         }
 
         await db.SaveChangesAsync(ct);
