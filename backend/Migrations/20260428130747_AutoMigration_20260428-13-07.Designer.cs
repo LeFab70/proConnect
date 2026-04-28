@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Infrastructure;
@@ -11,9 +12,11 @@ using backend.Infrastructure;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260428130747_AutoMigration_20260428-13-07")]
+    partial class AutoMigration_202604281307
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,14 +96,6 @@ namespace backend.Migrations
                         .HasColumnType("text")
                         .HasColumnName("frequence");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
                     b.Property<string>("Marque")
                         .IsRequired()
                         .HasColumnType("text")
@@ -110,10 +105,6 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("nom");
-
-                    b.Property<string>("UrlPhoto")
-                        .HasColumnType("text")
-                        .HasColumnName("url_photo");
 
                     b.HasKey("Id");
 
@@ -165,21 +156,13 @@ namespace backend.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("actif");
 
-                    b.Property<DateOnly>("DateDebut")
-                        .HasColumnType("date")
-                        .HasColumnName("date_debut");
-
-                    b.Property<TimeOnly>("HeureDebut")
-                        .HasColumnType("time without time zone")
-                        .HasColumnName("heure_debut");
+                    b.Property<DateTime>("DateHeure")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date_heure");
 
                     b.Property<long?>("MedicamentId")
                         .HasColumnType("bigint")
                         .HasColumnName("medicament_id");
-
-                    b.Property<int>("MinutesAvantRappel")
-                        .HasColumnType("integer")
-                        .HasColumnName("minutes_avant_rappel");
 
                     b.Property<long?>("RendezVousMedicalId")
                         .HasColumnType("bigint")
@@ -416,11 +399,11 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("backend.Models.User", b =>
+            modelBuilder.Entity("backend.Models.Aine", b =>
                 {
                     b.OwnsOne("backend.Models.Adresse", "Adresse", b1 =>
                         {
-                            b1.Property<long>("UserId")
+                            b1.Property<long>("AineId")
                                 .HasColumnType("bigint");
 
                             b1.Property<string>("CodePostal")
@@ -448,15 +431,16 @@ namespace backend.Migrations
                                 .HasColumnType("text")
                                 .HasColumnName("lieu_ville");
 
-                            b1.HasKey("UserId");
+                            b1.HasKey("AineId");
 
                             b1.ToTable("users");
 
                             b1.WithOwner()
-                                .HasForeignKey("UserId");
+                                .HasForeignKey("AineId");
                         });
 
-                    b.Navigation("Adresse");
+                    b.Navigation("Adresse")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("backend.Models.ProcheAidant", b =>

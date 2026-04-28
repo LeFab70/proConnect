@@ -117,32 +117,6 @@ WebApplication app = builder.Build(); // Construction de l'application (apres av
 
 await SeedData.ApplyMigrationsAndSeedAsync(app.Services);
 
-// TODO: Enlever les commentaires si on veut utiliser l'API Key
-// Middleware pour la gestion de l'API Key (regarder si on a la bonne clef dans les headers)
-/*
-app.Use(async (context, next) =>
-{
-    var config = context.RequestServices.GetRequiredService<IConfiguration>();
-    var apiKey = config["ApiKey"];
-
-    if (!context.Request.Headers.TryGetValue("x-api-key", out var providedKey))
-    {
-        context.Response.StatusCode = 401;
-        await context.Response.WriteAsync("Missing API Key");
-        return;
-    }
-
-    if (providedKey != apiKey)
-    {
-        context.Response.StatusCode = 403;
-        await context.Response.WriteAsync("Invalid API Key");
-        return;
-    }
-
-    await next();
-});
-*/
-
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
