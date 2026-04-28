@@ -143,13 +143,19 @@ app.Use(async (context, next) =>
 });
 */
 
-//if (app.Environment.IsDevelopment())
-// if(app.Environment.IsProduction())
-// {
+if (app.Environment.IsDevelopment())
+{
     app.UseDeveloperExceptionPage();
+}
+
+var enableSwagger = app.Environment.IsDevelopment() ||
+                    string.Equals(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), "true", StringComparison.OrdinalIgnoreCase);
+
+if (enableSwagger)
+{
     app.UseSwagger();
     app.UseSwaggerUI();
-// }
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
