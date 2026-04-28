@@ -53,6 +53,8 @@ La plupart des routes sont sous `[Authorize]` ; les écritures sensibles sont so
 
 `User` abstrait ; `Aine`, `ProcheAidant`, `StandardUser` dans la table `users` avec discriminateur `type`.
 
+`Adresse` est portée par `User` (champ partagé) : les aînés et proches aidants héritent donc du même champ adresse (sans dupliquer dans `Aine`).
+
 ### Médicaments et listes
 
 - `is_deleted` : suppression **logique** ; `GET /api/medicaments` ne renvoie **que** les non supprimés.
@@ -81,7 +83,7 @@ Dernière migration notable : `MedicamentFlagsAndRappelSchedule` (colonnes médi
 
 ### Seed (`SEED_DATA=true`)
 
-Comptes de démo (Fabrice, Kayleb, Perez, Grace), un aîné, un proche aidant, un médicament, un rendez-vous, un rappel exemple.
+Comptes de démo (Fabrice, Kayleb, Perez, Grace + autres), plusieurs aînés et proches aidants, plusieurs médicaments (avec `urlPhoto` Unsplash), rendez-vous, rappels, et des liens `PartageSuivi` (plusieurs aînés rattachés à un proche aidant) pour avoir plusieurs cas de test.
 
 ## Frontend (Flutter)
 

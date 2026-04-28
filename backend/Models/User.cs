@@ -11,6 +11,7 @@ public abstract class User
     public required string Prenom { get; set; } // Prénom de l'utilisateur, requis pour tous les types d'utilisateurs
     public required string Telephone { get; set; } // Numéro de téléphone de l'utilisateur, requis pour tous les types d'utilisateurs
     public required string Email { get; set; } // Adresse email de l'utilisateur, requise pour tous les types d'utilisateurs
+    public Adresse? Adresse { get; set; }
 
     // Auth locale
     public required string PasswordHash { get; set; } // Hash du mot de passe de l'utilisateur, requis pour tous les types d'utilisateurs utilisant l'authentification locale

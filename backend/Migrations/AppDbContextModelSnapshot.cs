@@ -91,6 +91,10 @@ namespace backend.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
 
+                    b.Property<string>("UrlPhoto")
+                        .HasColumnType("text")
+                        .HasColumnName("url_photo");
+
                     b.Property<string>("Dosage")
                         .IsRequired()
                         .HasColumnType("text")
@@ -412,48 +416,42 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("backend.Models.Aine", b =>
+            modelBuilder.Entity("backend.Models.User", b =>
                 {
                     b.OwnsOne("backend.Models.Adresse", "Adresse", b1 =>
                         {
-                            b1.Property<long>("AineId")
+                            b1.Property<long>("UserId")
                                 .HasColumnType("bigint");
 
                             b1.Property<string>("CodePostal")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("lieu_code_postal");
 
                             b1.Property<string>("Numero")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("lieu_numero");
 
                             b1.Property<string>("Province")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("lieu_province");
 
                             b1.Property<string>("Rue")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("lieu_rue");
 
                             b1.Property<string>("Ville")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("lieu_ville");
 
-                            b1.HasKey("AineId");
+                            b1.HasKey("UserId");
 
                             b1.ToTable("users");
 
                             b1.WithOwner()
-                                .HasForeignKey("AineId");
+                                .HasForeignKey("UserId");
                         });
 
-                    b.Navigation("Adresse")
-                        .IsRequired();
+                    b.Navigation("Adresse");
                 });
 
             modelBuilder.Entity("backend.Models.ProcheAidant", b =>

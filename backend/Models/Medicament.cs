@@ -7,6 +7,7 @@ public class Medicament
     public required string Marque { get; set; }
     public required string Dosage { get; set; }
     public required string Frequence { get; set; }
+    public string? UrlPhoto { get; set; }
     public long AineId { get; set; }
     public bool IsActive { get; set; } = true;
     public bool IsDeleted { get; set; }
