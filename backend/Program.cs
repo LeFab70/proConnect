@@ -119,31 +119,6 @@ await SeedData.ApplyMigrationsAndSeedAsync(app.Services);
 
 if (app.Environment.IsDevelopment())
 {
-<<<<<<< HEAD
-=======
-    var config = context.RequestServices.GetRequiredService<IConfiguration>();
-    var apiKey = config["ApiKey"];
-
-    if (!context.Request.Headers.TryGetValue("x-api-key", out var providedKey))
-    {
-        context.Response.StatusCode = 401;
-        await context.Response.WriteAsync("Missing API Key");
-        return;
-    }
-
-    if (providedKey != apiKey)
-    {
-        context.Response.StatusCode = 403;
-        await context.Response.WriteAsync("Invalid API Key");
-        return;
-    }
-
-    await next();
-});
-*/
-
-if (app.Environment.IsDevelopment())
-{
     app.UseDeveloperExceptionPage();
 }
 
