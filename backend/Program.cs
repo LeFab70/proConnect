@@ -19,6 +19,8 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProConnectNB API", Version = "v1" });
     c.EnableAnnotations();
+    c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
+    c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
     var xmlName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlName);
     if (File.Exists(xmlPath))
@@ -141,12 +143,13 @@ app.Use(async (context, next) =>
 });
 */
 
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+// if(app.Environment.IsProduction())
+// {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+// }
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using backend.Dtos.Adresse;
 
 namespace backend.Dtos.Users;
 
@@ -23,5 +24,7 @@ public class UpsertUserRequestDto
     [EmailAddress(ErrorMessage = "L'email n'est pas valide.")]
     [MaxLength(200, ErrorMessage = "L'email ne doit pas dépasser 200 caractères.")]
     public required string Email { get; set; }
+
+    public AdresseDto? Adresse { get; set; }
 }
 

@@ -1,5 +1,6 @@
 // DTO pour la création ou la mise à jour d'un proche aidant
 using System.ComponentModel.DataAnnotations;
+using backend.Dtos.Adresse;
 using backend.Dtos.Partages; // Pour les annotations de validation des données
 
 namespace backend.Dtos.ProchesAidants;
@@ -25,4 +26,6 @@ public class UpsertProcheAidantRequestDto
     [EmailAddress(ErrorMessage = "L'email n'est pas valide.")] // Validation pour s'assurer que l'email est dans un format valide
     [MaxLength(200, ErrorMessage = "L'email ne doit pas dépasser 200 caractères.")] // Validation pour s'assurer que l'email ne dépasse pas 200 caractères
     public required string Email { get; set; } // Email obligatoire avec validation de format et longueur maximale de 200 caractères
+
+    public AdresseDto? Adresse { get; set; }
 }
