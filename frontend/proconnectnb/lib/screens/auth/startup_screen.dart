@@ -10,31 +10,26 @@ class StartupScreen extends StatefulWidget {
 }
 
 class _StartupScreenState extends State<StartupScreen> {
-
   @override
   void initState() {
     super.initState();
-    _init();
+    Future.microtask(_init);
   }
 
   Future<void> _init() async {
     final auth = context.read<AuthProvider>();
-
     final isLogged = await auth.autoLogin();
 
     if (!mounted) return;
 
-    if (isLogged) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else {
-      Navigator.pushReplacementNamed(context, '/login');
-    }
+    Navigator.pushReplacementNamed(context, isLogged ? '/dashboard' : '/login');
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+      backgroundColor: Color(0xFF001F3F),
+      body: Center(child: CircularProgressIndicator(color: Colors.white)),
     );
   }
 }

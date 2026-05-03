@@ -11,6 +11,7 @@ class TrText extends StatelessWidget {
   final bool isDynamic;
   final int? maxLines;
   final TextOverflow? overflow;
+  final TextAlign? textAlign;
 
   const TrText(
     this.text, {
@@ -19,6 +20,7 @@ class TrText extends StatelessWidget {
     this.isDynamic = false,
     this.maxLines,
     this.overflow,
+    this.textAlign,
   });
 
   @override
@@ -32,6 +34,7 @@ class TrText extends StatelessWidget {
         style: style,
         maxLines: maxLines,
         overflow: overflow,
+        textAlign: textAlign,
       );
     }
 
@@ -50,6 +53,7 @@ class TrText extends StatelessWidget {
             style: style,
             maxLines: maxLines,
             overflow: overflow,
+            textAlign: textAlign,
           );
         }
 
@@ -58,6 +62,7 @@ class TrText extends StatelessWidget {
           style: style,
           maxLines: maxLines,
           overflow: overflow,
+          textAlign: textAlign,
         );
       },
     );

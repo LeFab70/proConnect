@@ -1,19 +1,22 @@
 class TokenRequest {
   final String email;
-  final String role;
-  final String secret;
+  final String password;
 
-  TokenRequest({
-    required this.email,
-    required this.role,
-    required this.secret,
-  });
+  TokenRequest({required this.email, required this.password});
 
   Map<String, dynamic> toJson() {
-    return {
-      'email': email,
-      'role': role,
-      'secret': secret,
-    };
+    return {"email": email.trim(), "password": password.trim()};
+  }
+
+  factory TokenRequest.fromJson(Map<String, dynamic> json) {
+    return TokenRequest(
+      email: json['email'] ?? '',
+      password: json['password'] ?? '',
+    );
+  }
+
+  @override
+  String toString() {
+    return 'TokenRequest(email: $email)';
   }
 }

@@ -22,40 +22,50 @@ class ActivityItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final theme = Theme.of(context);
 
     final locale = settings.languageCode == 'fr' ? 'fr_FR' : 'en_US';
 
-    final formattedDate = DateFormat.yMMMEd(locale)
-        .add_Hm()
-        .format(date);
+    final formattedDate = DateFormat.yMMMEd(locale).add_Hm().format(date);
 
     return GestureDetector(
       onLongPress: onLongPress,
       child: Card(
-        elevation: 4,
+        elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        color: theme.cardColor,
         child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-
-          leading: CircleAvatar(
-            radius: 22,
-            backgroundColor: Colors.blueAccent,
-            child: const Icon(Icons.event, color: Colors.white),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
           ),
 
+          // =========================
+          // ICONE
+          // =========================
+          leading: CircleAvatar(
+            radius: 22,
+            backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
+            child: Icon(Icons.event, color: theme.colorScheme.primary),
+          ),
+
+          // =========================
+          // TITRE
+          // =========================
           title: TrText(
             title,
-            isDynamic: true, 
-            style: const TextStyle(
+            isDynamic: true,
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: 15 * settings.fontSize,
+              color: theme.textTheme.titleMedium?.color,
             ),
           ),
 
+          // =========================
+          // DESCRIPTION
+          // =========================
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 4),
             child: TrText(
@@ -63,21 +73,33 @@ class ActivityItem extends StatelessWidget {
               isDynamic: true,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13 * settings.fontSize,
+                color: theme.textTheme.bodySmall?.color,
+              ),
             ),
           ),
 
+          // =========================
+          // DATE
+          // =========================
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.access_time, size: 14, color: Colors.grey),
+              Icon(Icons.access_time, size: 14, color: theme.hintColor),
               const SizedBox(height: 4),
-              Text(
-                formattedDate,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 11,
+              SizedBox(
+                width: 70,
+                child: Text(
+                  formattedDate,
+                  style: TextStyle(
+                    color: theme.hintColor,
+                    fontSize: 11 * settings.fontSize,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),

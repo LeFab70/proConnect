@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/app_localizations.dart';
 
 enum AppTheme { light, dark }
@@ -6,6 +7,9 @@ enum AppTheme { light, dark }
 enum AppLanguage { fr, en }
 
 class SettingsProvider extends ChangeNotifier {
+  // =========================
+  // LANGUE
+  // =========================
   AppLanguage _language = AppLanguage.fr;
 
   AppLanguage get language => _language;
@@ -18,6 +22,9 @@ class SettingsProvider extends ChangeNotifier {
     _language = lang;
     await AppLocalizations.load(lang.name);
 
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("language", lang.name);
+
     notifyListeners();
   }
 
@@ -25,48 +32,110 @@ class SettingsProvider extends ChangeNotifier {
     return AppLocalizations.translate(key);
   }
 
-  Future<String> t(String key) async {
-    return AppLocalizations.translate(key);
-  }
-
+  // =========================
+  // THEME
+  // =========================
   bool _isDarkMode = false;
+
   bool get isDarkMode => _isDarkMode;
   AppTheme get theme => _isDarkMode ? AppTheme.dark : AppTheme.light;
 
-  void toggleTheme() {
+  Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("darkMode", _isDarkMode);
+
     notifyListeners();
   }
 
+  // =========================
+  // FONT SIZE
+  // =========================
   double _fontSize = 1.0;
+
   double get fontSize => _fontSize;
 
-  void setFontSize(double size) {
+  Future<void> setFontSize(double size) async {
     _fontSize = size.clamp(0.8, 1.5);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble("fontSize", _fontSize);
+
     notifyListeners();
   }
 
+  // =========================
+  // SON & VIBRATION
+  // =========================
   bool _sound = true;
   bool _vibration = true;
 
   bool get sound => _sound;
   bool get vibration => _vibration;
 
-  void toggleSound() {
+  Future<void> toggleSound() async {
     _sound = !_sound;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("sound", _sound);
+
     notifyListeners();
   }
 
-  void toggleVibration() {
+  Future<void> toggleVibration() async {
     _vibration = !_vibration;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("vibration", _vibration);
+
     notifyListeners();
   }
 
+  // =========================
+  // COULEUR
+  // =========================
   MaterialColor _primaryColor = Colors.blue;
+
   MaterialColor get primaryColor => _primaryColor;
 
-  void changeColor(MaterialColor color) {
+  Future<void> changeColor(MaterialColor color) async {
     _primaryColor = color;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt("primaryColor", color.value);
+
+    notifyListeners();
+  }
+
+  // =========================
+  // LOAD SETTINGS (IMPORTANT)
+  // =========================
+  Future<void> loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // LANGUE
+    final lang = prefs.getString("language");
+    if (lang != null) {
+      _language = AppLanguage.values.firstWhere(
+        (e) => e.name == lang,
+        orElse: () => AppLanguage.fr,
+      );
+      await AppLocalizations.load(_language.name);
+    }
+
+    // THEME
+    _isDarkMode = prefs.getBool("darkMode") ?? false;
+
+    // FONT
+    _fontSize = prefs.getDouble("fontSize") ?? 1.0;
+
+    // SON
+    _sound = prefs.getBool("sound") ?? true;
+
+    // VIBRATION
+    _vibration = prefs.getBool("vibration") ?? true;
+
     notifyListeners();
   }
 }

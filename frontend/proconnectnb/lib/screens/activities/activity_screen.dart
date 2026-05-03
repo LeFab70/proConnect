@@ -1,93 +1,132 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../provider/activity_provider.dart';
+import '/provider/activity_provider.dart';
+import '/widgets/tr_text.dart';
 
-class ActivityScreen extends StatelessWidget {
-  const ActivityScreen({super.key});
+class ActivitySettingsScreen extends StatefulWidget {
+  const ActivitySettingsScreen({super.key});
+
+  @override
+  State<ActivitySettingsScreen> createState() => _ActivitySettingsScreenState();
+}
+
+class _ActivitySettingsScreenState extends State<ActivitySettingsScreen> {
+  late TextEditingController _stepController;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentGoal = context.read<ActivityProvider>().todayActivity.stepGoal;
+    _stepController = TextEditingController(text: currentGoal.toString());
+  }
+
+  @override
+  void dispose() {
+    _stepController.dispose();
+    super.dispose();
+  }
+
+  void _handleSave() {
+    final newGoal = int.tryParse(_stepController.text);
+    if (newGoal != null && newGoal > 0) {
+      context.read<ActivityProvider>().updateStepGoal(newGoal);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const TrText(
+            "Objectif mis à jour !",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.all(24),
+        ),
+      );
+      FocusScope.of(context).unfocus();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FC),
-      body: Stack(
-        children: [
-          Positioned(
-            top: -150,
-            right: -100,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [Color(0x1A10B981), Color(0x0010B981)],
+      backgroundColor: const Color(0xFF000428),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF004E92), Color(0xFF000428)],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Orb haut-droit
+            Positioned(
+              top: -80,
+              right: -80,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF004E92).withOpacity(0.5),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(context),
-                Expanded(
-                  child: Consumer<ActivityProvider>(
-                    builder: (context, provider, child) {
-                      if (provider.isLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF0052D4),
-                            strokeWidth: 3,
-                          ),
-                        );
-                      }
-
-                      return RefreshIndicator(
-                        color: const Color(0xFF0052D4),
-                        onRefresh: () async {
-                          await Future.delayed(const Duration(seconds: 1));
-                        },
-                        child: ListView(
-                          physics: const AlwaysScrollableScrollPhysics(
-                            parent: BouncingScrollPhysics(),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                          children: [
-                            _buildMainProgressRing(provider.todayActivity),
-                            const SizedBox(height: 32),
-                            _buildSecondaryStats(provider.todayActivity),
-                            const SizedBox(height: 40),
-                            _buildWeeklyChart(provider.weeklyHistory),
-                            const SizedBox(height: 80),
-                          ],
-                        ),
-                      );
-                    },
+            // Orb bas-gauche
+            Positioned(
+              bottom: 100,
+              left: -60,
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.04),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.pushNamed(context, '/addActivity'),
-        backgroundColor: const Color(0xFF11998E),
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text(
-          "Saisir un effort",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
-          ),
+
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildIntroCard(),
+                          const SizedBox(height: 16),
+                          _buildStepGoalCard(),
+                          const SizedBox(height: 16),
+                          _buildTipsCard(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -95,309 +134,305 @@ class ActivityScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              padding: const EdgeInsets.all(11),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x0D0F172A),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.15),
+                  width: 1,
+                ),
               ),
               child: const Icon(
                 Icons.arrow_back_ios_new_rounded,
-                size: 20,
-                color: Color(0xFF0F172A),
+                size: 18,
+                color: Colors.white,
               ),
             ),
           ),
+
           const Text(
-            "Activité Physique",
+            "Réglages Activité",
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF0F172A),
-              letterSpacing: -0.5,
+              color: Colors.white,
+              letterSpacing: -0.4,
             ),
           ),
+
           const SizedBox(width: 44),
         ],
       ),
     );
   }
 
-  Widget _buildMainProgressRing(DailyActivity today) {
+  Widget _buildIntroCard() {
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: const [
+        color: const Color(0xFF10B981).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFF10B981).withOpacity(0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981).withOpacity(0.15),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: const Color(0xFF10B981).withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.directions_walk_rounded,
+              color: Color(0xFF34D399),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Objectif Quotidien",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Définissez votre nombre de pas cible par jour.",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepGoalCard() {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A0F172A),
+            color: const Color(0xFF000428).withOpacity(0.3),
             blurRadius: 24,
-            offset: Offset(0, 12),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Aujourd'hui",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Stack(
-            alignment: Alignment.center,
+          // En-tête section
+          Row(
             children: [
-              SizedBox(
-                width: 220,
-                height: 220,
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0.0, end: today.progressRatio),
-                  duration: const Duration(milliseconds: 1500),
-                  curve: Curves.easeOutQuart,
-                  builder: (context, value, _) {
-                    return CircularProgressIndicator(
-                      value: value,
-                      strokeWidth: 16,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      color: const Color(0xFF10B981),
-                      strokeCap: StrokeCap.round,
-                    );
-                  },
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.flag_rounded,
+                  color: Color(0xFF7DC4FF),
+                  size: 17,
                 ),
               ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.directions_walk_rounded,
-                    color: Color(0xFF10B981),
-                    size: 40,
+              const SizedBox(width: 12),
+              Text(
+                "Nombre de pas",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withOpacity(0.9),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+
+          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+
+          // Champ + bouton
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _stepController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    today.steps.toString(),
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F172A),
-                      letterSpacing: -1,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      Icons.directions_walk_rounded,
+                      color: const Color(0xFF34D399).withOpacity(0.8),
+                      size: 20,
+                    ),
+                    suffixText: "pas",
+                    suffixStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.4),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.07),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF34D399),
+                        width: 1.5,
+                      ),
                     ),
                   ),
-                  Text(
-                    "/ ${today.stepGoal} pas",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: _handleSave,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF34D399), Color(0xFF10B981)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF10B981).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipsCard() {
+    final tips = [
+      (Icons.wb_sunny_outlined, "Commencez par 5 000 pas/jour si vous débutez"),
+      (
+        Icons.trending_up_rounded,
+        "L'objectif recommandé est de 10 000 pas/jour",
+      ),
+      (Icons.favorite_border_rounded, "30 min de marche = environ 3 000 pas"),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.lightbulb_outline_rounded,
+                size: 15,
+                color: const Color(0xFFF59E0B).withOpacity(0.8),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "Le saviez-vous ?",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withOpacity(0.6),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...tips.map(
+            (tip) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(tip.$1, size: 15, color: Colors.white.withOpacity(0.3)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      tip.$2,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.45),
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSecondaryStats(DailyActivity today) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.local_fire_department_rounded,
-            iconColor: const Color(0xFFF59E0B),
-            value: today.caloriesBurned.toString(),
-            unit: "kcal",
-            label: "Brûlées",
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.timer_rounded,
-            iconColor: const Color(0xFF0052D4),
-            value: today.activeMinutes.toString(),
-            unit: "min",
-            label: "Activité",
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required Color iconColor,
-    required String value,
-    required String unit,
-    required String label,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  unit,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF94A3B8),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWeeklyChart(List<DailyActivity> weeklyHistory) {
-    final List<String> days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Historique de la semaine",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 32),
-          SizedBox(
-            height: 160,
-            width: double.infinity,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(7, (index) {
-                  final activity = weeklyHistory[index];
-                  final double barHeight = (activity.progressRatio * 130).clamp(
-                    10.0,
-                    130.0,
-                  );
-                  final bool isToday = index == 6;
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: 0.0, end: barHeight),
-                          duration: const Duration(milliseconds: 1000),
-                          curve: Curves.easeOutBack,
-                          builder: (context, height, _) {
-                            return Container(
-                              width: 24,
-                              height: height,
-                              decoration: BoxDecoration(
-                                color: isToday
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFFE2E8F0),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          days[activity.date.weekday - 1],
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isToday
-                                ? FontWeight.w800
-                                : FontWeight.w600,
-                            color: isToday
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
               ),
             ),
           ),

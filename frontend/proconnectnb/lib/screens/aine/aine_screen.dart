@@ -1,59 +1,28 @@
 import 'package:flutter/material.dart';
-import '../../widgets/tr_text.dart';
+import 'package:provider/provider.dart';
+import '../../provider/aine_provider.dart';
+import '../../provider/auth_provider.dart';
+import 'list_aine_screen.dart';
 
-class AineScreen extends StatelessWidget {
+class AineScreen extends StatefulWidget {
   const AineScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const TrText("Gestion des Aînés"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _card(
-              context,
-              icon: Icons.list,
-              title: "Voir les Aînés",
-              route: '/listAine',
-            ),
-            const SizedBox(height: 20),
-            _card(
-              context,
-              icon: Icons.person_add,
-              title: "Ajouter un Aîné",
-              route: '/addAine',
-            ),
-          ],
-        ),
-      ),
-    );
+  State<AineScreen> createState() => _AineScreenState();
+}
+
+class _AineScreenState extends State<AineScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      Provider.of<AineProvider>(context, listen: false).fetchAines(auth);
+    });
   }
 
-  Widget _card(BuildContext context,
-      {required IconData icon, required String title, required String route}) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, route),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.blueAccent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 30),
-            const SizedBox(width: 20),
-            TrText(
-              title,
-              style: const TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          ],
-        ),
-      ),
-    );
+  @override
+  Widget build(BuildContext context) {
+    return const ListAineScreen();
   }
 }

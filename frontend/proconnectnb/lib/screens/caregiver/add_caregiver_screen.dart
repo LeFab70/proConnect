@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'dart:async';
-import 'dart:math';
-import '../../../provider/caregiver_provider.dart';
+
+import '../../models/caregiver.dart';
+import '../../models/adresse.dart';
+import '../../provider/caregiver_provider.dart';
+import '../../provider/auth_provider.dart';
+import '../../provider/partage_provider.dart';
+import '../../widgets/tr_text.dart';
 
 class AddCaregiverScreen extends StatefulWidget {
-  const AddCaregiverScreen({super.key});
+  final Caregiver? caregiver;
+
+  const AddCaregiverScreen({super.key, this.caregiver});
 
   @override
   State<AddCaregiverScreen> createState() => _AddCaregiverScreenState();
@@ -14,296 +20,179 @@ class AddCaregiverScreen extends StatefulWidget {
 
 class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _relationController = TextEditingController();
 
-  // Variables pour le code secret
-  String? _generatedCode;
-  Timer? _timer;
-  int _secondsRemaining = 600; // 10 minutes
+  late TextEditingController _nomCtrl;
+  late TextEditingController _prenomCtrl;
+  late TextEditingController _telCtrl;
+  late TextEditingController _emailCtrl;
+  late TextEditingController _rueCtrl;
+  late TextEditingController _villeCtrl;
+  late TextEditingController _cpCtrl;
+
+  bool _isLoading = false;
+
+  bool get _isEditing => widget.caregiver != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _nomCtrl = TextEditingController(text: widget.caregiver?.nom ?? '');
+    _prenomCtrl = TextEditingController(text: widget.caregiver?.prenom ?? '');
+    _telCtrl = TextEditingController(text: widget.caregiver?.telephone ?? '');
+    _emailCtrl = TextEditingController(text: widget.caregiver?.email ?? '');
+    _rueCtrl = TextEditingController(
+      text: widget.caregiver?.adresse?.rue ?? '',
+    );
+    _villeCtrl = TextEditingController(
+      text: widget.caregiver?.adresse?.ville ?? '',
+    );
+    _cpCtrl = TextEditingController(
+      text: widget.caregiver?.adresse?.codePostal ?? '',
+    );
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _relationController.dispose();
-    _timer?.cancel();
+    _nomCtrl.dispose();
+    _prenomCtrl.dispose();
+    _telCtrl.dispose();
+    _emailCtrl.dispose();
+    _rueCtrl.dispose();
+    _villeCtrl.dispose();
+    _cpCtrl.dispose();
     super.dispose();
   }
 
-  void _generateCode() {
-    // Génère un code à 6 chiffres
-    final random = Random();
-    final code = List.generate(6, (_) => random.nextInt(10).toString()).join();
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
 
-    setState(() {
-      _generatedCode = "${code.substring(0, 3)}-${code.substring(3, 6)}";
-      _secondsRemaining = 600;
-    });
+    final caregiverProvider = context.read<CaregiverProvider>();
+    final partageProvider = context.read<PartageProvider>();
+    final auth = context.read<AuthProvider>();
 
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_secondsRemaining > 0) {
-          _secondsRemaining--;
-        } else {
-          _timer?.cancel();
-          _generatedCode = null; // Le code expire
-        }
-      });
-    });
-  }
+    final nom = _nomCtrl.text.trim();
+    final prenom = _prenomCtrl.text.trim();
+    final telephone = _telCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final adresse = Adresse(
+      rue: _rueCtrl.text.trim(),
+      ville: _villeCtrl.text.trim(),
+      codePostal: _cpCtrl.text.trim(),
+    );
 
-  String get _formattedTime {
-    int minutes = _secondsRemaining ~/ 60;
-    int seconds = _secondsRemaining % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
+    bool success;
 
-  void _saveManual() {
-    if (_formKey.currentState!.validate()) {
-      Provider.of<CaregiverProvider>(context, listen: false).addCaregiver(
-        _nameController.text.trim(),
-        _phoneController.text.trim(),
-        _relationController.text.trim(),
+    if (!_isEditing) {
+      success = await caregiverProvider.addCaregiver(
+        nom: nom,
+        prenom: prenom,
+        telephone: telephone,
+        email: email,
+        adresse: adresse,
+        auth: auth,
       );
-      Navigator.pop(context);
+
+      if (success && caregiverProvider.caregivers.isNotEmpty) {
+        final caregiver = caregiverProvider.caregivers.last;
+        await partageProvider.aineAjouteProche(
+          aineId: auth.currentUserLocalId ?? 0,
+          procheId: caregiver.id,
+          relation: "Proche aidant",
+          procheEmail: email,
+          auth: auth,
+        );
+      }
+    } else {
+      success = await caregiverProvider.updateCaregiver(widget.caregiver!.id, {
+        "nom": nom,
+        "prenom": prenom,
+        "telephone": telephone,
+        "email": email,
+        "adresse": adresse.toJson(),
+      }, auth);
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (success) Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FC),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: Color(0xFF0F172A)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "Nouveau Proche",
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        physics: const BouncingScrollPhysics(),
-        children: [
-          _buildLinkSection(),
-          const SizedBox(height: 32),
-          const Row(
-            children: [
-              Expanded(child: Divider(color: Color(0xFFCBD5E1))),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  "OU",
-                  style: TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Expanded(child: Divider(color: Color(0xFFCBD5E1))),
-            ],
-          ),
-          const SizedBox(height: 32),
-          _buildManualForm(),
-        ],
-      ),
-    );
-  }
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
-  Widget _buildLinkSection() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(
-          color: const Color(0xFF10B981).withOpacity(0.3),
-          width: 2,
+    return Scaffold(
+      backgroundColor: const Color(0xFF000428),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF004E92), Color(0xFF000428)],
+          ),
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.cloud_sync_rounded,
-              color: Color(0xFF10B981),
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            "Liaison Application",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Générez un code pour que votre proche puisse lier son application à votre dossier.",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-          ),
-          const SizedBox(height: 24),
-          if (_generatedCode == null)
-            ElevatedButton(
-              onPressed: _generateCode,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                "Générer un code unique",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            )
-          else
-            Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    _generatedCode!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F172A),
-                      letterSpacing: 4,
-                    ),
+        child: Stack(
+          children: [
+            // Orb haut-droit
+            Positioned(
+              top: -60,
+              right: -80,
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF004E92).withOpacity(0.55),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.timer_outlined,
-                      color: Color(0xFFEF4444),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Expire dans $_formattedTime",
-                      style: const TextStyle(
-                        color: Color(0xFFEF4444),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
+              ),
+            ),
+            // Orb bas-gauche
+            Positioned(
+              bottom: 80,
+              left: -60,
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.04),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  Expanded(
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                        children: [
+                          _buildPersonalCard(),
+                          const SizedBox(height: 16),
+                          _buildAddressCard(),
+                          const SizedBox(height: 24),
+                          _buildSubmitButton(),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildManualForm() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Ajout Manuel",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: _nameController,
-              decoration: _inputDecoration("Nom complet", Icons.person_outline),
-              validator: (v) => v!.isEmpty ? "Requis" : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: _inputDecoration(
-                "Numéro de téléphone",
-                Icons.phone_outlined,
-              ),
-              validator: (v) => v!.isEmpty ? "Requis" : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _relationController,
-              decoration: _inputDecoration(
-                "Lien (ex: Fille, Infirmier)",
-                Icons.family_restroom_rounded,
-              ),
-              validator: (v) => v!.isEmpty ? "Requis" : null,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _saveManual,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF2994A),
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                "Enregistrer le contact",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -312,15 +201,300 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon, color: const Color(0xFF64748B)),
-      filled: true,
-      fillColor: const Color(0xFFF8FAFC),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(11),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.15),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+          ),
+
+          Column(
+            children: [
+              Text(
+                _isEditing ? "Modifier le proche" : "Nouveau proche",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              if (_isEditing)
+                Text(
+                  "${widget.caregiver?.prenom ?? ''} ${widget.caregiver?.nom ?? ''}"
+                      .trim(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.45),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(width: 44),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassCard({
+    required IconData sectionIcon,
+    required String sectionTitle,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF000428).withOpacity(0.3),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  sectionIcon,
+                  color: const Color(0xFF7DC4FF),
+                  size: 17,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                sectionTitle,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withOpacity(0.9),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+          Divider(color: Colors.white.withOpacity(0.08), height: 26),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalCard() {
+    return _buildGlassCard(
+      sectionIcon: Icons.person_outline_rounded,
+      sectionTitle: "Informations personnelles",
+      children: [
+        _buildRow(
+          left: _buildField(_prenomCtrl, "Prénom", Icons.person_rounded),
+          right: _buildField(_nomCtrl, "Nom", Icons.person_outline_rounded),
+        ),
+        const SizedBox(height: 14),
+        _buildField(
+          _telCtrl,
+          "Téléphone",
+          Icons.phone_rounded,
+          type: TextInputType.phone,
+        ),
+        const SizedBox(height: 14),
+        _buildField(
+          _emailCtrl,
+          "Email",
+          Icons.alternate_email_rounded,
+          type: TextInputType.emailAddress,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddressCard() {
+    return _buildGlassCard(
+      sectionIcon: Icons.location_on_outlined,
+      sectionTitle: "Adresse",
+      children: [
+        _buildField(_rueCtrl, "Rue", Icons.signpost_outlined),
+        const SizedBox(height: 14),
+        _buildRow(
+          left: _buildField(_villeCtrl, "Ville", Icons.location_city_rounded),
+          right: _buildField(
+            _cpCtrl,
+            "Code postal",
+            Icons.markunread_mailbox_outlined,
+            type: TextInputType.number,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Two fields side by side
+  Widget _buildRow({required Widget left, required Widget right}) {
+    return Row(
+      children: [
+        Expanded(child: left),
+        const SizedBox(width: 12),
+        Expanded(child: right),
+      ],
+    );
+  }
+
+  Widget _buildField(
+    TextEditingController ctrl,
+    String label,
+    IconData icon, {
+    TextInputType type = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: ctrl,
+      keyboardType: type,
+      enabled: !_isLoading,
+      style: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: Colors.white.withOpacity(0.4),
+          fontSize: 13,
+        ),
+        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.35), size: 19),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.07),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF7DC4FF), width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+        ),
+        errorStyle: const TextStyle(color: Color(0xFFFF7070), fontSize: 11),
+      ),
+      validator: (v) => v == null || v.trim().isEmpty ? "Obligatoire" : null,
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4A9FE8), Color(0xFF004E92)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF004E92).withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _submit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          disabledBackgroundColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          elevation: 0,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 22,
+                width: 22,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _isEditing
+                        ? Icons.check_rounded
+                        : Icons.person_add_alt_1_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  TrText(
+                    _isEditing ? "Mettre à jour" : "Enregistrer le proche",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

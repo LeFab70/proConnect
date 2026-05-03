@@ -1,11 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:async';
 import 'package:provider/provider.dart';
+import '../../widgets/tr_text.dart';
+import 'package:intl/intl.dart';
 
-import '/provider/medication_provider.dart';
-import '/provider/activity_provider.dart';
-import '/provider/caregiver_provider.dart';
+import '../../provider/auth_provider.dart';
+import '../../provider/medication_provider.dart';
+import '../../provider/activity_provider.dart';
+import '../../provider/caregiver_provider.dart';
+import '../../provider/aine_provider.dart';
+import '../../provider/rappel_provider.dart';
+import '../../provider/appointment_provider.dart';
+import '../../provider/partage_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,238 +20,453 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _entranceController;
-  late AnimationController _breathingController;
-  late PageController _carouselController;
-  Timer? _carouselTimer;
-  int _currentCarouselIndex = 0;
-
-  final String _userName = "Test";
-
-  @override
-  void initState() {
-    super.initState();
-    _entranceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..forward();
-
-    _breathingController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    )..repeat(reverse: true);
-
-    _carouselController = PageController(viewportFraction: 1.0);
-    _startCarouselTimer();
-  }
-
-  void _startCarouselTimer() {
-    _carouselTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_carouselController.hasClients) {
-        int nextIndex = (_currentCarouselIndex + 1) % 3;
-        _carouselController.animateToPage(
-          nextIndex,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.fastOutSlowIn,
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _carouselTimer?.cancel();
-    _carouselController.dispose();
-    _entranceController.dispose();
-    _breathingController.dispose();
-    super.dispose();
-  }
+class _DashboardScreenState extends State<DashboardScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+    final auth = context.watch<AuthProvider>();
+    final partage = context.watch<PartageProvider>();
+    final meds = context.watch<MedicationProvider>();
+    final activity = context.watch<ActivityProvider>();
+    final caregivers = context.watch<CaregiverProvider>();
+    final aines = context.watch<AineProvider>();
+    final rappelProvider = context.watch<RappelProvider>();
+    final appointmentProvider = context.watch<AppointmentProvider>();
 
-    final medProvider = context.watch<MedicationProvider>();
-    final remainingMeds = medProvider.medications
-        .where((m) => !m.isTaken)
-        .length;
-    final adherenceScore = medProvider.medications.isEmpty
+    final bool isProcheSansAine = auth.isAidant && aines.selectedAine == null;
+
+    final nbDemandes = partage.countDemandesPourProche(auth);
+
+    final activeMeds = isProcheSansAine
+        ? []
+        : meds.medications.where((m) => m.isActive).toList();
+
+    final remainingMeds = isProcheSansAine
         ? 0
-        : (medProvider.adherenceRate * 100).toInt();
+        : activeMeds.where((m) => !m.isTaken).length;
 
-    final actProvider = context.watch<ActivityProvider>();
-    String activitySubtitle = "Chargement...";
-    if (!actProvider.isLoading) {
-      final int progress = (actProvider.todayActivity.progressRatio * 100)
-          .toInt();
-      activitySubtitle = "Objectif $progress%";
-    }
+    final activeReminders = isProcheSansAine
+        ? 0
+        : rappelProvider.rappelsDuJour.length;
 
-    final cgProvider = context.watch<CaregiverProvider>();
-    final int cgCount = cgProvider.caregivers.length;
-    final String caregiverSubtitle = cgCount == 0
-        ? "Aucun actif"
-        : "$cgCount actif(s)";
+    final relationCount = auth.isAine
+        ? caregivers.caregivers.length
+        : aines.aines.length;
 
-    final List<Map<String, dynamic>> bannerData = [
-      {
-        "title": "Score de suivi",
-        "value": "$adherenceScore%",
-        "subtitle": adherenceScore == 100
-            ? "Parfait ! Tout est pris."
-            : "N'oubliez pas vos traitements.",
-        "icon": Icons.health_and_safety_rounded,
-        "color": const Color(0xFF0052D4),
-      },
-      {
-        "title": "Prochain Rendez-vous",
-        "value": "Demain",
-        "subtitle": "Dr. Tremblay - Cardiologie à 14:00.",
-        "icon": Icons.calendar_month_rounded,
-        "color": const Color(0xFF11998E),
-      },
-      {
-        "title": "Conseil du jour",
-        "value": "Hydratation",
-        "subtitle": "N'oubliez pas de boire 1.5L d'eau aujourd'hui.",
-        "icon": Icons.water_drop_rounded,
-        "color": const Color(0xFF8E2DE2),
-      },
-    ];
+    final relationLabel = auth.isAine ? "Aidants" : "Aînés";
+    final relationIcon = auth.isAine ? Icons.people : Icons.elderly;
+
+    final progress = isProcheSansAine
+        ? 0.0
+        : activity.isLoading
+        ? 0.0
+        : activity.todayActivity.progressRatio;
+
+    final activityData = isProcheSansAine ? null : activity.todayActivity;
+
+    final rappelsDuJour = isProcheSansAine ? [] : rappelProvider.rappelsDuJour;
+
+    final rendezVousDuJour = isProcheSansAine
+        ? []
+        : appointmentProvider.appointmentsDuJour;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FC),
-      body: Stack(
-        children: [
-          Positioned(
-            top: -150,
-            left: -100,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF0052D4).withOpacity(0.2),
-                    const Color(0xFF0052D4).withOpacity(0.0),
+      key: _scaffoldKey,
+      drawer: _buildDrawer(context, auth),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF004E92), Color(0xFF000428)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildTopHeader(auth, nbDemandes, aines),
+              const SizedBox(height: 12),
+              _buildDatePill(),
+              const SizedBox(height: 18),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    _buildStatCard(
+                      value: remainingMeds.toString().padLeft(2, '0'),
+                      label: "À prendre",
+                      icon: Icons.medication,
+                      color: const Color(0xFF8370D8),
+                      disabled: isProcheSansAine,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildStatCard(
+                      value: activeReminders.toString().padLeft(2, '0'),
+                      label: "Rappels",
+                      icon: Icons.notifications_active,
+                      color: const Color(0xFF5D95D6),
+                      disabled: isProcheSansAine,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildStatCard(
+                      value: relationCount.toString().padLeft(2, '0'),
+                      label: relationLabel,
+                      icon: relationIcon,
+                      color: const Color(0xFF51A091),
+                    ),
                   ],
                 ),
               ),
-            ),
-          ),
-          SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
-                    child: _buildHeader(),
+
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFAF8F4),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(26),
+                      topRight: Radius.circular(26),
+                    ),
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: _buildInteractiveCarousel(bannerData),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SingleChildScrollView(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Services Rapides",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F172A),
-                            letterSpacing: -0.5,
+                        if (isProcheSansAine) _selectAineNotice(context),
+
+                        _sectionHeader(
+                          "Activité du jour",
+                          isProcheSansAine
+                              ? "Choisir un aîné ↗"
+                              : "Voir détails ↗",
+                          () => Navigator.pushNamed(
+                            context,
+                            isProcheSansAine ? '/aine' : '/activities_daily',
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TactileActionCard(
-                                title: "Médicaments",
-                                subtitle: remainingMeds == 0
-                                    ? "Tout est pris"
-                                    : "$remainingMeds restant(s)",
-                                icon: Icons.vaccines_rounded,
-                                gradient: const [
-                                  Color(0xFF0052D4),
-                                  Color(0xFF4364F7),
-                                ],
-                                route: '/medications',
-                                entranceController: _entranceController,
-                                breathingController: _breathingController,
-                                delay: 0.2,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TactileActionCard(
-                                title: "Activités",
-                                subtitle: activitySubtitle,
-                                icon: Icons.directions_run_rounded,
-                                gradient: const [
-                                  Color(0xFF11998E),
-                                  Color(0xFF38EF7D),
-                                ],
-                                route: '/activities',
-                                entranceController: _entranceController,
-                                breathingController: _breathingController,
-                                delay: 0.3,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 10),
+                        _activityCard(
+                          progress,
+                          activityData,
+                          disabled: isProcheSansAine,
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TactileActionCard(
-                                title: "Proche Aidant",
-                                subtitle: caregiverSubtitle,
-                                icon: Icons.diversity_1_rounded,
-                                gradient: const [
-                                  Color(0xFFF2994A),
-                                  Color(0xFFF2C94C),
-                                ],
-                                route: '/caregivers',
-                                entranceController: _entranceController,
-                                breathingController: _breathingController,
-                                delay: 0.4,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TactileActionCard(
-                                title: "Dossier Médical",
-                                subtitle: "Documents",
-                                icon: Icons.folder_shared_rounded,
-                                gradient: const [
-                                  Color(0xFFE94057),
-                                  Color(0xFFF27121),
-                                ],
-                                route: '/documents',
-                                entranceController: _entranceController,
-                                breathingController: _breathingController,
-                                delay: 0.5,
-                              ),
-                            ),
-                          ],
+
+                        const SizedBox(height: 18),
+
+                        _sectionHeader(
+                          "Médicaments du jour",
+                          isProcheSansAine
+                              ? "Choisir un aîné ↗"
+                              : "Tout voir ↗",
+                          () => Navigator.pushNamed(
+                            context,
+                            isProcheSansAine ? '/aine' : '/medications',
+                          ),
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 10),
+
+                        if (isProcheSansAine)
+                          _disabledInfoBox(
+                            "Sélectionnez un aîné pour afficher ses médicaments.",
+                          )
+                        else if (meds.medications.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: TrText(
+                              "Aucun médicament ajouté",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        else
+                          ...meds.medications
+                              .take(3)
+                              .map((med) => _medicationTile(context, med)),
+
+                        const SizedBox(height: 12),
+                        if (!isProcheSansAine) _warningCard(remainingMeds),
+
+                        const SizedBox(height: 18),
+
+                        _sectionHeader(
+                          "Rappels du jour",
+                          isProcheSansAine
+                              ? "Choisir un aîné ↗"
+                              : "Tout voir ↗",
+                          () => Navigator.pushNamed(
+                            context,
+                            isProcheSansAine ? '/aine' : '/rappel',
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        if (isProcheSansAine)
+                          _disabledInfoBox(
+                            "Sélectionnez un aîné pour afficher ses rappels.",
+                          )
+                        else if (rappelsDuJour.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: TrText(
+                              "Aucun rappel aujourd’hui",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        else
+                          ...rappelsDuJour.take(3).map((r) => _rappelTile(r)),
+
                       ],
                     ),
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _selectAineNotice(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.orange.withOpacity(0.25)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Colors.orange),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: TrText(
+              "Sélectionnez un aîné pour afficher ses informations.",
+              style: TextStyle(
+                color: Colors.orange,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pushNamed(context, '/aine'),
+            child: const TrText("Choisir"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _disabledInfoBox(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1EFEA),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: TrText(
+        message,
+        style: const TextStyle(
+          color: Colors.grey,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget displayImage(String? path) {
+    if (path == null || path.isEmpty) {
+      return Image.asset('images/giphy.gif');
+    }
+
+    if (path.startsWith('http')) {
+      return Image.network(path);
+    } else {
+      return Image.file(File(path));
+    }
+  }
+
+  Widget _activityCard(
+    double progress,
+    dynamic activity, {
+    bool disabled = false,
+  }) {
+    final int steps = disabled ? 0 : activity.steps;
+    final int stepGoal = disabled ? 0 : activity.stepGoal;
+
+    return Opacity(
+      opacity: disabled ? 0.55 : 1,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 85,
+                  height: 85,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween<double>(
+                      begin: 0.0,
+                      end: progress.clamp(0.0, 1.0),
+                    ),
+                    duration: const Duration(milliseconds: 1500),
+                    curve: Curves.easeOutQuart,
+                    builder: (context, value, _) {
+                      return CircularProgressIndicator(
+                        value: value,
+                        strokeWidth: 9,
+                        backgroundColor: const Color(0xFFF1F5F9),
+                        color: const Color(0xFF10B981),
+                        strokeCap: StrokeCap.round,
+                      );
+                    },
+                  ),
+                ),
+                const Icon(
+                  Icons.directions_walk_rounded,
+                  color: Color(0xFF10B981),
+                  size: 30,
+                ),
+              ],
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "$steps",
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  TrText(
+                    "Objectif : $stepGoal",
+                    isDynamic: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "${(progress * 100).toInt()}% accompli",
+                      style: const TextStyle(
+                        color: Color(0xFF10B981),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context, AuthProvider auth) {
+    return Drawer(
+      backgroundColor: const Color(0xFF001F3F),
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(color: Color(0xFF001429)),
+            child: Center(
+              child: Image.asset('images/logoProConnectNB.png', height: 125),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _drawerItem(
+                  Icons.dashboard,
+                  "Tableau de bord",
+                  () => Navigator.pop(context),
+                  isActive: true,
+                ),
+                const Divider(color: Colors.white24, indent: 20, endIndent: 20),
+                _drawerItem(
+                  Icons.medication,
+                  "Médicaments",
+                  () => Navigator.pushNamed(context, '/medications'),
+                ),
+                _drawerItem(
+                  Icons.directions_run,
+                  "Activités",
+                  () => Navigator.pushNamed(context, '/activities'),
+                ),
+                _drawerItem(
+                  auth.isAine ? Icons.people : Icons.elderly,
+                  auth.isAine ? "Proche aidant" : "Aînés",
+                  () => Navigator.pushNamed(
+                    context,
+                    auth.isAine ? '/caregiver' : '/aine',
+                  ),
+                ),
+                const Divider(color: Colors.white24, indent: 20, endIndent: 20),
+                _drawerItem(
+                  Icons.notifications_active,
+                  "Rappels",
+                  () => Navigator.pushNamed(context, '/rappel'),
+                ),
+                _drawerItem(
+                  Icons.calendar_month,
+                  "Rendez-vous",
+                  () => Navigator.pushNamed(context, '/appointments'),
+                ),
+                _drawerItem(
+                  Icons.calendar_month,
+                  "Paramètres",
+                  () => Navigator.pushNamed(context, '/settings'),
+                ),
+                const Divider(color: Colors.white24, indent: 20, endIndent: 20),
+                _drawerItem(Icons.logout, "Se déconnecter", () async {
+                  await auth.logout();
+                  if (mounted) {
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/login',
+                      (_) => false,
+                    );
+                  }
+                }, color: Colors.redAccent),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -254,393 +475,366 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildHeader() {
-    return FadeTransition(
-      opacity: Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(
-          parent: _entranceController,
-          curve: const Interval(0.0, 0.4),
+  Widget _drawerItem(
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool isActive = false,
+    Color color = Colors.white,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: TrText(
+        title,
+        style: TextStyle(
+          color: color,
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
         ),
       ),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildTopHeader(
+    AuthProvider auth,
+    int nbDemandes,
+    AineProvider aines,
+  ) {
+    final selectedAine = aines.selectedAine;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+            onPressed: () => _scaffoldKey.currentState!.openDrawer(),
+          ),
+          const SizedBox(width: 4),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _userName,
+                const TrText(
+                  "Bienvenue",
+                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+                TrText(
+                  auth.firstName ?? "Utilisateur",
                   style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A),
-                    letterSpacing: -1.0,
-                    height: 1.1,
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
+                if (auth.isAidant)
+                  Text(
+                    selectedAine == null
+                        ? "Aucun aîné sélectionné"
+                        : "Aîné actif : ${selectedAine.prenom} ${selectedAine.nom}",
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
               ],
             ),
           ),
-          Row(
+          Stack(
             children: [
-              _buildTopIconButton(Icons.tune_rounded, () {
-                Navigator.pushNamed(context, '/settings');
-              }),
-              const SizedBox(width: 12),
+              IconButton(
+                icon: Icon(
+                  Icons.notifications,
+                  color: auth.isAidant ? Colors.white : Colors.white38,
+                ),
+                onPressed: auth.isAidant
+                    ? () => Navigator.pushNamed(context, '/demandeRecue')
+                    : null,
+              ),
 
-              _buildTopIconButton(Icons.notifications_none_rounded, () {
-                Navigator.pushNamed(context, '/notifications');
-              }),
-              const SizedBox(width: 12),
-              Container(
-                height: 44,
-                width: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0052D4).withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+              if (auth.isAidant && nbDemandes > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
                     ),
-                  ],
-                  image: const DecorationImage(
-                    image: AssetImage('images/profile_placeholder.png'),
-                    fit: BoxFit.cover,
+                    child: Text(
+                      nbDemandes.toString(),
+                      style: const TextStyle(color: Colors.white, fontSize: 9),
+                    ),
                   ),
                 ),
-                child: const Icon(Icons.person, color: Colors.transparent),
-              ),
             ],
+          ),
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, '/editprofil'),
+            child: _buildHeaderImage(auth),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTopIconButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
+  Widget _buildDatePill() {
+    String dateFormatee = DateFormat(
+      'EEEE d MMMM',
+      'fr_FR',
+    ).format(DateTime.now());
+
+    dateFormatee = dateFormatee[0].toUpperCase() + dateFormatee.substring(1);
+
+    return Align(
+      alignment: Alignment.centerLeft,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        margin: const EdgeInsets.only(left: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0F172A).withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+          color: Colors.black.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.calendar_month, color: Colors.white70, size: 14),
+            const SizedBox(width: 6),
+            TrText(
+              dateFormatee,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
-        child: Icon(icon, color: const Color(0xFF0F172A), size: 22),
       ),
     );
   }
 
-  Widget _buildInteractiveCarousel(List<Map<String, dynamic>> bannerData) {
-    return ScaleTransition(
-      scale: Tween<double>(begin: 0.9, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _entranceController,
-          curve: const Interval(0.1, 0.6, curve: Curves.easeOutBack),
+  Widget _sectionHeader(String title, String action, VoidCallback onTap) {
+    return Row(
+      children: [
+        TrText(
+          title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
         ),
-      ),
-      child: FadeTransition(
-        opacity: Tween<double>(begin: 0, end: 1).animate(
-          CurvedAnimation(
-            parent: _entranceController,
-            curve: const Interval(0.1, 0.6),
-          ),
-        ),
-        child: SizedBox(
-          height: 180,
-          child: PageView.builder(
-            controller: _carouselController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentCarouselIndex = index;
-              });
-            },
-            itemCount: bannerData.length,
-            itemBuilder: (context, index) {
-              final data = bannerData[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: data["color"].withOpacity(0.15),
-                        blurRadius: 24,
-                        offset: const Offset(0, 12),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          right: -20,
-                          bottom: -20,
-                          child: Icon(
-                            data["icon"],
-                            size: 140,
-                            color: data["color"].withOpacity(0.04),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(28),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: data["color"].withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  data["icon"],
-                                  color: data["color"],
-                                  size: 36,
-                                ),
-                              ),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      data["title"],
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF64748B),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      data["value"],
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF0F172A),
-                                        letterSpacing: -0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      data["subtitle"],
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF475569),
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TactileActionCard extends StatefulWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final List<Color> gradient;
-  final String route;
-  final AnimationController entranceController;
-  final AnimationController breathingController;
-  final double delay;
-
-  const TactileActionCard({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.gradient,
-    required this.route,
-    required this.entranceController,
-    required this.breathingController,
-    required this.delay,
-  });
-
-  @override
-  State<TactileActionCard> createState() => _TactileActionCardState();
-}
-
-class _TactileActionCardState extends State<TactileActionCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _tapController;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _tapController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.92,
-    ).animate(CurvedAnimation(parent: _tapController, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _tapController.dispose();
-    super.dispose();
-  }
-
-  void _onTapDown(TapDownDetails details) {
-    _tapController.forward();
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    _tapController.reverse().then((_) {
-      try {
-        Navigator.pushNamed(context, widget.route);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Module en cours d'intégration")),
-        );
-      }
-    });
-  }
-
-  void _onTapCancel() {
-    _tapController.reverse();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SlideTransition(
-      position: Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
-          .animate(
-            CurvedAnimation(
-              parent: widget.entranceController,
-              curve: Interval(
-                widget.delay,
-                widget.delay + 0.4,
-                curve: Curves.easeOutExpo,
-              ),
+        const Spacer(),
+        GestureDetector(
+          onTap: onTap,
+          child: TrText(
+            action,
+            style: const TextStyle(
+              color: Color(0xFF5D95D6),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
-      child: FadeTransition(
-        opacity: Tween<double>(begin: 0, end: 1).animate(
-          CurvedAnimation(
-            parent: widget.entranceController,
-            curve: Interval(widget.delay, widget.delay + 0.4),
-          ),
         ),
-        child: GestureDetector(
-          onTapDown: _onTapDown,
-          onTapUp: _onTapUp,
-          onTapCancel: _onTapCancel,
-          child: AnimatedBuilder(
-            animation: Listenable.merge([
-              _scaleAnimation,
-              widget.breathingController,
-            ]),
-            builder: (context, child) {
-              final breathingValue = widget.breathingController.value;
-              return Transform.scale(
-                scale: _scaleAnimation.value,
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: widget.gradient.first.withOpacity(
-                        0.1 + (breathingValue * 0.15),
-                      ),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.gradient.last.withOpacity(
-                          0.08 + (breathingValue * 0.08),
-                        ),
-                        blurRadius: 20 + (breathingValue * 5),
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: widget.gradient,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: widget.gradient.first.withOpacity(
-                                0.3 + (breathingValue * 0.2),
-                              ),
-                              blurRadius: 10 + (breathingValue * 4),
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Icon(widget.icon, color: Colors.white, size: 28),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.subtitle,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color color,
+    bool disabled = false,
+  }) {
+    return Expanded(
+      child: Opacity(
+        opacity: disabled ? 0.55 : 1,
+        child: Container(
+          height: 104,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: Colors.white),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w900,
                 ),
-              );
-            },
+              ),
+              TrText(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _medicationTile(BuildContext context, dynamic med) {
+    final isTaken = med.isTaken;
+    final isActive = med.isActive;
+
+    return Opacity(
+      opacity: isActive ? 1 : 0.55,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1EFEA),
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 4,
+              backgroundColor: !isActive
+                  ? Colors.grey
+                  : isTaken
+                  ? const Color(0xFF6FC27B)
+                  : const Color(0xFFEF6A5A),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${med.name} ${med.dosage}",
+                    style: TextStyle(
+                      color: isActive ? const Color(0xFF4E4944) : Colors.grey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      decoration: isActive ? null : TextDecoration.lineThrough,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        "${med.time} - ",
+                        style: const TextStyle(
+                          color: Color(0xFF8A8178),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      TrText(
+                        isActive
+                            ? (isTaken ? "pris" : "à prendre")
+                            : "désactivé",
+                        style: const TextStyle(
+                          color: Color(0xFF8A8178),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (isActive)
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: Icon(
+                  isTaken ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: isTaken
+                      ? const Color(0xFF61B66D)
+                      : const Color(0xFFFF6B3D),
+                  size: 22,
+                ),
+                onPressed: () =>
+                    context.read<MedicationProvider>().toggleTaken(med.id),
+              )
+            else
+              const TrText(
+                "Inactif",
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _warningCard(int remaining) {
+    if (remaining == 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+          const SizedBox(width: 10),
+          TrText(
+            "$remaining médicament(s) restant(s)",
+            style: const TextStyle(
+              color: Colors.orange,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _rappelTile(dynamic r) {
+    return ListTile(
+      leading: const Icon(Icons.notifications_active_outlined),
+      title: Text(r.type),
+      subtitle: Text(r.description ?? ""),
+    );
+  }
+
+  Widget _appointmentTile(dynamic r) {
+    return ListTile(
+      leading: const Icon(Icons.calendar_today),
+      title: Text("Dr. ${r.docteur}"),
+      trailing: Text(r.heure ?? ""),
+    );
+  }
+
+  Widget _buildHeaderImage(AuthProvider auth) {
+    final String? path = auth.profilePicture;
+
+    ImageProvider? imageProvider;
+
+    if (path != null && path.isNotEmpty) {
+      if (path.startsWith('http')) {
+        imageProvider = NetworkImage(path);
+      } else {
+        imageProvider = FileImage(File(path));
+      }
+    }
+
+    return CircleAvatar(
+      radius: 22,
+      backgroundColor: Colors.white24,
+      backgroundImage: imageProvider,
+      child: imageProvider == null
+          ? const Icon(Icons.person, color: Colors.white, size: 24)
+          : null,
     );
   }
 }

@@ -19,6 +19,9 @@ class Api {
     };
   }
 
+  // ======================================================
+  // AUTHENTIFICATION
+  // ======================================================
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       await Future.delayed(const Duration(seconds: 1));
@@ -43,7 +46,6 @@ class Api {
       }
 
       final user = mockUsers[email]!;
-
       if (user["password"] != password) {
         return {"success": false, "message": "Mot de passe incorrect"};
       }
@@ -56,103 +58,80 @@ class Api {
       };
 
       /*
-      // BACKEND PLUS TARD
+      // CODE BACKEND AZURE
       final response = await http.post(
         Uri.parse("$baseUrl/api/auth/login"),
         headers: headers(),
-        body: jsonEncode({
-          "email": email,
-          "password": password,
-        }),
+        body: jsonEncode({"email": email, "password": password}),
       );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {
-          "success": true,
-          "token": data["token"],
-          "firstName": data["firstName"],
-          "role": data["role"],
-        };
-      }
-
-      if (response.statusCode == 401) {
-        return {
-          "success": false,
-          "message": "Email ou mot de passe incorrect",
-        };
-      }
-
-      if (response.statusCode == 404) {
-        return {
-          "success": false,
-          "message": "Utilisateur introuvable",
-        };
-      }
-
-      if (response.statusCode == 403) {
-        return {
-          "success": false,
-          "message": "Accès refusé",
-        };
-      }
-
-      return {
-        "success": false,
-        "message": "Erreur serveur: ${response.statusCode}",
-      };
+      // ... gestion des status codes
       */
     } catch (e) {
       return {"success": false, "message": "Erreur de connexion au serveur"};
     }
   }
 
-  Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
+  // ======================================================
+  // AÎNÉS (Aines)
+  // ======================================================
+
+  // Récupérer la liste des aînés
+  Future<List<dynamic>> getAines(String token) async {
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await http.get(
+        Uri.parse(
+          "$baseUrl/api/Aine",
+        ), // Vérifie si l'endpoint est /api/Aine ou /api/Aines
+        headers: authHeaders(token),
+      );
 
-      return {
-        "success": true,
-        "email": data["email"],
-        "firstName": data["prenom"],
-        "role": data["role"],
-      };
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+      return [];
+    } catch (e) {
+      print("Erreur GET Aines: $e");
+      return [];
+    }
+  }
 
-      /*
+  // Créer un aîné (UpsertAineRequestDto)
+  Future<bool> registerAine({
+    required Map<String, dynamic> data,
+    required String token,
+  }) async {
+    try {
       final response = await http.post(
-        Uri.parse("$baseUrl/api/auth/register"),
-        headers: headers(),
+        Uri.parse("$baseUrl/api/Aine"),
+        headers: authHeaders(token),
         body: jsonEncode(data),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return {
-          "success": true,
-          ...jsonDecode(response.body),
-        };
-      }
-
-      if (response.statusCode == 409) {
-        return {
-          "success": false,
-          "message": "Un compte existe déjà avec cet email",
-        };
-      }
-
-      if (response.statusCode == 400) {
-        return {
-          "success": false,
-          "message": "Informations invalides",
-        };
-      }
-
-      return {
-        "success": false,
-        "message": "Erreur serveur: ${response.statusCode}",
-      };
-      */
+      print("Status Code Aine: ${response.statusCode}");
+      return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      return {"success": false, "message": "Erreur de connexion au serveur"};
+      print("Erreur POST Aine: $e");
+      return false;
+    }
+  }
+
+  // ======================================================
+  // PROCHES AIDANTS (Caregivers)
+  // ======================================================
+
+  Future<List<dynamic>> getCaregivers(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUrl/api/ProcheAidant"),
+        headers: authHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+      return [];
+    } catch (e) {
+      return [];
     }
   }
 
@@ -161,26 +140,82 @@ class Api {
     required String prenom,
     required String telephone,
     required String email,
-    required String relation,
+    Map<String, dynamic>? adresse,
+    required String token,
   }) async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/api/ProcheAidant"),
-        headers: headers(),
+        headers: authHeaders(token),
         body: jsonEncode({
           "nom": nom,
           "prenom": prenom,
           "telephone": telephone,
           "email": email,
-          "relation": relation,
+          "adresse": adresse,
         }),
       );
-
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       return false;
     }
   }
+
+  // ======================================================
+  // MÉTHODES GÉNÉRIQUES (POST, PUT, DELETE)
+  // ======================================================
+
+  Future<bool> post(
+    String endpoint,
+    Map<String, dynamic> body,
+    String token,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl${endpoint.startsWith('/') ? '' : '/'}$endpoint"),
+        headers: authHeaders(token),
+        body: jsonEncode(body),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("Erreur POST générique : $e");
+      return false;
+    }
+  }
+
+  Future<bool> put(
+    String endpoint,
+    Map<String, dynamic> body,
+    String token,
+  ) async {
+    try {
+      final response = await http.put(
+        Uri.parse("$baseUrl${endpoint.startsWith('/') ? '' : '/'}$endpoint"),
+        headers: authHeaders(token),
+        body: jsonEncode(body),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> delete(String endpoint, String token) async {
+    try {
+      final response = await http.delete(
+        Uri.parse("$baseUrl${endpoint.startsWith('/') ? '' : '/'}$endpoint"),
+        headers: authHeaders(token),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      print("Erreur DELETE : $e");
+      return false;
+    }
+  }
+
+  // ======================================================
+  // AUTRES (Partages, Users)
+  // ======================================================
 
   Future<bool> upsertPartage(PartageSuivi partage, String token) async {
     try {
@@ -189,26 +224,29 @@ class Api {
         headers: authHeaders(token),
         body: jsonEncode(partage.toJson()),
       );
-
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       return false;
     }
   }
-
+  // ======================================================
+  // RÉCUPÉRATION UTILISATEUR (Pour le Test API Screen)
+  // ======================================================
   Future<Map<String, dynamic>?> getUser(int id) async {
     try {
       final response = await http.get(
-        Uri.parse("$baseUrl/api/users/$id"),
+        Uri.parse("$baseUrl/api/users/$id"), // Vérifie si ton endpoint C# est bien /api/users
         headers: headers(),
       );
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-
+      
+      print("Erreur getUser: Status ${response.statusCode}");
       return null;
     } catch (e) {
+      print("Exception getUser: $e");
       return null;
     }
   }

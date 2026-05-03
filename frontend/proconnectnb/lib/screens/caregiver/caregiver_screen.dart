@@ -11,7 +11,6 @@ class CaregiverScreen extends StatefulWidget {
 }
 
 class _CaregiverScreenState extends State<CaregiverScreen> {
-  // Initialisation des contrôleurs avec les champs du DTO
   final _nomController = TextEditingController();
   final _prenomController = TextEditingController();
   final _telController = TextEditingController();
@@ -22,18 +21,37 @@ class _CaregiverScreenState extends State<CaregiverScreen> {
 
   bool _isEditing = false;
 
+  @override
+  void dispose() {
+    _nomController.dispose();
+    _prenomController.dispose();
+    _telController.dispose();
+    _emailController.dispose();
+    _adresseController.dispose();
+    _docteurController.dispose();
+    _telDocteurController.dispose();
+    super.dispose();
+  }
+
   void _saveProfile() {
-    if (_nomController.text.isEmpty || _prenomController.text.isEmpty) {
+    if (_nomController.text.trim().isEmpty ||
+        _prenomController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Le nom et le prénom sont obligatoires")),
+        const SnackBar(
+          content: Text("Le nom et le prénom sont obligatoires"),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
-    
-    // Logique de sauvegarde API ici
+
     setState(() => _isEditing = false);
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Profil mis à jour avec succès")),
+      const SnackBar(
+        content: Text("Profil mis à jour avec succès"),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 
@@ -47,16 +65,15 @@ class _CaregiverScreenState extends State<CaregiverScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(_isEditing ? Icons.cancel : Icons.edit),
+            icon: Icon(_isEditing ? Icons.close : Icons.edit),
             onPressed: () => setState(() => _isEditing = !_isEditing),
-          )
+          ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Header avec Avatar
             const Center(
               child: CircleAvatar(
                 radius: 50,
@@ -64,58 +81,33 @@ class _CaregiverScreenState extends State<CaregiverScreen> {
                 child: Icon(Icons.person, size: 50, color: Colors.white),
               ),
             ),
+
             const SizedBox(height: 25),
 
-            // Formulaire basé sur le DTO
-            CustomInput(
-              controller: _prenomController,
-              label: "Prénom",
-              icon: Icons.person_outline,
-            ),
-            const SizedBox(height: 15),
-            
-            CustomInput(
-              controller: _nomController,
-              label: "Nom",
-              icon: Icons.person,
-            ),
+            _field(_prenomController, "Prénom", Icons.person_outline),
             const SizedBox(height: 15),
 
-            CustomInput(
-              controller: _telController,
-              label: "Téléphone",
-              icon: Icons.phone,
-            ),
+            _field(_nomController, "Nom", Icons.person),
             const SizedBox(height: 15),
 
-            CustomInput(
-              controller: _emailController,
-              label: "Email",
-              icon: Icons.email,
-            ),
+            _field(_telController, "Téléphone", Icons.phone),
             const SizedBox(height: 15),
 
-            CustomInput(
-              controller: _adresseController,
-              label: "Adresse",
-              icon: Icons.location_on,
-            ),
+            _field(_emailController, "Email", Icons.email),
             const SizedBox(height: 15),
 
-            // Champs supplémentaires du DTO
-            CustomInput(
-              controller: _docteurController,
-              label: "Docteur",
-              icon: Icons.medical_services,
-            ),
+            _field(_adresseController, "Adresse", Icons.location_on),
             const SizedBox(height: 15),
 
-            CustomInput(
-              controller: _telDocteurController,
-              label: "Téléphone du Docteur",
-              icon: Icons.local_hospital,
+            _field(_docteurController, "Docteur", Icons.medical_services),
+            const SizedBox(height: 15),
+
+            _field(
+              _telDocteurController,
+              "Téléphone du Docteur",
+              Icons.local_hospital,
             ),
-            
+
             const SizedBox(height: 30),
 
             if (_isEditing)
@@ -125,6 +117,16 @@ class _CaregiverScreenState extends State<CaregiverScreen> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _field(TextEditingController controller, String label, IconData icon) {
+    return AbsorbPointer(
+      absorbing: !_isEditing,
+      child: Opacity(
+        opacity: _isEditing ? 1 : 0.75,
+        child: CustomInput(controller: controller, label: label, icon: icon),
       ),
     );
   }

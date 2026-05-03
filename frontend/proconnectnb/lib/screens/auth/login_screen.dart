@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../provider/auth_provider.dart';
+import '../../widgets/tr_text.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,6 +26,38 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final auth = context.read<AuthProvider>();
+
+    final success = await auth.login(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+
+    if (success) {
+      if (auth.isAine) {
+        Navigator.pushReplacementNamed(context, '/dashboardAine');
+      } else {
+        Navigator.pushReplacementNamed(context, '/dashboardAidant');
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: TrText(auth.errorMessage ?? "Identifiants invalides"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,8 +65,6 @@ class _LoginPageState extends State<LoginPage> {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
             colors: [Color(0xFF004E92), Color(0xFF000428)],
           ),
         ),
@@ -42,10 +74,11 @@ class _LoginPageState extends State<LoginPage> {
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Column(
                 children: [
-                  Image.asset('images/logoProConnectNB.png', height: 250),
+                  Image.asset('images/logoProConnectNB.png', height: 200),
+
                   const SizedBox(height: 40),
+
                   Card(
-                    elevation: 15,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -55,140 +88,70 @@ class _LoginPageState extends State<LoginPage> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            const Text(
-                              "CONNEXION",
+                            const TrText(
+                              "Connexion",
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF004E92),
-                                letterSpacing: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 30),
+
+                            const SizedBox(height: 25),
+
                             TextFormField(
                               controller: _emailController,
-                              enabled: !_isLoading,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.alternate_email),
-                                labelText: "Courriel ou Identifiant",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                              decoration: const InputDecoration(
+                                labelText: "Email",
+                                prefixIcon: Icon(Icons.email),
                               ),
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return "Ce champ est requis";
-                                }
-                                return null;
-                              },
+                              validator: (v) =>
+                                  v!.isEmpty ? "Champ requis" : null,
                             ),
-                            const SizedBox(height: 20),
+
+                            const SizedBox(height: 15),
+
                             TextFormField(
                               controller: _passwordController,
-                              enabled: !_isLoading,
                               obscureText: _obscurePassword,
                               decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.lock_outline),
                                 labelText: "Mot de passe",
+                                prefixIcon: const Icon(Icons.lock),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword
                                         ? Icons.visibility
                                         : Icons.visibility_off,
                                   ),
-                                  onPressed: () {
-                                    if (!_isLoading) {
-                                      setState(
-                                        () => _obscurePassword =
-                                            !_obscurePassword,
-                                      );
-                                    }
-                                  },
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              validator: (val) {
-                                if (val == null || val.isEmpty) {
-                                  return "Ce champ est requis";
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 30),
-                            Container(
-                              width: double.infinity,
-                              height: 55,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: _isLoading
-                                    ? null
-                                    : const LinearGradient(
-                                        colors: [
-                                          Color(0xFF004E92),
-                                          Color(0xFF000428),
-                                        ],
-                                      ),
-                                color: _isLoading ? Colors.grey.shade400 : null,
-                              ),
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _login,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                  onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
                                   ),
                                 ),
+                              ),
+                              validator: (v) =>
+                                  v!.isEmpty ? "Champ requis" : null,
+                            ),
+
+                            const SizedBox(height: 25),
+
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _login,
                                 child: _isLoading
-                                    ? const SizedBox(
-                                        height: 24,
-                                        width: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 3,
-                                        ),
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white,
                                       )
-                                    : const Text(
-                                        "SE CONNECTER",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.0,
-                                        ),
-                                      ),
+                                    : const TrText("Se connecter"),
                               ),
                             ),
-                            const SizedBox(height: 20),
+
+                            const SizedBox(height: 10),
+
                             TextButton(
-                              onPressed: _isLoading ? null : () {},
-                              child: Text(
-                                "Mot de passe oublié ?",
-                                style: TextStyle(
-                                  color: _isLoading
-                                      ? Colors.grey
-                                      : const Color(0xFF004E92),
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () {
-                                      Navigator.pushNamed(context, '/addUser');
-                                    },
-                              child: Text(
-                                "Créer un compte",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _isLoading
-                                      ? Colors.grey
-                                      : const Color(0xFF004E92),
-                                ),
-                              ),
+                              onPressed: () =>
+                                  Navigator.pushNamed(context, '/addUser'),
+                              child: const TrText("Créer un compte"),
                             ),
                           ],
                         ),
@@ -202,48 +165,5 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
-  }
-
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      String email = _emailController.text.trim();
-      String password = _passwordController.text.trim();
-
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-
-      bool success = await auth.login(email, password);
-
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (success) {
-        Navigator.pushReplacementNamed(context, '/welcome');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 12),
-                Text("Identifiants invalides ou erreur de connexion"),
-              ],
-            ),
-            backgroundColor: Colors.redAccent.shade700,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
-      }
-    }
   }
 }
