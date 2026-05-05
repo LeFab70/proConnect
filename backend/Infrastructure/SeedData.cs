@@ -219,6 +219,12 @@ public static class SeedData
             var paPerezMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "perez@proconnect.local", ct);
             var paGraceMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "grace@proconnect.local", ct);
 
+            // Aidants "du groupe" (emails *.aidant@...)
+            var paFabriceGroup = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "fabrice.aidant@proconnect.local", ct);
+            var paKaylebGroup = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "kayleb.aidant@proconnect.local", ct);
+            var paPerezGroup = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "perez.aidant@proconnect.local", ct);
+            var paGraceGroup = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "grace.aidant@proconnect.local", ct);
+
             var paAlex = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "alex.martin@proconnect.local", ct);
             var paSarah = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "sarah.leblanc@proconnect.local", ct);
 
@@ -264,6 +270,12 @@ public static class SeedData
             await Ensure2Async(paKaylebMain, 2, "Ami", "Lecture");
             await Ensure2Async(paPerezMain, 4, "Frère", "Lecture");
             await Ensure2Async(paGraceMain, 6, "Fille", "Ecriture");
+
+            // Les comptes *.aidant@... suivent aussi des aînés (max 2)
+            await Ensure2Async(paFabriceGroup, 0, "Proche", "Lecture");
+            await Ensure2Async(paKaylebGroup, 2, "Ami", "Lecture");
+            await Ensure2Async(paPerezGroup, 4, "Frère", "Lecture");
+            await Ensure2Async(paGraceGroup, 6, "Fille", "Lecture");
         }
 
         await db.SaveChangesAsync(ct);
