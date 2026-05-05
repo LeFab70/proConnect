@@ -78,6 +78,19 @@ public static class SeedData
         }
         await db.SaveChangesAsync(ct);
 
+        // Pour permettre aux comptes "standard" de l'équipe de surveiller des aînés via PartageSuivi,
+        // on les force en type ProcheAidant (TPH discriminator) par email.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE users
+            SET type = 'ProcheAidant'
+            WHERE lower(email) IN (
+              'fabrice@proconnect.local',
+              'kayleb@proconnect.local',
+              'perez@proconnect.local',
+              'grace@proconnect.local'
+            );
+            """, ct);
+
         var aines = await db.Aines.AsNoTracking().OrderBy(a => a.Id).ToListAsync(ct);
         if (aines.Count > 0)
         {
@@ -150,12 +163,14 @@ public static class SeedData
 
         if (!await db.PartagesSuivi.AnyAsync(ct))
         {
+            // Aidants principaux (mêmes emails que les comptes de l'équipe)
+            var paFabriceMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "fabrice@proconnect.local", ct);
+            var paKaylebMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "kayleb@proconnect.local", ct);
+            var paPerezMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "perez@proconnect.local", ct);
+            var paGraceMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "grace@proconnect.local", ct);
+
             var paAlex = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "alex.martin@proconnect.local", ct);
             var paSarah = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "sarah.leblanc@proconnect.local", ct);
-            var paFabrice = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "fabrice.aidant@proconnect.local", ct);
-            var paKayleb = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "kayleb.aidant@proconnect.local", ct);
-            var paPerez = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "perez.aidant@proconnect.local", ct);
-            var paGrace = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "grace.aidant@proconnect.local", ct);
 
             if (aines.Count > 0 && paAlex != null)
             {
@@ -170,25 +185,27 @@ public static class SeedData
                 db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Lecture", Relation = "Voisine", AineId = aines[2].Id, ProcheAidantId = paSarah.Id });
             }
 
-            if (aines.Count > 0 && paFabrice != null)
+            // Chaque aidant de l'équipe surveille ~3 aînés
+            void Link3(ProcheAidant? aidant, int startIndex, string relation, string autorisation)
             {
-                db.PartagesSuivi.AddRange(
-                    new PartageSuivi { Autorisation = "Lecture", Relation = "Proche", AineId = aines[0].Id, ProcheAidantId = paFabrice.Id },
-                    new PartageSuivi { Autorisation = "Lecture", Relation = "Proche", AineId = aines.Count > 3 ? aines[3].Id : aines[0].Id, ProcheAidantId = paFabrice.Id }
-                );
+                if (aidant == null || aines.Count == 0) return;
+                for (var i = 0; i < 3; i++)
+                {
+                    var idx = Math.Min(startIndex + i, aines.Count - 1);
+                    db.PartagesSuivi.Add(new PartageSuivi
+                    {
+                        Autorisation = autorisation,
+                        Relation = relation,
+                        AineId = aines[idx].Id,
+                        ProcheAidantId = aidant.Id
+                    });
+                }
             }
-            if (aines.Count > 1 && paKayleb != null)
-            {
-                db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Ecriture", Relation = "Ami", AineId = aines[1].Id, ProcheAidantId = paKayleb.Id });
-            }
-            if (aines.Count > 2 && paPerez != null)
-            {
-                db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Lecture", Relation = "Frère", AineId = aines[2].Id, ProcheAidantId = paPerez.Id });
-            }
-            if (aines.Count > 4 && paGrace != null)
-            {
-                db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Ecriture", Relation = "Fille", AineId = aines[4].Id, ProcheAidantId = paGrace.Id });
-            }
+
+            Link3(paFabriceMain, 0, "Proche", "Ecriture");
+            Link3(paKaylebMain, 3, "Ami", "Lecture");
+            Link3(paPerezMain, 6, "Frère", "Lecture");
+            Link3(paGraceMain, 9, "Fille", "Ecriture");
         }
 
         await db.SaveChangesAsync(ct);
