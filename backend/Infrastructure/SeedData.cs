@@ -21,6 +21,50 @@ public static class SeedData
                           string.Equals(seedVar, "yes", StringComparison.OrdinalIgnoreCase);
         if (!seedEnabled) return;
 
+        // Remplacement "Option 2" : on supprime les anciens aînés seedés (et leurs dépendances)
+        // pour éviter de cumuler plusieurs jeux de données de test.
+        var oldAineEmails = new[]
+        {
+            "marie.dupont@proconnect.local",
+            "jean.tremblay@proconnect.local",
+            "fatima.benali@proconnect.local",
+            "luc.roy@proconnect.local",
+            "madeleine.gagnon@proconnect.local",
+            "andre.lemieux@proconnect.local"
+        };
+
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE FROM rappels
+            WHERE medicament_id IN (
+                SELECT m."Id" FROM medicaments m
+                WHERE m.aine_id IN (SELECT u."Id" FROM users u WHERE lower(u.email) = ANY ({oldAineEmails.Select(x => x.ToLower()).ToArray()}))
+            )
+            OR rendez_vous_medical_id IN (
+                SELECT r."Id" FROM rendez_vous_medicaux r
+                WHERE r.aine_id IN (SELECT u."Id" FROM users u WHERE lower(u.email) = ANY ({oldAineEmails.Select(x => x.ToLower()).ToArray()}))
+            );
+            """, ct);
+
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE FROM partages_suivi
+            WHERE aine_id IN (SELECT u."Id" FROM users u WHERE lower(u.email) = ANY ({oldAineEmails.Select(x => x.ToLower()).ToArray()}));
+            """, ct);
+
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE FROM medicaments
+            WHERE aine_id IN (SELECT u."Id" FROM users u WHERE lower(u.email) = ANY ({oldAineEmails.Select(x => x.ToLower()).ToArray()}));
+            """, ct);
+
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE FROM rendez_vous_medicaux
+            WHERE aine_id IN (SELECT u."Id" FROM users u WHERE lower(u.email) = ANY ({oldAineEmails.Select(x => x.ToLower()).ToArray()}));
+            """, ct);
+
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE FROM users
+            WHERE lower(email) = ANY ({oldAineEmails.Select(x => x.ToLower()).ToArray()}) AND type = 'Aine';
+            """, ct);
+
         static string Unsplash(string keyword, int sig) =>
             $"https://source.unsplash.com/featured/600x600?{Uri.EscapeDataString(keyword)}&sig={sig}";
 
