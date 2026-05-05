@@ -14,7 +14,11 @@ public static class SeedData
 
         await db.Database.MigrateAsync(ct);
 
-        var seedEnabled = string.Equals(Environment.GetEnvironmentVariable("SEED_DATA"), "true", StringComparison.OrdinalIgnoreCase);
+        var seedVar = Environment.GetEnvironmentVariable("SEED_DATA");
+        var seedEnabled = string.IsNullOrWhiteSpace(seedVar) ||
+                          string.Equals(seedVar, "true", StringComparison.OrdinalIgnoreCase) ||
+                          seedVar == "1" ||
+                          string.Equals(seedVar, "yes", StringComparison.OrdinalIgnoreCase);
         if (!seedEnabled) return;
 
         static string Unsplash(string keyword, int sig) =>
