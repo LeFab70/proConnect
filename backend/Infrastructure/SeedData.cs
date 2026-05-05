@@ -35,6 +35,16 @@ public static class SeedData
         if (!Has("grace@proconnect.local"))
             toAddUsers.Add(new StandardUser { Nom = "Grace", Prenom = "Grace", Telephone = "506-000-0004", Email = "grace@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "18", Rue = "King St", Ville = "Riverview", Province = "NB", CodePostal = "E1B1B1" } });
 
+        // Proches aidants de test avec les noms du groupe (emails distincts)
+        if (!Has("fabrice.aidant@proconnect.local"))
+            toAddUsers.Add(new ProcheAidant { Nom = "Kouonang", Prenom = "Fabrice", Telephone = "506-111-0001", Email = "fabrice.aidant@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "10", Rue = "Rue Elmwood", Ville = "Moncton", Province = "NB", CodePostal = "E1A1A1" } });
+        if (!Has("kayleb.aidant@proconnect.local"))
+            toAddUsers.Add(new ProcheAidant { Nom = "Aubie", Prenom = "Kayleb", Telephone = "506-111-0002", Email = "kayleb.aidant@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "22", Rue = "Main St", Ville = "Dieppe", Province = "NB", CodePostal = "E1A2B2" } });
+        if (!Has("perez.aidant@proconnect.local"))
+            toAddUsers.Add(new ProcheAidant { Nom = "Perez", Prenom = "Perez", Telephone = "506-111-0003", Email = "perez.aidant@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "5", Rue = "Rue Church", Ville = "Moncton", Province = "NB", CodePostal = "E1A3C3" } });
+        if (!Has("grace.aidant@proconnect.local"))
+            toAddUsers.Add(new ProcheAidant { Nom = "Grace", Prenom = "Grace", Telephone = "506-111-0004", Email = "grace.aidant@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "18", Rue = "King St", Ville = "Riverview", Province = "NB", CodePostal = "E1B1B1" } });
+
         if (!Has("alex.martin@proconnect.local"))
             toAddUsers.Add(new ProcheAidant { Nom = "Martin", Prenom = "Alex", Telephone = "444-444-4444", Email = "alex.martin@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "77", Rue = "Avenue Maple", Ville = "Moncton", Province = "NB", CodePostal = "E1A4D4" } });
         if (!Has("sarah.leblanc@proconnect.local"))
@@ -48,6 +58,10 @@ public static class SeedData
             toAddUsers.Add(new Aine { Nom = "Benali", Prenom = "Fatima", Telephone = "333-333-2222", Email = "fatima.benali@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1950, 2, 19), Adresse = new Adresse { Numero = "44", Rue = "Rue Victoria", Ville = "Dieppe", Province = "NB", CodePostal = "E1A9Z9" }, Docteur = "Dr. Patel", NumeroTelephoneDocteur = "506-222-3333" });
         if (!Has("luc.roy@proconnect.local"))
             toAddUsers.Add(new Aine { Nom = "Roy", Prenom = "Luc", Telephone = "333-333-4444", Email = "luc.roy@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1939, 7, 7), Adresse = new Adresse { Numero = "61", Rue = "Rue Champlain", Ville = "Moncton", Province = "NB", CodePostal = "E1C1C1" }, Docteur = "Dr. Singh", NumeroTelephoneDocteur = "506-333-4444" });
+        if (!Has("madeleine.gagnon@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Gagnon", Prenom = "Madeleine", Telephone = "333-333-5555", Email = "madeleine.gagnon@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1946, 1, 22), Adresse = new Adresse { Numero = "14", Rue = "Rue St-George", Ville = "Moncton", Province = "NB", CodePostal = "E1C2C2" }, Docteur = "Dr. Brown", NumeroTelephoneDocteur = "506-555-6666" });
+        if (!Has("andre.lemieux@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Lemieux", Prenom = "André", Telephone = "333-333-6666", Email = "andre.lemieux@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1940, 9, 5), Adresse = new Adresse { Numero = "200", Rue = "Rue Mountain", Ville = "Moncton", Province = "NB", CodePostal = "E1C3C3" }, Docteur = "Dr. White", NumeroTelephoneDocteur = "506-777-8888" });
 
         if (toAddUsers.Count > 0) db.Users.AddRange(toAddUsers);
 
@@ -65,39 +79,53 @@ public static class SeedData
         await db.SaveChangesAsync(ct);
 
         var aines = await db.Aines.AsNoTracking().OrderBy(a => a.Id).ToListAsync(ct);
-        if (aines.Count > 0 && !await db.Medicaments.AnyAsync(ct))
+        if (aines.Count > 0)
         {
             var sig = 1;
-            foreach (var a in aines.Take(3))
+            foreach (var a in aines)
             {
-                db.Medicaments.AddRange(
-                    new Medicament { Nom = "Vitamine D", Marque = "D-Vit", Dosage = "1000 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("vitamin pills", sig++), AineId = a.Id, IsActive = true, IsDeleted = false },
-                    new Medicament { Nom = "Aspirine", Marque = "Bayer", Dosage = "81 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("medicine bottle", sig++), AineId = a.Id, IsActive = true, IsDeleted = false },
-                    new Medicament { Nom = "Metformine", Marque = "Generic", Dosage = "500 MG", Frequence = "2x/jour", UrlPhoto = Unsplash("pharmacy pills", sig++), AineId = a.Id, IsActive = true, IsDeleted = false }
-                );
+                var existing = await db.Medicaments.AsNoTracking().CountAsync(m => m.AineId == a.Id, ct);
+                if (existing >= 5) continue;
+
+                var meds = new List<Medicament>
+                {
+                    new() { Nom = "Vitamine D", Marque = "D-Vit", Dosage = "1000 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("vitamin pills", sig++), AineId = a.Id, IsActive = true, IsDeleted = false },
+                    new() { Nom = "Aspirine", Marque = "Bayer", Dosage = "81 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("medicine bottle", sig++), AineId = a.Id, IsActive = true, IsDeleted = false },
+                    new() { Nom = "Metformine", Marque = "Generic", Dosage = "500 MG", Frequence = "2x/jour", UrlPhoto = Unsplash("pharmacy pills", sig++), AineId = a.Id, IsActive = true, IsDeleted = false },
+                    new() { Nom = "Atorvastatine", Marque = "Generic", Dosage = "20 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("tablets", sig++), AineId = a.Id, IsActive = true, IsDeleted = false },
+                    new() { Nom = "Lisinopril", Marque = "Generic", Dosage = "10 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("capsules", sig++), AineId = a.Id, IsActive = true, IsDeleted = false }
+                };
+
+                db.Medicaments.AddRange(meds.Take(Math.Max(0, 5 - existing)));
             }
         }
 
-        if (aines.Count > 0 && !await db.RendezVousMedicaux.AnyAsync(ct))
+        if (aines.Count > 0)
         {
-            db.RendezVousMedicaux.AddRange(
-                new RendezVousMedical
-                {
-                    DateHeure = DateTime.UtcNow.AddDays(14),
-                    Lieu = new Adresse { Numero = "456", Rue = "Avenue du Centre", Ville = "Moncton", Province = "NB", CodePostal = "E1A 1A2" },
-                    Docteur = "Cardiologue",
-                    Notes = "Suivi annuel",
-                    AineId = aines[0].Id
-                },
-                new RendezVousMedical
-                {
-                    DateHeure = DateTime.UtcNow.AddDays(3),
-                    Lieu = new Adresse { Numero = "12", Rue = "Rue de l'Hôpital", Ville = "Dieppe", Province = "NB", CodePostal = "E1A 7Z7" },
-                    Docteur = "Généraliste",
-                    Notes = "Renouvellement ordonnance",
-                    AineId = aines.Count > 1 ? aines[1].Id : aines[0].Id
-                }
-            );
+            foreach (var a in aines)
+            {
+                var existing = await db.RendezVousMedicaux.AsNoTracking().CountAsync(r => r.AineId == a.Id, ct);
+                if (existing >= 2) continue;
+
+                db.RendezVousMedicaux.AddRange(
+                    new RendezVousMedical
+                    {
+                        DateHeure = DateTime.UtcNow.AddDays(7),
+                        Lieu = new Adresse { Numero = "99", Rue = "Rue Clinique", Ville = a.Adresse?.Ville ?? "Moncton", Province = "NB", CodePostal = "E1A 9A9" },
+                        Docteur = "Généraliste",
+                        Notes = "Contrôle",
+                        AineId = a.Id
+                    },
+                    new RendezVousMedical
+                    {
+                        DateHeure = DateTime.UtcNow.AddDays(30),
+                        Lieu = new Adresse { Numero = "101", Rue = "Boulevard Santé", Ville = a.Adresse?.Ville ?? "Moncton", Province = "NB", CodePostal = "E1A 8B8" },
+                        Docteur = "Spécialiste",
+                        Notes = "Suivi",
+                        AineId = a.Id
+                    }
+                );
+            }
         }
 
         await db.SaveChangesAsync(ct);
@@ -124,6 +152,10 @@ public static class SeedData
         {
             var paAlex = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "alex.martin@proconnect.local", ct);
             var paSarah = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "sarah.leblanc@proconnect.local", ct);
+            var paFabrice = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "fabrice.aidant@proconnect.local", ct);
+            var paKayleb = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "kayleb.aidant@proconnect.local", ct);
+            var paPerez = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "perez.aidant@proconnect.local", ct);
+            var paGrace = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "grace.aidant@proconnect.local", ct);
 
             if (aines.Count > 0 && paAlex != null)
             {
@@ -136,6 +168,26 @@ public static class SeedData
             if (aines.Count > 2 && paSarah != null)
             {
                 db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Lecture", Relation = "Voisine", AineId = aines[2].Id, ProcheAidantId = paSarah.Id });
+            }
+
+            if (aines.Count > 0 && paFabrice != null)
+            {
+                db.PartagesSuivi.AddRange(
+                    new PartageSuivi { Autorisation = "Lecture", Relation = "Proche", AineId = aines[0].Id, ProcheAidantId = paFabrice.Id },
+                    new PartageSuivi { Autorisation = "Lecture", Relation = "Proche", AineId = aines.Count > 3 ? aines[3].Id : aines[0].Id, ProcheAidantId = paFabrice.Id }
+                );
+            }
+            if (aines.Count > 1 && paKayleb != null)
+            {
+                db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Ecriture", Relation = "Ami", AineId = aines[1].Id, ProcheAidantId = paKayleb.Id });
+            }
+            if (aines.Count > 2 && paPerez != null)
+            {
+                db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Lecture", Relation = "Frère", AineId = aines[2].Id, ProcheAidantId = paPerez.Id });
+            }
+            if (aines.Count > 4 && paGrace != null)
+            {
+                db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Ecriture", Relation = "Fille", AineId = aines[4].Id, ProcheAidantId = paGrace.Id });
             }
         }
 
