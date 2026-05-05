@@ -213,6 +213,27 @@ public static class SeedData
         }
 
         {
+            // Pour éviter l'accumulation de liens au fil des seeds, on repart sur un set propre
+            // pour les aînés de test (en supprimant leurs PartageSuivi existants).
+            var newAineEmails = new[]
+            {
+                "joel.boudreau@proconnect.local",
+                "david.roy@proconnect.local",
+                "paul.wouatcha@proconnect.local",
+                "michel.trembley@proconnect.local",
+                "ghislain.ndiaye@proconnect.local",
+                "michel.robichaud@proconnect.local",
+                "brice.kamla@proconnect.local"
+            };
+
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                DELETE FROM partages_suivi
+                WHERE aine_id IN (
+                    SELECT u."Id" FROM users u
+                    WHERE u.type = 'Aine' AND lower(u.email) = ANY ({newAineEmails.Select(x => x.ToLower()).ToArray()})
+                );
+                """, ct);
+
             // Aidants principaux (mêmes emails que les comptes de l'équipe)
             var paFabriceMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "fabrice@proconnect.local", ct);
             var paKaylebMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "kayleb@proconnect.local", ct);
@@ -246,6 +267,11 @@ public static class SeedData
                 var exists = await db.PartagesSuivi.AsNoTracking().AnyAsync(p =>
                     p.ProcheAidantId == aidant.Id && p.AineId == aine.Id, ct);
                 if (exists) return;
+
+                // Max 2 aidants par aîné
+                var aidantsCount = await db.PartagesSuivi.AsNoTracking().CountAsync(p => p.AineId == aine.Id, ct);
+                if (aidantsCount >= 2) return;
+
                 db.PartagesSuivi.Add(new PartageSuivi
                 {
                     Autorisation = autorisation,
