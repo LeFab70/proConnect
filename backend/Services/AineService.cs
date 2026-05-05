@@ -13,58 +13,58 @@ public class AineService(AppDbContext db) : IAineService
 {
     private readonly AppDbContext _db = db; // Injection de dépendance du contexte de base de données
 
+    private static AineResponseDto Map(Aine a) => new()
+    {
+        Id = a.Id,
+        Nom = a.Nom,
+        Prenom = a.Prenom,
+        Telephone = a.Telephone,
+        Email = a.Email,
+        DateNaissance = a.DateNaissance,
+        Adresse = new AdresseDto
+        {
+            Numero = a.Adresse.Numero,
+            Rue = a.Adresse.Rue,
+            Ville = a.Adresse.Ville,
+            CodePostal = a.Adresse.CodePostal,
+            Province = a.Adresse.Province
+        },
+        Docteur = a.Docteur,
+        NumeroTelephoneDocteur = a.NumeroTelephoneDocteur
+    };
+
     public async Task<IReadOnlyList<AineResponseDto>> GetAll() // Récupère tous les aînés de la base de données et les mappe en DTOs
     {
-        return await _db.Aines
+        var items = await _db.Aines
             .AsNoTracking()
             .OrderBy(a => a.Id)
-            .Select(a => new AineResponseDto
-            {
-                Id = a.Id,
-                Nom = a.Nom,
-                Prenom = a.Prenom,
-                Telephone = a.Telephone,
-                Email = a.Email,
-                DateNaissance = a.DateNaissance,
-                Adresse = new AdresseDto
-                {
-                    Numero = a.Adresse.Numero,
-                    Rue = a.Adresse.Rue,
-                    Ville = a.Adresse.Ville,
-                    CodePostal = a.Adresse.CodePostal,
-                    Province = a.Adresse.Province
-                },
-                Docteur = a.Docteur,
-                NumeroTelephoneDocteur = a.NumeroTelephoneDocteur
-            })
             .ToListAsync();
+        return items.Select(Map).ToList();
+    }
+
+    public async Task<IReadOnlyList<AineResponseDto>> GetForProcheAidant(long procheAidantId)
+    {
+        var aines = await _db.PartagesSuivi
+            .AsNoTracking()
+            .Where(p => p.ProcheAidantId == procheAidantId)
+            .Join(_db.Aines.AsNoTracking(),
+                p => p.AineId,
+                a => a.Id,
+                (_, a) => a)
+            .Distinct()
+            .OrderBy(a => a.Id)
+            .ToListAsync();
+
+        return aines.Select(Map).ToList();
     }
 
     public async Task<AineResponseDto?> GetById(long id) // Récupère un aîné spécifique par son ID et le mappe en DTO
     {
-        return await _db.Aines
+        var a = await _db.Aines
             .AsNoTracking()
             .Where(a => a.Id == id)
-            .Select(a => new AineResponseDto
-            {
-                Id = a.Id,
-                Nom = a.Nom,
-                Prenom = a.Prenom,
-                Telephone = a.Telephone,
-                Email = a.Email,
-                DateNaissance = a.DateNaissance,
-                Adresse = new AdresseDto
-                {
-                    Numero = a.Adresse.Numero,
-                    Rue = a.Adresse.Rue,
-                    Ville = a.Adresse.Ville,
-                    CodePostal = a.Adresse.CodePostal,
-                    Province = a.Adresse.Province
-                },
-                Docteur = a.Docteur,
-                NumeroTelephoneDocteur = a.NumeroTelephoneDocteur
-            })
             .FirstOrDefaultAsync();
+        return a == null ? null : Map(a);
     }
 
     public async Task<IdResponseDto> Create(UpsertAineRequestDto dto) // Crée un nouvel aîné à partir des données fournies dans le DTO et retourne l'ID de l'entité créée

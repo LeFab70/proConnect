@@ -165,7 +165,6 @@ public static class SeedData
             }
         }
 
-        if (!await db.PartagesSuivi.AnyAsync(ct))
         {
             // Aidants principaux (mêmes emails que les comptes de l'équipe)
             var paFabriceMain = await db.ProchesAidants.AsNoTracking().FirstOrDefaultAsync(p => p.Email == "fabrice@proconnect.local", ct);
@@ -189,27 +188,35 @@ public static class SeedData
                 db.PartagesSuivi.Add(new PartageSuivi { Autorisation = "Lecture", Relation = "Voisine", AineId = aines[2].Id, ProcheAidantId = paSarah.Id });
             }
 
-            // Chaque aidant de l'équipe surveille ~3 aînés
-            void Link3(ProcheAidant? aidant, int startIndex, string relation, string autorisation)
+            async Task EnsureLinkAsync(ProcheAidant aidant, Aine aine, string relation, string autorisation)
+            {
+                var exists = await db.PartagesSuivi.AsNoTracking().AnyAsync(p =>
+                    p.ProcheAidantId == aidant.Id && p.AineId == aine.Id, ct);
+                if (exists) return;
+                db.PartagesSuivi.Add(new PartageSuivi
+                {
+                    Autorisation = autorisation,
+                    Relation = relation,
+                    AineId = aine.Id,
+                    ProcheAidantId = aidant.Id
+                });
+            }
+
+            async Task Ensure3Async(ProcheAidant? aidant, int startIndex, string relation, string autorisation)
             {
                 if (aidant == null || aines.Count == 0) return;
                 for (var i = 0; i < 3; i++)
                 {
                     var idx = Math.Min(startIndex + i, aines.Count - 1);
-                    db.PartagesSuivi.Add(new PartageSuivi
-                    {
-                        Autorisation = autorisation,
-                        Relation = relation,
-                        AineId = aines[idx].Id,
-                        ProcheAidantId = aidant.Id
-                    });
+                    await EnsureLinkAsync(aidant, aines[idx], relation, autorisation);
                 }
             }
 
-            Link3(paFabriceMain, 0, "Proche", "Ecriture");
-            Link3(paKaylebMain, 3, "Ami", "Lecture");
-            Link3(paPerezMain, 6, "Frère", "Lecture");
-            Link3(paGraceMain, 9, "Fille", "Ecriture");
+            // Chaque aidant de l'équipe surveille ~3 aînés
+            await Ensure3Async(paFabriceMain, 0, "Proche", "Ecriture");
+            await Ensure3Async(paKaylebMain, 3, "Ami", "Lecture");
+            await Ensure3Async(paPerezMain, 6, "Frère", "Lecture");
+            await Ensure3Async(paGraceMain, 9, "Fille", "Ecriture");
         }
 
         await db.SaveChangesAsync(ct);
