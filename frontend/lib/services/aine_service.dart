@@ -30,6 +30,21 @@ class AineService {
     }
   }
 
+  Future<List<Aine>> getAinesMine(String token) async {
+    // Fabrice | 2026-05-05T06:00:00Z | Route backend /api/aines/mine : aînés liés au proche aidant connecté (via PartageSuivi).
+    final response = await http.get(
+      Uri.parse("$baseUrl/api/aines/mine"),
+      headers: authHeaders(token),
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Aine.fromJson(e)).toList();
+    } else {
+      throw Exception("Erreur chargement aînés (mine)");
+    }
+  }
+
   Future<bool> createAine(Map<String, dynamic> data, String token) async {
     final response = await http.post(
       Uri.parse("$baseUrl/api/aines"),
