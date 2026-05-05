@@ -31,21 +31,25 @@ class CommunityAiService {
     final decoded = jsonDecode(response.body);
     if (decoded is! List) return [];
 
-    var index = 0;
     return decoded.map((raw) {
       final m = raw as Map<String, dynamic>;
       final dh = m['dateHeure'];
+      final parsedDate = dh != null
+          ? DateTime.tryParse(dh.toString()) ?? DateTime.now()
+          : DateTime.now();
+      final titre = m['titre']?.toString() ?? 'Activité';
+      final lieu = m['lieu']?.toString() ?? adresse;
       return ActiviteIA(
-        id: index++,
-        titre: m['titre']?.toString() ?? 'Activité',
+        // Fabrice | 2026-05-05T06:00:00Z | Identifiant stable pour permettre favoris locaux.
+        id: Object.hash(titre, parsedDate.toIso8601String(), lieu, adresse),
+        titre: titre,
         description: m['description']?.toString() ?? '',
-        dateHeure: dh != null
-            ? DateTime.tryParse(dh.toString()) ?? DateTime.now()
-            : DateTime.now(),
-        lieu: m['lieu']?.toString() ?? adresse,
+        dateHeure: parsedDate,
+        lieu: lieu,
         categorie: 'Communautaire',
         scorePertinence: 1.0,
         region: adresse,
+        source: 'proconnect',
       );
     }).toList();
   }

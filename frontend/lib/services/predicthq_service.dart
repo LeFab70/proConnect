@@ -126,6 +126,7 @@ class PredictHqService {
         "categorie": event['category'],
         "region": city,
         "score_pertinence": (event['rank'] ?? 50) / 100,
+        "source": "predicthq",
       });
     }).toList();
   }
