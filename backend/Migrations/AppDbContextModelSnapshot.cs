@@ -101,6 +101,14 @@ namespace backend.Migrations
                         .HasColumnType("text")
                         .HasColumnName("frequence");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<string>("Marque")
                         .IsRequired()
                         .HasColumnType("text")
@@ -110,6 +118,10 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("nom");
+
+                    b.Property<string>("UrlPhoto")
+                        .HasColumnType("text")
+                        .HasColumnName("url_photo");
 
                     b.HasKey("Id");
 
@@ -169,13 +181,13 @@ namespace backend.Migrations
                         .HasColumnType("time without time zone")
                         .HasColumnName("heure_debut");
 
-                    b.Property<int>("MinutesAvantRappel")
-                        .HasColumnType("integer")
-                        .HasColumnName("minutes_avant_rappel");
-
                     b.Property<long?>("MedicamentId")
                         .HasColumnType("bigint")
                         .HasColumnName("medicament_id");
+
+                    b.Property<int>("MinutesAvantRappel")
+                        .HasColumnType("integer")
+                        .HasColumnName("minutes_avant_rappel");
 
                     b.Property<long?>("RendezVousMedicalId")
                         .HasColumnType("bigint")
@@ -412,11 +424,11 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("backend.Models.Aine", b =>
+            modelBuilder.Entity("backend.Models.User", b =>
                 {
                     b.OwnsOne("backend.Models.Adresse", "Adresse", b1 =>
                         {
-                            b1.Property<long>("AineId")
+                            b1.Property<long>("UserId")
                                 .HasColumnType("bigint");
 
                             b1.Property<string>("CodePostal")
@@ -444,16 +456,15 @@ namespace backend.Migrations
                                 .HasColumnType("text")
                                 .HasColumnName("lieu_ville");
 
-                            b1.HasKey("AineId");
+                            b1.HasKey("UserId");
 
                             b1.ToTable("users");
 
                             b1.WithOwner()
-                                .HasForeignKey("AineId");
+                                .HasForeignKey("UserId");
                         });
 
-                    b.Navigation("Adresse")
-                        .IsRequired();
+                    b.Navigation("Adresse");
                 });
 
             modelBuilder.Entity("backend.Models.ProcheAidant", b =>

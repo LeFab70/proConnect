@@ -46,12 +46,19 @@ Swagger en développement : URL affichée dans la console (souvent `http://local
 - `POST /api/auth/register`, `POST /api/auth/login` → JWT.
 - Swagger : **Authorize** → `Bearer <token>`.
 - `GET /api/auth/me` : profil décodé du token.
+### Auth
+
+- `POST /api/auth/register`, `POST /api/auth/login` → JWT.
+- Swagger : **Authorize** → `Bearer <token>`.
+- `GET /api/auth/me` : profil décodé du token.
 
 La plupart des routes sont sous `[Authorize]` ; les écritures sensibles sont souvent `AdminOnly`.
 
 ### Modèle utilisateur (EF TPH)
 
 `User` abstrait ; `Aine`, `ProcheAidant`, `StandardUser` dans la table `users` avec discriminateur `type`.
+
+`Adresse` est portée par `User` (champ partagé) : les aînés et proches aidants héritent donc du même champ adresse (sans dupliquer dans `Aine`).
 
 ### Médicaments et listes
 
@@ -81,7 +88,7 @@ Dernière migration notable : `MedicamentFlagsAndRappelSchedule` (colonnes médi
 
 ### Seed (`SEED_DATA=true`)
 
-Comptes de démo (Fabrice, Kayleb, Perez, Grace), un aîné, un proche aidant, un médicament, un rendez-vous, un rappel exemple.
+Comptes de démo (Fabrice, Kayleb, Perez, Grace + autres), plusieurs aînés et proches aidants, plusieurs médicaments (avec `urlPhoto` Unsplash), rendez-vous, rappels, et des liens `PartageSuivi` (plusieurs aînés rattachés à un proche aidant) pour avoir plusieurs cas de test.
 
 ## Frontend (Flutter)
 

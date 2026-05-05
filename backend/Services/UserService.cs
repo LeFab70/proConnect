@@ -1,4 +1,5 @@
 using backend.Dtos.Common;
+using backend.Dtos.Adresse;
 using backend.Dtos.Users;
 using backend.Infrastructure;
 using backend.Models;
@@ -23,7 +24,15 @@ public class UserService(AppDbContext db) : IUserService
                 Nom = u.Nom,
                 Prenom = u.Prenom,
                 Telephone = u.Telephone,
-                Email = u.Email
+                Email = u.Email,
+                Adresse = u.Adresse == null ? null : new AdresseDto
+                {
+                    Numero = u.Adresse.Numero,
+                    Rue = u.Adresse.Rue,
+                    Ville = u.Adresse.Ville,
+                    CodePostal = u.Adresse.CodePostal,
+                    Province = u.Adresse.Province
+                }
             })
             .ToListAsync();
     }
@@ -39,7 +48,15 @@ public class UserService(AppDbContext db) : IUserService
                 Nom = u.Nom,
                 Prenom = u.Prenom,
                 Telephone = u.Telephone,
-                Email = u.Email
+                Email = u.Email,
+                Adresse = u.Adresse == null ? null : new AdresseDto
+                {
+                    Numero = u.Adresse.Numero,
+                    Rue = u.Adresse.Rue,
+                    Ville = u.Adresse.Ville,
+                    CodePostal = u.Adresse.CodePostal,
+                    Province = u.Adresse.Province
+                }
             })
             .FirstOrDefaultAsync();
     }
@@ -52,6 +69,14 @@ public class UserService(AppDbContext db) : IUserService
             Prenom = dto.Prenom,
             Telephone = dto.Telephone,
             Email = dto.Email,
+            Adresse = dto.Adresse == null ? null : new Adresse
+            {
+                Numero = dto.Adresse.Numero,
+                Rue = dto.Adresse.Rue,
+                Ville = dto.Adresse.Ville,
+                CodePostal = dto.Adresse.CodePostal,
+                Province = dto.Adresse.Province
+            },
             PasswordHash = "N/A"
         };
         _db.Users.Add(entity);
@@ -68,6 +93,14 @@ public class UserService(AppDbContext db) : IUserService
         entity.Prenom = dto.Prenom;
         entity.Telephone = dto.Telephone;
         entity.Email = dto.Email;
+        entity.Adresse = dto.Adresse == null ? null : new Adresse
+        {
+            Numero = dto.Adresse.Numero,
+            Rue = dto.Adresse.Rue,
+            Ville = dto.Adresse.Ville,
+            CodePostal = dto.Adresse.CodePostal,
+            Province = dto.Adresse.Province
+        };
 
         await _db.SaveChangesAsync();
         return true;

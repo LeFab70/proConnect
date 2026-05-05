@@ -25,6 +25,7 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
                 Marque = m.Marque,
                 Dosage = m.Dosage,
                 Frequence = m.Frequence,
+                UrlPhoto = m.UrlPhoto,
                 AineId = m.AineId,
                 IsActive = m.IsActive,
                 IsDeleted = m.IsDeleted
@@ -44,6 +45,7 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
                 Marque = m.Marque,
                 Dosage = m.Dosage,
                 Frequence = m.Frequence,
+                UrlPhoto = m.UrlPhoto,
                 AineId = m.AineId,
                 IsActive = m.IsActive,
                 IsDeleted = m.IsDeleted
@@ -59,6 +61,7 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
             Marque = dto.Marque,
             Dosage = dto.Dosage,
             Frequence = dto.Frequence,
+            UrlPhoto = dto.UrlPhoto,
             AineId = dto.AineId,
             IsActive = dto.IsActive ?? true,
             IsDeleted = false
@@ -77,6 +80,7 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
         entity.Marque = dto.Marque;
         entity.Dosage = dto.Dosage;
         entity.Frequence = dto.Frequence;
+        entity.UrlPhoto = dto.UrlPhoto;
         entity.AineId = dto.AineId;
         entity.IsActive = dto.IsActive ?? true;
 

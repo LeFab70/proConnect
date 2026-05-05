@@ -27,5 +27,9 @@ public class UpsertMedicamentRequestDto
     [Range(1, long.MaxValue, ErrorMessage = "AineId doit être un identifiant valide (> 0).")]
     public long AineId { get; set; }
 
+    [Url(ErrorMessage = "UrlPhoto doit être une URL valide.")]
+    [MaxLength(1000, ErrorMessage = "UrlPhoto ne doit pas dépasser 1000 caractères.")]
+    public string? UrlPhoto { get; set; }
+
     public bool? IsActive { get; set; }
 }

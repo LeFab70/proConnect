@@ -1,4 +1,5 @@
 using backend.Dtos.Common;
+using backend.Dtos.Adresse;
 using backend.Dtos.ProchesAidants;
 using backend.Dtos.Partages;
 using backend.Infrastructure;
@@ -25,6 +26,14 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
                 Prenom = p.Prenom,
                 Telephone = p.Telephone,
                 Email = p.Email,
+                Adresse = p.Adresse == null ? null : new AdresseDto
+                {
+                    Numero = p.Adresse.Numero,
+                    Rue = p.Adresse.Rue,
+                    Ville = p.Adresse.Ville,
+                    CodePostal = p.Adresse.CodePostal,
+                    Province = p.Adresse.Province
+                },
                 Partages = p.Partages.Select(pa => new PartageSuiviResponseDto
                 {
                     Id = pa.Id,
@@ -49,6 +58,14 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
                 Prenom = p.Prenom,
                 Telephone = p.Telephone,
                 Email = p.Email,
+                Adresse = p.Adresse == null ? null : new AdresseDto
+                {
+                    Numero = p.Adresse.Numero,
+                    Rue = p.Adresse.Rue,
+                    Ville = p.Adresse.Ville,
+                    CodePostal = p.Adresse.CodePostal,
+                    Province = p.Adresse.Province
+                },
                 Partages = p.Partages.Select(pa => new PartageSuiviResponseDto
                 {
                     Id = pa.Id,
@@ -69,6 +86,14 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
             Prenom = dto.Prenom,
             Telephone = dto.Telephone,
             Email = dto.Email,
+            Adresse = dto.Adresse == null ? null : new Adresse
+            {
+                Numero = dto.Adresse.Numero,
+                Rue = dto.Adresse.Rue,
+                Ville = dto.Adresse.Ville,
+                CodePostal = dto.Adresse.CodePostal,
+                Province = dto.Adresse.Province
+            },
             PasswordHash = "N/A"
         };
         _db.ProchesAidants.Add(entity);
@@ -85,6 +110,14 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
         entity.Prenom = dto.Prenom;
         entity.Telephone = dto.Telephone;
         entity.Email = dto.Email;
+        entity.Adresse = dto.Adresse == null ? null : new Adresse
+        {
+            Numero = dto.Adresse.Numero,
+            Rue = dto.Adresse.Rue,
+            Ville = dto.Adresse.Ville,
+            CodePostal = dto.Adresse.CodePostal,
+            Province = dto.Adresse.Province
+        };
 
         await _db.SaveChangesAsync();
         return true;

@@ -31,6 +31,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Prenom).HasColumnName("prenom");
             e.Property(x => x.Telephone).HasColumnName("telephone");
             e.Property(x => x.Email).HasColumnName("email");
+            e.OwnsOne(x => x.Adresse, adresse =>
+            {
+                adresse.Property(a => a.Numero).HasColumnName("lieu_numero");
+                adresse.Property(a => a.Rue).HasColumnName("lieu_rue");
+                adresse.Property(a => a.Ville).HasColumnName("lieu_ville");
+                adresse.Property(a => a.CodePostal).HasColumnName("lieu_code_postal");
+                adresse.Property(a => a.Province).HasColumnName("lieu_province");
+            });
+            e.Navigation(x => x.Adresse).IsRequired(false);
             e.Property(x => x.PasswordHash).HasColumnName("password_hash");
             e.Property(x => x.PasswordResetTokenHash).HasColumnName("password_reset_token_hash");
             e.Property(x => x.PasswordResetTokenExpiresAtUtc).HasColumnName("password_reset_token_expires_at_utc");
@@ -40,14 +49,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Aine>(e =>
         {
             e.Property(x => x.DateNaissance).HasColumnName("date_naissance");
-            e.OwnsOne(x => x.Adresse, adresse =>
-            {
-                adresse.Property(a => a.Numero).HasColumnName("lieu_numero");
-                adresse.Property(a => a.Rue).HasColumnName("lieu_rue");
-                adresse.Property(a => a.Ville).HasColumnName("lieu_ville");
-                adresse.Property(a => a.CodePostal).HasColumnName("lieu_code_postal");
-                adresse.Property(a => a.Province).HasColumnName("lieu_province");
-            });
             e.Property(x => x.Docteur).HasColumnName("docteur");
             e.Property(x => x.NumeroTelephoneDocteur).HasColumnName("numero_telephone_docteur");
         });
@@ -62,6 +63,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Marque).HasColumnName("marque");
             e.Property(x => x.Dosage).HasColumnName("dosage");
             e.Property(x => x.Frequence).HasColumnName("frequence");
+            e.Property(x => x.UrlPhoto).HasColumnName("url_photo");
             e.Property(x => x.AineId).HasColumnName("aine_id");
             e.Property(x => x.IsActive).HasColumnName("is_active");
             e.Property(x => x.IsDeleted).HasColumnName("is_deleted");

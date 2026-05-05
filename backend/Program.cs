@@ -19,6 +19,8 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProConnectNB API", Version = "v1" });
     c.EnableAnnotations();
+    c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
+    c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
     var xmlName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlName);
     if (File.Exists(xmlPath))
@@ -115,35 +117,16 @@ WebApplication app = builder.Build(); // Construction de l'application (apres av
 
 await SeedData.ApplyMigrationsAndSeedAsync(app.Services);
 
-// TODO: Enlever les commentaires si on veut utiliser l'API Key
-// Middleware pour la gestion de l'API Key (regarder si on a la bonne clef dans les headers)
-/*
-app.Use(async (context, next) =>
-{
-    var config = context.RequestServices.GetRequiredService<IConfiguration>();
-    var apiKey = config["ApiKey"];
-
-    if (!context.Request.Headers.TryGetValue("x-api-key", out var providedKey))
-    {
-        context.Response.StatusCode = 401;
-        await context.Response.WriteAsync("Missing API Key");
-        return;
-    }
-
-    if (providedKey != apiKey)
-    {
-        context.Response.StatusCode = 403;
-        await context.Response.WriteAsync("Invalid API Key");
-        return;
-    }
-
-    await next();
-});
-*/
-
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+}
+
+var enableSwagger = app.Environment.IsDevelopment() ||
+                    string.Equals(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), "true", StringComparison.OrdinalIgnoreCase);
+
+if (enableSwagger)
+{
     app.UseSwagger();
     app.UseSwaggerUI();
 }
