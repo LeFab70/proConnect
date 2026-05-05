@@ -66,7 +66,9 @@ class AineProvider with ChangeNotifier {
     try {
       if (auth.token == null) return;
 
-      _aines = await _service.getAines(auth.token!);
+      // Fabrice | 2026-05-05T06:00:00Z | Côté backend : /api/aines/mine renvoie les aînés liés au proche aidant connecté.
+      _aines =
+          auth.isAidant ? await _service.getAinesMine(auth.token!) : await _service.getAines(auth.token!);
 
       await restoreSelectedAine();
       _error = '';
