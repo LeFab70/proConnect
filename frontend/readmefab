@@ -9,32 +9,17 @@ Date de passe : 2026-05-05 (UTC). Auteur des commentaires dans le code : Fabrice
 
 Dans l’app Flutter : écran **Connexion** → champ **Email** + champ **Mot de passe** (corps `POST /api/auth/login`).
 
-### Comptes **aînés** (`Aine` → le frontend ouvre le **dashboard aîné**)
+### Se connecter comme **Aîné** (dashboard aîné)
 
-| Email | Mot de passe (seed par défaut) |
-|-------|--------------------------------|
-| marie.dupont@proconnect.local | Password123! |
-| jean.tremblay@proconnect.local | Password123! |
-| fatima.benali@proconnect.local | Password123! |
-| luc.roy@proconnect.local | Password123! |
+- marie.dupont@proconnect.local — Password123!
+- jean.tremblay@proconnect.local — Password123!
+- fatima.benali@proconnect.local — Password123!
+- luc.roy@proconnect.local — Password123!
 
-### Comptes **proche aidant** (`ProcheAidant` → **dashboard aidant**)
+### Se connecter comme **Proche aidant** (dashboard aidant + liens aînés via PartageSuivi)
 
-| Email | Mot de passe (seed par défaut) |
-|-------|--------------------------------|
-| alex.martin@proconnect.local | Password123! |
-| sarah.leblanc@proconnect.local | Password123! |
-
-### Comptes **utilisateur standard** (`StandardUser` — pas dans les tables métier Aîne / Proche aidant)
-
-Le frontend déduit alors le rôle via **`/api/users/{id}`** et oriente en général vers le **dashboard aidant**. Utiles pour tester un compte « famille » sans lien métier seed.
-
-| Email | Mot de passe (seed par défaut) |
-|-------|--------------------------------|
-| fabrice@proconnect.local | Password123! |
-| kayleb@proconnect.local | Password123! |
-| perez@proconnect.local | Password123! |
-| grace@proconnect.local | Password123! |
+- alex.martin@proconnect.local — Password123! (lié à 2 aînés dans le seed)
+- sarah.leblanc@proconnect.local — Password123! (lié à 1 aîné dans le seed)
 
 ### Rappels
 
