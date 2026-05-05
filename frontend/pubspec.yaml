@@ -1,24 +1,40 @@
-name: my_flutter_app
-description: A new Flutter project.
-publish_to: "none"
-
-version: 1.0.0+1
+name: proconnectnb
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
 
 environment:
-  sdk: "^3.10.4"
+  sdk: ^3.10.7
 
 dependencies:
-  http: ^0.13.5
+  country_picker: ^2.0.27
+  device_preview_plus: ^2.6.2
   flutter:
     sdk: flutter
-
-  cupertino_icons: ^1.0.6
+  flutter_dotenv: ^6.0.1
+  flutter_local_notifications: ^18.0.1
+  flutter_localization: ^0.4.0
+  flutter_localizations:
+    sdk: flutter
+  http: ^0.13.6
+  
+  image_picker: ^1.2.1
+  intl: ^0.20.2
+  provider: ^6.0.5
+  shared_preferences: ^2.5.5
+  timezone: ^0.9.4
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  flutter_lints: ^3.0.1
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - images/
+    - assets/lang/fr.json
+    - assets/lang/en.json
+    - .env
