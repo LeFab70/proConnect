@@ -54,18 +54,21 @@ public static class SeedData
         if (!Has("sarah.leblanc@proconnect.local"))
             toAddUsers.Add(new ProcheAidant { Nom = "Leblanc", Prenom = "Sarah", Telephone = "444-444-5555", Email = "sarah.leblanc@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "3", Rue = "Rue Acadie", Ville = "Dieppe", Province = "NB", CodePostal = "E1A5E5" } });
 
-        if (!Has("marie.dupont@proconnect.local"))
-            toAddUsers.Add(new Aine { Nom = "Dupont", Prenom = "Marie", Telephone = "333-333-3333", Email = "marie.dupont@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1948, 5, 12), Adresse = new Adresse { Numero = "123", Rue = "Rue Principale", Ville = "Moncton", Province = "NB", CodePostal = "E1A1A1" }, Docteur = "Dr. Mimiche", NumeroTelephoneDocteur = "506-783-4567" });
-        if (!Has("jean.tremblay@proconnect.local"))
-            toAddUsers.Add(new Aine { Nom = "Tremblay", Prenom = "Jean", Telephone = "333-333-1111", Email = "jean.tremblay@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1942, 10, 3), Adresse = new Adresse { Numero = "9", Rue = "Rue du Parc", Ville = "Riverview", Province = "NB", CodePostal = "E1B2C2" }, Docteur = "Dr. Nguyen", NumeroTelephoneDocteur = "506-111-2222" });
-        if (!Has("fatima.benali@proconnect.local"))
-            toAddUsers.Add(new Aine { Nom = "Benali", Prenom = "Fatima", Telephone = "333-333-2222", Email = "fatima.benali@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1950, 2, 19), Adresse = new Adresse { Numero = "44", Rue = "Rue Victoria", Ville = "Dieppe", Province = "NB", CodePostal = "E1A9Z9" }, Docteur = "Dr. Patel", NumeroTelephoneDocteur = "506-222-3333" });
-        if (!Has("luc.roy@proconnect.local"))
-            toAddUsers.Add(new Aine { Nom = "Roy", Prenom = "Luc", Telephone = "333-333-4444", Email = "luc.roy@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1939, 7, 7), Adresse = new Adresse { Numero = "61", Rue = "Rue Champlain", Ville = "Moncton", Province = "NB", CodePostal = "E1C1C1" }, Docteur = "Dr. Singh", NumeroTelephoneDocteur = "506-333-4444" });
-        if (!Has("madeleine.gagnon@proconnect.local"))
-            toAddUsers.Add(new Aine { Nom = "Gagnon", Prenom = "Madeleine", Telephone = "333-333-5555", Email = "madeleine.gagnon@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1946, 1, 22), Adresse = new Adresse { Numero = "14", Rue = "Rue St-George", Ville = "Moncton", Province = "NB", CodePostal = "E1C2C2" }, Docteur = "Dr. Brown", NumeroTelephoneDocteur = "506-555-6666" });
-        if (!Has("andre.lemieux@proconnect.local"))
-            toAddUsers.Add(new Aine { Nom = "Lemieux", Prenom = "André", Telephone = "333-333-6666", Email = "andre.lemieux@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1940, 9, 5), Adresse = new Adresse { Numero = "200", Rue = "Rue Mountain", Ville = "Moncton", Province = "NB", CodePostal = "E1C3C3" }, Docteur = "Dr. White", NumeroTelephoneDocteur = "506-777-8888" });
+        // Aînés de test demandés
+        if (!Has("joel.boudreau@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Boudreau", Prenom = "Jeol", Telephone = "333-333-1001", Email = "joel.boudreau@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1948, 5, 12), Adresse = new Adresse { Numero = "123", Rue = "Rue Principale", Ville = "Moncton", Province = "NB", CodePostal = "E1A1A1" }, Docteur = "Dr. Mimiche", NumeroTelephoneDocteur = "506-783-4567" });
+        if (!Has("david.roy@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Roy", Prenom = "David", Telephone = "333-333-1002", Email = "david.roy@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1942, 10, 3), Adresse = new Adresse { Numero = "9", Rue = "Rue du Parc", Ville = "Riverview", Province = "NB", CodePostal = "E1B2C2" }, Docteur = "Dr. Nguyen", NumeroTelephoneDocteur = "506-111-2222" });
+        if (!Has("paul.wouatcha@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Wouatcha", Prenom = "Paul", Telephone = "333-333-1003", Email = "paul.wouatcha@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1950, 2, 19), Adresse = new Adresse { Numero = "44", Rue = "Rue Victoria", Ville = "Dieppe", Province = "NB", CodePostal = "E1A9Z9" }, Docteur = "Dr. Patel", NumeroTelephoneDocteur = "506-222-3333" });
+        if (!Has("michel.trembley@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Trembley", Prenom = "Michel", Telephone = "333-333-1004", Email = "michel.trembley@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1939, 7, 7), Adresse = new Adresse { Numero = "61", Rue = "Rue Champlain", Ville = "Moncton", Province = "NB", CodePostal = "E1C1C1" }, Docteur = "Dr. Singh", NumeroTelephoneDocteur = "506-333-4444" });
+        if (!Has("ghislain.ndiaye@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Ndiaye", Prenom = "Ghislain", Telephone = "333-333-1005", Email = "ghislain.ndiaye@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1946, 1, 22), Adresse = new Adresse { Numero = "14", Rue = "Rue St-George", Ville = "Moncton", Province = "NB", CodePostal = "E1C2C2" }, Docteur = "Dr. Brown", NumeroTelephoneDocteur = "506-555-6666" });
+        if (!Has("michel.robichaud@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Robichaud", Prenom = "Michel", Telephone = "333-333-1006", Email = "michel.robichaud@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1940, 9, 5), Adresse = new Adresse { Numero = "200", Rue = "Rue Mountain", Ville = "Moncton", Province = "NB", CodePostal = "E1C3C3" }, Docteur = "Dr. White", NumeroTelephoneDocteur = "506-777-8888" });
+        if (!Has("brice.kamla@proconnect.local"))
+            toAddUsers.Add(new Aine { Nom = "Kamla", Prenom = "Brice", Telephone = "333-333-1007", Email = "brice.kamla@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1944, 3, 15), Adresse = new Adresse { Numero = "88", Rue = "Rue Acadie", Ville = "Dieppe", Province = "NB", CodePostal = "E1A5E5" }, Docteur = "Dr. Martin", NumeroTelephoneDocteur = "506-999-0000" });
 
         if (toAddUsers.Count > 0) db.Users.AddRange(toAddUsers);
 
@@ -202,21 +205,21 @@ public static class SeedData
                 });
             }
 
-            async Task Ensure3Async(ProcheAidant? aidant, int startIndex, string relation, string autorisation)
+            async Task Ensure2Async(ProcheAidant? aidant, int startIndex, string relation, string autorisation)
             {
                 if (aidant == null || aines.Count == 0) return;
-                for (var i = 0; i < 3; i++)
+                for (var i = 0; i < 2; i++)
                 {
                     var idx = Math.Min(startIndex + i, aines.Count - 1);
                     await EnsureLinkAsync(aidant, aines[idx], relation, autorisation);
                 }
             }
 
-            // Chaque aidant de l'équipe surveille ~3 aînés
-            await Ensure3Async(paFabriceMain, 0, "Proche", "Ecriture");
-            await Ensure3Async(paKaylebMain, 3, "Ami", "Lecture");
-            await Ensure3Async(paPerezMain, 6, "Frère", "Lecture");
-            await Ensure3Async(paGraceMain, 9, "Fille", "Ecriture");
+            // Max 2 aînés à suivre par proche aidant (cas de test)
+            await Ensure2Async(paFabriceMain, 0, "Proche", "Ecriture");
+            await Ensure2Async(paKaylebMain, 2, "Ami", "Lecture");
+            await Ensure2Async(paPerezMain, 4, "Frère", "Lecture");
+            await Ensure2Async(paGraceMain, 6, "Fille", "Ecriture");
         }
 
         await db.SaveChangesAsync(ct);
