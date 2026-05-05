@@ -7,6 +7,7 @@ class ActiviteIA {
   final String categorie;
   final double scorePertinence;
   final String region;
+  final String source;
 
   ActiviteIA({
     required this.id,
@@ -17,6 +18,7 @@ class ActiviteIA {
     required this.categorie,
     this.scorePertinence = 1.0,
     required this.region,
+    this.source = 'proconnect',
   });
 
   factory ActiviteIA.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class ActiviteIA {
           json['region']?.toString() ??
           json['country']?.toString() ??
           'Inconnue',
+      source: json['source']?.toString() ?? 'proconnect',
     );
   }
 
@@ -64,6 +67,7 @@ class ActiviteIA {
       'categorie': categorie,
       'score_pertinence': scorePertinence,
       'region': region,
+      'source': source,
     };
   }
 

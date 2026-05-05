@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/activity.dart';
 import '../services/community_ai_service.dart';
@@ -35,6 +37,9 @@ class ActivityProvider with ChangeNotifier {
   final List<ActiviteIA> _activitesIA = [];
   String _currentCity = "Bathurst";
 
+  // Favoris (persistés localement) — clé par utilisateur connecté
+  final Map<String, List<ActiviteIA>> _favoritesByUserKey = {};
+
   ActivityProvider() {
     _initializeData();
   }
@@ -60,6 +65,68 @@ class ActivityProvider with ChangeNotifier {
   String get errorMessage => _errorMessage;
   List<ActiviteIA> get activitesIA => List.unmodifiable(_activitesIA);
   String get currentCity => _currentCity;
+
+  String _favKeyFor(AuthProvider auth) {
+    final id = auth.currentUserLocalId;
+    final email = auth.email?.toLowerCase();
+    if (id != null) return "fav_activities_uid_$id";
+    if (email != null && email.isNotEmpty) return "fav_activities_email_$email";
+    return "fav_activities_anon";
+  }
+
+  Future<void> loadFavorites(AuthProvider auth) async {
+    final key = _favKeyFor(auth);
+    if (_favoritesByUserKey.containsKey(key)) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final rawList = prefs.getStringList(key) ?? const <String>[];
+    final items = <ActiviteIA>[];
+
+    for (final raw in rawList) {
+      try {
+        final m = jsonDecode(raw);
+        if (m is Map<String, dynamic>) {
+          items.add(ActiviteIA.fromJson(m));
+        }
+      } catch (_) {}
+    }
+
+    _favoritesByUserKey[key] = items;
+    notifyListeners();
+  }
+
+  List<ActiviteIA> favorites(AuthProvider auth) {
+    final key = _favKeyFor(auth);
+    final list = _favoritesByUserKey[key] ?? const <ActiviteIA>[];
+    final sorted = [...list]..sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
+    return sorted;
+  }
+
+  bool isFavorite(AuthProvider auth, ActiviteIA activity) {
+    final key = _favKeyFor(auth);
+    final list = _favoritesByUserKey[key];
+    if (list == null) return false;
+    return list.any((a) => a.id == activity.id && a.source == activity.source);
+  }
+
+  Future<void> toggleFavorite(AuthProvider auth, ActiviteIA activity) async {
+    await loadFavorites(auth);
+    final key = _favKeyFor(auth);
+    final list = _favoritesByUserKey[key] ?? <ActiviteIA>[];
+
+    final index =
+        list.indexWhere((a) => a.id == activity.id && a.source == activity.source);
+    if (index >= 0) {
+      list.removeAt(index);
+    } else {
+      list.add(activity);
+    }
+
+    _favoritesByUserKey[key] = list;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(key, list.map((a) => jsonEncode(a.toJson())).toList());
+    notifyListeners();
+  }
 
   // --- MÉTHODE : Initialisation des données ---
   Future<void> _initializeData() async {

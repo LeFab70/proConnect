@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/activity.dart';
+import '../../provider/activity_provider.dart';
 import '../../provider/auth_provider.dart';
 import '../../services/community_ai_service.dart';
 import '../../services/predicthq_service.dart';
+import 'favorite_activities_screen.dart';
 
 enum _ActivitySource {
   proconnectNb,
@@ -104,11 +106,28 @@ class _ListActivityScreenState extends State<ListActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    context.read<ActivityProvider>().loadFavorites(auth);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Activités"),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          if (auth.isAine)
+            IconButton(
+              tooltip: "Favoris",
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const FavoriteActivitiesScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.star),
+            ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -239,6 +258,10 @@ class _ListActivityScreenState extends State<ListActivityScreen> {
                         itemCount: _activities.length,
                         itemBuilder: (context, index) {
                           final activity = _activities[index];
+                          final isFav = auth.isAine &&
+                              context
+                                  .watch<ActivityProvider>()
+                                  .isFavorite(auth, activity);
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
@@ -250,13 +273,32 @@ class _ListActivityScreenState extends State<ListActivityScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  activity.titre,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        activity.titre,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    if (auth.isAine)
+                                      IconButton(
+                                        tooltip: isFav
+                                            ? "Retirer des favoris"
+                                            : "Ajouter aux favoris",
+                                        onPressed: () => context
+                                            .read<ActivityProvider>()
+                                            .toggleFavorite(auth, activity),
+                                        icon: Icon(
+                                          isFav ? Icons.star : Icons.star_border,
+                                          color: Colors.amber,
+                                        ),
+                                      ),
+                                  ],
                                 ),
 
                                 const SizedBox(height: 6),
