@@ -11,12 +11,22 @@ Dans l’app Flutter : écran **Connexion** → champ **Email** + champ **Mot de
 
 ### Se connecter comme **Aîné** (dashboard aîné)
 
-- marie.dupont@proconnect.local — Password123!
-- jean.tremblay@proconnect.local — Password123!
-- fatima.benali@proconnect.local — Password123!
-- luc.roy@proconnect.local — Password123!
+- joel.boudreau@proconnect.local — Password123!
+- david.roy@proconnect.local — Password123!
+- paul.wouatcha@proconnect.local — Password123!
+- michel.trembley@proconnect.local — Password123!
 
 ### Se connecter comme **Proche aidant** (dashboard aidant + liens aînés via PartageSuivi)
+
+- fabrice@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+- kayleb@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+- perez@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+- grace@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+
+- fabrice.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
+- kayleb.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
+- perez.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
+- grace.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
 
 - alex.martin@proconnect.local — Password123! (lié à 2 aînés dans le seed)
 - sarah.leblanc@proconnect.local — Password123! (lié à 1 aîné dans le seed)
@@ -33,6 +43,9 @@ Dans l’app Flutter : écran **Connexion** → champ **Email** + champ **Mot de
 
 ### lib/services/aine_service.dart
 - **Pourquoi** : Utiliser `/api/aines` au lieu de `/api/Aines` (404 sur l’API déployée).
+
+### lib/provider/aine_provider.dart
+- **Pourquoi** : Quand l’utilisateur est **Proche aidant**, charger ses aînés via `GET /api/aines/mine` (liés par `PartageSuivi`) au lieu de lister tous les aînés.
 
 ### lib/services/appointment_service.dart
 - **Pourquoi** : Utiliser `/api/rendez-vous-medicaux` au lieu de `/api/RendezVousMedicaux`.
@@ -133,6 +146,35 @@ Dans l’app Flutter : écran **Connexion** → champ **Email** + champ **Mot de
 
 ### lib/screens/activities/list_activity_screen.dart
 - **Pourquoi** : **`SegmentedButton`** — source **ProConnectNB** (`POST /api/activites/suggestions`, JWT requis) vs **Externe** (**PredictHQ** uniquement sur ce choix) ; libellés d’aide sous le sélecteur ; suppression de l’import inutilisé `settings_provider`.
+
+## Quatrième passe (2026-05-05T06:00:00Z) — Favoris d’activités (Aîné)
+
+### Objectif
+- Permettre à un **Aîné** d’ajouter des activités dans ses **favoris** (stockés localement « chez lui ») et de les consulter ensuite.
+
+### Ajouts
+
+### lib/provider/activity_provider.dart
+- **Pourquoi** : Ajouter la gestion des favoris (persistés en `SharedPreferences`) **par utilisateur connecté** : `loadFavorites`, `toggleFavorite`, `isFavorite`, `favorites`.
+
+### lib/screens/activities/list_activity_screen.dart
+- **Pourquoi** : Ajouter une étoile ⭐ (Ajouter/Retirer des favoris) sur chaque activité quand l’utilisateur est **Aîné** + bouton ⭐ dans l’AppBar pour ouvrir la liste des favoris.
+
+### lib/screens/activities/favorite_activities_screen.dart *(nouveau)*
+- **Pourquoi** : Écran « Favoris » affichant les activités enregistrées et permettant de les retirer.
+
+### lib/models/activity.dart
+- **Pourquoi** : Ajouter `source` pour distinguer les activités ProConnect vs PredictHQ dans les favoris.
+
+### lib/services/community_ai_service.dart
+- **Pourquoi** : Générer un `id` plus stable pour les activités IA afin que les favoris restent cohérents.
+
+### lib/services/predicthq_service.dart
+- **Pourquoi** : Propager `source = predicthq` dans le mapping des événements externes.
+
+## Message de commit (pour le push)
+
+`activités favoris ok`
 
 ---
 
