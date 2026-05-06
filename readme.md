@@ -46,6 +46,11 @@ Swagger en développement : URL affichée dans la console (souvent `http://local
 - `POST /api/auth/register`, `POST /api/auth/login` → JWT.
 - Swagger : **Authorize** → `Bearer <token>`.
 - `GET /api/auth/me` : profil décodé du token.
+### Auth
+
+- `POST /api/auth/register`, `POST /api/auth/login` → JWT.
+- Swagger : **Authorize** → `Bearer <token>`.
+- `GET /api/auth/me` : profil décodé du token.
 
 La plupart des routes sont sous `[Authorize]` ; les écritures sensibles sont souvent `AdminOnly`.
 

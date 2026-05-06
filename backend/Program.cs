@@ -54,6 +54,7 @@ builder.Services.AddScoped<IMedicamentService, MedicamentService>();
 builder.Services.AddScoped<IRendezVousMedicalService, RendezVousMedicalService>();
 builder.Services.AddScoped<IRappelService, RappelService>();
 builder.Services.AddScoped<IPartageSuiviService, PartageSuiviService>();
+builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
 
 // EF Core: migrations + runtime (services EF)
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -145,5 +146,6 @@ app.MapMedicamentsEndpoints();
 app.MapRendezVousMedicauxEndpoints();
 app.MapRappelsEndpoints();
 app.MapPartagesSuiviEndpoints();
+app.MapImagesEndpoints();
 
 app.Run(); // Demarre l'application et ecoute les requetes HTTP entrantes (roulement continu)

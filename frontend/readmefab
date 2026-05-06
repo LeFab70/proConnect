@@ -1,0 +1,184 @@
+# Journal des modifications — synchro frontend / backend ProConnectNB
+
+Date de passe : 2026-05-05 (UTC). Auteur des commentaires dans le code : Fabrice.
+
+## Données de test — connexion au système
+
+**Prérequis côté backend** : variable **`SEED_DATA=true`** au démarrage de l’API pour créer les comptes ci-dessous (voir `SeedData.cs`).  
+**Mot de passe** : par défaut **`Password123!`** ; si le backend définit **`SEED_PASSWORD`**, utiliser cette valeur à la place.
+
+Dans l’app Flutter : écran **Connexion** → champ **Email** + champ **Mot de passe** (corps `POST /api/auth/login`).
+
+### Se connecter comme **Aîné** (dashboard aîné)
+
+- joel.boudreau@proconnect.local — Password123!
+- david.roy@proconnect.local — Password123!
+- paul.wouatcha@proconnect.local — Password123!
+- michel.trembley@proconnect.local — Password123!
+
+### Se connecter comme **Proche aidant** (dashboard aidant + liens aînés via PartageSuivi)
+
+- fabrice@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+- kayleb@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+- perez@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+- grace@proconnect.local — Password123! (seed : converti en `ProcheAidant` pour tests PartageSuivi)
+
+- fabrice.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
+- kayleb.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
+- perez.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
+- grace.aidant@proconnect.local — Password123! (seed : proche aidant « du groupe »)
+
+- alex.martin@proconnect.local — Password123! (lié à 2 aînés dans le seed)
+- sarah.leblanc@proconnect.local — Password123! (lié à 1 aîné dans le seed)
+
+### Rappels
+
+- Ces emails existent **uniquement** après seed réussi sur **ta** base (PostgreSQL locale, Neon, Azure, etc.).
+- L’instance déployée sur Azure utilise les mêmes conventions si le seed y a été exécuté avec les mêmes paramètres.
+
+## Fichiers modifiés
+
+### lib/services/api.dart
+- **Pourquoi** : Remplacer le login mock par `POST /api/auth/login` (JWT `accessToken`), ajouter `POST /api/auth/register`, corriger les chemins vers les routes Minimal APIs (`/api/aines`, `/api/proches-aidants`, `/api/partages-suivi`), enrichir la session avec `/api/auth/me` + listes aînés/proches pour dériver `role` et `firstName` attendus par `AuthProvider`, adapter `upsertPartage` au DTO backend (autorisations « Lecture », « Ecriture », …), exiger un JWT pour `getUser`.
+
+### lib/services/aine_service.dart
+- **Pourquoi** : Utiliser `/api/aines` au lieu de `/api/Aines` (404 sur l’API déployée).
+
+### lib/provider/aine_provider.dart
+- **Pourquoi** : Quand l’utilisateur est **Proche aidant**, charger ses aînés via `GET /api/aines/mine` (liés par `PartageSuivi`) au lieu de lister tous les aînés.
+
+### lib/services/appointment_service.dart
+- **Pourquoi** : Utiliser `/api/rendez-vous-medicaux` au lieu de `/api/RendezVousMedicaux`.
+
+### lib/services/auth_service.dart
+- **Pourquoi** : Aligner le corps de login sur `LoginRequestDto` (`email`, `password`) ; garder une aide `loginWithProfile` qui délègue à `Api.login` pour un comportement cohérent avec l’app.
+
+### lib/provider/auth_provider.dart
+- **Pourquoi** : Brancher `register` sur `Api.register` au lieu du mock `LOCAL_TOKEN`.
+
+### lib/provider/aine_provider.dart
+- **Pourquoi** : Charger / créer / mettre à jour / supprimer via `AineService` et `Api.delete` avec les vraies URLs ; messages explicites si l’API refuse (création/suppression réservées au rôle Admin côté backend).
+
+### lib/provider/caregiver_provider.dart
+- **Pourquoi** : Remplacer les données fictives par `Api.getCaregivers` (`GET /api/proches-aidants`).
+
+### lib/screens/test/api_test_screen.dart
+- **Pourquoi** : `getUser` nécessite un Bearer token ; lecture du token depuis `AuthProvider` et message si non connecté.
+
+## Comportement à connaître
+
+- **Comptes seed** : emails `@proconnect.local`, mot de passe par défaut du backend `Password123!` (variable `SEED_PASSWORD` si définie).
+- **Comptes « StandardUser »** après inscription : le backend `/api/auth/register` crée toujours un `StandardUser` (pas un enregistrement `Aine` / `ProcheAidant`). Le dérivé `role` côté app suit la même logique que le login (souvent **AIDANT** via `/api/users/{id}`) ; le choix « Aînés » sur l’écran d’inscription n’altère pas encore le type en base.
+- **Création / suppression** d’aînés, proches, RDV, etc. : plusieurs routes sont **`AdminOnly`** sur le backend ; un JWT utilisateur normal peut recevoir 403 même si le front envoie la bonne URL.
+
+## Deuxième passe (2026-05-05T04:56:37Z) — médicaments, rappels, partages, IA, écrans
+
+### lib/services/medication_service.dart *(nouveau)*
+- **Pourquoi** : Encapsuler `GET/POST/PUT/DELETE /api/medicaments` pour le `MedicationProvider`.
+
+### lib/services/rappel_service.dart *(nouveau)*
+- **Pourquoi** : Encapsuler `GET/POST/PUT/DELETE /api/rappels` avec normalisation `heureDebut` (`HH:mm:ss`) et corps aligné sur `UpsertRappelRequestDto`.
+
+### lib/services/community_ai_service.dart *(nouveau)*
+- **Pourquoi** : Appeler `POST /api/activites/suggestions` avec JWT et mapper les réponses vers `ActiviteIA`.
+
+### lib/services/api.dart
+- **Pourquoi** : Ajouter `getPartagesSuivi` (`GET /api/partages-suivi`).
+
+### lib/models/rappel.dart
+- **Pourquoi** : Exposer `formatDateOnlyStatic` pour les payloads d’upsert.
+
+### lib/provider/medication_provider.dart
+- **Pourquoi** : Données depuis l’API ; `toggleTaken` local uniquement ; CRUD avec repli hors-ligne si pas de token.
+
+### lib/provider/rappel_provider.dart
+- **Pourquoi** : `fetchRappels` ; méthodes prenant `AuthProvider` ; appels `RappelService` avec repli local si l’API refuse.
+
+### lib/provider/partage_provider.dart
+- **Pourquoi** : Chargement API ; création/suppression HTTP ; statut « actif » pour les entrées sans workflow pending côté backend ; commentaire sur l’acceptation locale.
+
+### lib/provider/activity_provider.dart
+- **Pourquoi** : `fetchAIActivities(AuthProvider)` branché sur le backend lorsque le JWT est présent.
+
+### lib/provider/caregiver_provider.dart
+- **Pourquoi** : Création de proche via `POST /api/proches-aidants` et adresse normalisée pour `AdresseDto`.
+
+### lib/screens/dashboard/dashboard_screen.dart
+- **Pourquoi** : Préchargement parallèle des données après connexion + suggestions IA.
+
+### lib/screens/medications/add_medication_screen.dart
+### lib/screens/medications/medication_list_screen.dart
+- **Pourquoi** : Auth injectée ; type rappel **`Medicament`** ; notifications après `fetchRappels`.
+
+### lib/screens/appointments/appointment_list_screen.dart
+### lib/screens/appointments/add_appointment_screen.dart
+- **Pourquoi** : Type **`RendezVousMedical`** ; secondes dans `heureDebut` ; `addRappel(..., auth)`.
+
+### lib/screens/rappel/add_rappel_screen.dart
+### lib/screens/rappel/list_rappel_screen.dart
+- **Pourquoi** : Signature mise à jour avec `AuthProvider`.
+
+### lib/screens/aine/list_aine_screen.dart
+### lib/screens/caregiver/list_caregiver.dart
+### lib/screens/caregiver/caregiver_detail_screen.dart
+- **Pourquoi** : `supprimerPartage(id, auth)` et passages explicites de `AuthProvider` aux sous-widgets.
+
+### lib/screens/partage/partageScreen.dart
+- **Pourquoi** : `fetchPartages` à l’ouverture.
+
+### Types de rappels API
+- Le backend attend **`Medicament`** ou **`RendezVousMedical`** (voir `RappelRequestValidation` côté .NET).
+
+## Troisième passe (2026-05-05T05:02:10Z) — Adresse complète & sources d’activités
+
+### lib/models/adresse.dart
+- **Pourquoi** : Ajout de **`numero`** et **`province`** (JSON backend `AdresseDto`) ; `toJson` n’émet que les champs non vides pour rester compatible avec les payloads existants.
+
+### lib/provider/caregiver_provider.dart
+- **Pourquoi** : Construction **`AdresseDto`** avec le numéro/province saisis (repli `1` / `NB` seulement si absent).
+
+### lib/screens/caregiver/add_caregiver_screen.dart
+- **Pourquoi** : Champs **No. civique** et **Province** dans le formulaire ; valeur par défaut province **NB** pour le Nouveau-Brunswick.
+
+### lib/screens/caregiver/caregiver_detail_screen.dart
+### lib/screens/aine/aine_detail_screen.dart
+- **Pourquoi** : Affichage **numero** et **province** lorsque présents dans les réponses API.
+
+### lib/screens/activities/list_activity_screen.dart
+- **Pourquoi** : **`SegmentedButton`** — source **ProConnectNB** (`POST /api/activites/suggestions`, JWT requis) vs **Externe** (**PredictHQ** uniquement sur ce choix) ; libellés d’aide sous le sélecteur ; suppression de l’import inutilisé `settings_provider`.
+
+## Quatrième passe (2026-05-05T06:00:00Z) — Favoris d’activités (Aîné)
+
+### Objectif
+- Permettre à un **Aîné** d’ajouter des activités dans ses **favoris** (stockés localement « chez lui ») et de les consulter ensuite.
+
+### Ajouts
+
+### lib/provider/activity_provider.dart
+- **Pourquoi** : Ajouter la gestion des favoris (persistés en `SharedPreferences`) **par utilisateur connecté** : `loadFavorites`, `toggleFavorite`, `isFavorite`, `favorites`.
+
+### lib/screens/activities/list_activity_screen.dart
+- **Pourquoi** : Ajouter une étoile ⭐ (Ajouter/Retirer des favoris) sur chaque activité quand l’utilisateur est **Aîné** + bouton ⭐ dans l’AppBar pour ouvrir la liste des favoris.
+
+### lib/screens/activities/favorite_activities_screen.dart *(nouveau)*
+- **Pourquoi** : Écran « Favoris » affichant les activités enregistrées et permettant de les retirer.
+
+### lib/models/activity.dart
+- **Pourquoi** : Ajouter `source` pour distinguer les activités ProConnect vs PredictHQ dans les favoris.
+
+### lib/services/community_ai_service.dart
+- **Pourquoi** : Générer un `id` plus stable pour les activités IA afin que les favoris restent cohérents.
+
+### lib/services/predicthq_service.dart
+- **Pourquoi** : Propager `source = predicthq` dans le mapping des événements externes.
+
+## Message de commit (pour le push)
+
+`activités favoris ok`
+
+---
+
+## Fichiers ajoutés
+
+### readmefab (ce fichier)
+- **Pourquoi** : Inventaire des fichiers touchés et justification des changements.
