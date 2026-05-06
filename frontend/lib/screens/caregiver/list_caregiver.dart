@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -56,9 +56,9 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -83,19 +83,19 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.link_off_rounded, size: 11, color: Colors.white.withOpacity(0.35)),
+          Icon(Icons.link_off_rounded, size: 11, color: Colors.white.withValues(alpha: 0.35)),
           const SizedBox(width: 4),
           Text(
             "Non partagé",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha: 0.4),
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -119,14 +119,14 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
           count == 1
               ? "Supprimer ce proche ?"
               : "Supprimer les $count proches sélectionnés ?",
-          style: TextStyle(color: Colors.white.withOpacity(0.6), height: 1.5),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: TrText(
               "Annuler",
-              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             ),
           ),
           ElevatedButton(
@@ -195,7 +195,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -213,7 +213,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -283,9 +283,9 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
               ),
               child: Icon(
                 hasSelection ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded,
@@ -314,7 +314,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                   "${caregiverProvider.caregivers.length} proche(s)",
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -345,10 +345,10 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(11),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withOpacity(0.15),
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFFEF4444).withOpacity(0.3),
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -375,7 +375,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
     if (caregiverProvider.isLoading) {
       return Center(
         child: CircularProgressIndicator(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           strokeWidth: 2,
         ),
       );
@@ -389,21 +389,21 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
             Container(
               padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.07),
+                color: Colors.white.withValues(alpha: 0.07),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
               ),
               child: Icon(
                 Icons.people_outline_rounded,
                 size: 48,
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
               ),
             ),
             const SizedBox(height: 20),
             Text(
               "Aucun proche aidant",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -412,7 +412,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
             Text(
               "Ajoutez votre premier proche",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 fontSize: 13,
               ),
             ),
@@ -466,18 +466,18 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Colors.white.withOpacity(0.16)
-                  : Colors.white.withOpacity(0.08),
+                  ? Colors.white.withValues(alpha: 0.16)
+                  : Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isSelected
-                    ? Colors.white.withOpacity(0.55)
-                    : Colors.white.withOpacity(0.11),
+                    ? Colors.white.withValues(alpha: 0.55)
+                    : Colors.white.withValues(alpha: 0.11),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF000428).withOpacity(0.3),
+                  color: const Color(0xFF000428).withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -490,10 +490,10 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF004E92).withOpacity(0.45),
+                    color: const Color(0xFF004E92).withValues(alpha: 0.45),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF4A9FE8).withOpacity(0.35),
+                      color: const Color(0xFF4A9FE8).withValues(alpha: 0.35),
                       width: 1,
                     ),
                   ),
@@ -530,14 +530,14 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                           Icon(
                             Icons.phone_rounded,
                             size: 13,
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withValues(alpha: 0.4),
                           ),
                           const SizedBox(width: 5),
                           Text(
                             caregiver.telephone,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.white.withOpacity(0.55),
+                              color: Colors.white.withValues(alpha: 0.55),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -566,7 +566,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF4A9FE8)
-                          : Colors.white.withOpacity(0.22),
+                          : Colors.white.withValues(alpha: 0.22),
                       width: 1.5,
                     ),
                   ),
@@ -575,7 +575,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                       : Icon(
                           Icons.arrow_forward_ios_rounded,
                           size: 13,
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                         ),
                 ),
               ],

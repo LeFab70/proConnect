@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -204,7 +204,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: const Color(0xFF4A9FE8).withOpacity(0.3),
+            color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
             width: 1.5,
           ),
         ),
@@ -212,7 +212,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
           child: Image.network(
             med.urlPhoto!,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _defaultAvatar(med),
+            errorBuilder: (_, _, _) => _defaultAvatar(med),
           ),
         ),
       );
@@ -227,13 +227,13 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
       height: 48,
       decoration: BoxDecoration(
         color: med.isActive
-            ? const Color(0xFF004E92).withOpacity(0.5)
-            : Colors.white.withOpacity(0.05),
+            ? const Color(0xFF004E92).withValues(alpha: 0.5)
+            : Colors.white.withValues(alpha: 0.05),
         shape: BoxShape.circle,
         border: Border.all(
           color: med.isActive
-              ? const Color(0xFF4A9FE8).withOpacity(0.35)
-              : Colors.white.withOpacity(0.1),
+              ? const Color(0xFF4A9FE8).withValues(alpha: 0.35)
+              : Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -241,7 +241,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
         Icons.medication_rounded,
         color: med.isActive
             ? const Color(0xFF7DC4FF)
-            : Colors.white.withOpacity(0.25),
+            : Colors.white.withValues(alpha: 0.25),
         size: 22,
       ),
     );
@@ -276,7 +276,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -294,7 +294,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -407,10 +407,10 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -439,7 +439,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
               ),
               if (!hasSelection)
                 Consumer<MedicationProvider>(
-                  builder: (_, provider, __) {
+                  builder: (_, provider, _) {
                     final count = provider.medications
                         .where((m) => !m.isDeleted)
                         .length;
@@ -447,7 +447,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                       '$count traitement(s)',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.45),
+                        color: Colors.white.withValues(alpha: 0.45),
                         fontWeight: FontWeight.w500,
                       ),
                     );
@@ -470,24 +470,24 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.07),
+              color: Colors.white.withValues(alpha: 0.07),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
             child: Icon(
               Icons.medication_outlined,
               size: 48,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
           ),
           const SizedBox(height: 20),
           Text(
             'Aucun traitement en cours',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -496,7 +496,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
           Text(
             'Ajoutez votre premier traitement',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               fontSize: 13,
             ),
           ),
@@ -521,18 +521,18 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.white.withOpacity(0.16)
-              : Colors.white.withOpacity(0.08),
+              ? Colors.white.withValues(alpha: 0.16)
+              : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected
-                ? Colors.white.withOpacity(0.55)
-                : Colors.white.withOpacity(0.11),
+                ? Colors.white.withValues(alpha: 0.55)
+                : Colors.white.withValues(alpha: 0.11),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF000428).withOpacity(0.3),
+              color: const Color(0xFF000428).withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -560,11 +560,11 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                       fontWeight: FontWeight.w800,
                       color: med.isActive
                           ? Colors.white
-                          : Colors.white.withOpacity(0.35),
+                          : Colors.white.withValues(alpha: 0.35),
                       decoration: med.isActive
                           ? null
                           : TextDecoration.lineThrough,
-                      decorationColor: Colors.white.withOpacity(0.3),
+                      decorationColor: Colors.white.withValues(alpha: 0.3),
                     ),
                   ),
 
@@ -573,18 +573,18 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                   // Marque + dosage
                   Row(
                     children: [
-                      if ((med.marque ?? '').isNotEmpty) ...[
+                      if (med.marque.isNotEmpty) ...[
                         Icon(
                           Icons.local_pharmacy_outlined,
                           size: 12,
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          med.marque ?? '',
+                          med.marque,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -593,14 +593,14 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                       Icon(
                         Icons.monitor_weight_outlined,
                         size: 12,
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         med.dosage,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.5),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -622,13 +622,13 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: med.isActive
-                                ? const Color(0xFF004E92).withOpacity(0.4)
-                                : Colors.white.withOpacity(0.04),
+                                ? const Color(0xFF004E92).withValues(alpha: 0.4)
+                                : Colors.white.withValues(alpha: 0.04),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: med.isActive
-                                  ? const Color(0xFF4A9FE8).withOpacity(0.3)
-                                  : Colors.white.withOpacity(0.07),
+                                  ? const Color(0xFF4A9FE8).withValues(alpha: 0.3)
+                                  : Colors.white.withValues(alpha: 0.07),
                               width: 1,
                             ),
                           ),
@@ -639,8 +639,8 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                                 Icons.access_time_rounded,
                                 size: 10,
                                 color: med.isActive
-                                    ? const Color(0xFF7DC4FF).withOpacity(0.8)
-                                    : Colors.white.withOpacity(0.2),
+                                    ? const Color(0xFF7DC4FF).withValues(alpha: 0.8)
+                                    : Colors.white.withValues(alpha: 0.2),
                               ),
                               const SizedBox(width: 3),
                               Text(
@@ -650,7 +650,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                                   fontWeight: FontWeight.w700,
                                   color: med.isActive
                                       ? const Color(0xFF7DC4FF)
-                                      : Colors.white.withOpacity(0.2),
+                                      : Colors.white.withValues(alpha: 0.2),
                                 ),
                               ),
                             ],
@@ -669,13 +669,13 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: med.isActive
-                          ? const Color(0xFF10B981).withOpacity(0.12)
-                          : Colors.white.withOpacity(0.04),
+                          ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                          : Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: med.isActive
-                            ? const Color(0xFF10B981).withOpacity(0.35)
-                            : Colors.white.withOpacity(0.08),
+                            ? const Color(0xFF10B981).withValues(alpha: 0.35)
+                            : Colors.white.withValues(alpha: 0.08),
                         width: 1,
                       ),
                     ),
@@ -686,7 +686,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                         fontWeight: FontWeight.w700,
                         color: med.isActive
                             ? const Color(0xFF34D399)
-                            : Colors.white.withOpacity(0.25),
+                            : Colors.white.withValues(alpha: 0.25),
                         letterSpacing: 0.2,
                       ),
                     ),
@@ -702,10 +702,10 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
               scale: 0.85,
               child: Switch(
                 value: med.isActive,
-                activeColor: Colors.white,
+                activeThumbColor: Colors.white,
                 activeTrackColor: const Color(0xFF004E92),
-                inactiveThumbColor: Colors.white.withOpacity(0.3),
-                inactiveTrackColor: Colors.white.withOpacity(0.1),
+                inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
+                inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
                 onChanged: (value) async {
                   await _createOrRemoveRappels(med: med, value: value);
                 },
@@ -727,7 +727,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                 border: Border.all(
                   color: isSelected
                       ? const Color(0xFF4A9FE8)
-                      : Colors.white.withOpacity(0.22),
+                      : Colors.white.withValues(alpha: 0.22),
                   width: 1.5,
                 ),
               ),

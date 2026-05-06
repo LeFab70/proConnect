@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../widgets/tr_text.dart';
 import '../../provider/settings_provider.dart';
@@ -98,7 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             _SwitchTile(
               icon: Icons.medication_rounded,
               iconColor: const Color(0xFF405667),
-              iconBg: const Color(0xFF405667).withOpacity(0.1) as Color,
+              iconBg: const Color(0xFF405667).withValues(alpha: 0.1),
               label: 'Médicaments',
               subtitle: 'Rappels de prise de médicaments',
               value: _medications && _pushEnabled,
@@ -147,7 +147,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             _SwitchTile(
               icon: Icons.bar_chart_rounded,
               iconColor: const Color(0xFF405667),
-              iconBg: const Color(0xFF405667).withOpacity(0.1) as Color,
+              iconBg: const Color(0xFF405667).withValues(alpha: 0.1),
               label: 'Rapport hebdomadaire',
               subtitle: 'Résumé de santé chaque lundi',
               value: _weeklyReport && _pushEnabled,
@@ -241,7 +241,7 @@ class _Card extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2))
           ],
@@ -311,7 +311,7 @@ class _SwitchTile extends StatelessWidget {
             Switch(
               value: value,
               onChanged: enabled ? onChanged : null,
-              activeColor: const Color(0xFF405667),
+              activeThumbColor: const Color(0xFF405667),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ],

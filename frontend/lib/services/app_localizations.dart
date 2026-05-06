@@ -1,3 +1,4 @@
+﻿import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
@@ -18,10 +19,10 @@ class AppLocalizations {
         (key, value) => MapEntry(key, value.toString()),
       );
 
-      print("✅ Langue chargée : $lang");
+      debugPrint("✅ Langue chargée : $lang");
     } catch (e) {
       _localized = {};
-      print("⚠️ Erreur chargement langue: $e");
+      debugPrint("⚠️ Erreur chargement langue: $e");
     }
   }
 

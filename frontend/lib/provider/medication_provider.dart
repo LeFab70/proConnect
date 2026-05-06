@@ -230,8 +230,11 @@ class MedicationProvider with ChangeNotifier {
         final ok = await _service.deleteMedicament(mid, token);
         if (ok) {
           _takenLocal.remove(id);
-          if (auth != null) await fetchMedications(auth);
-          else notifyListeners();
+          if (auth != null) {
+            await fetchMedications(auth);
+          } else {
+            notifyListeners();
+          }
           return true;
         }
         _error = 'Suppression refusée (droits admin requis côté API)';

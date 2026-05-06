@@ -1,3 +1,4 @@
+﻿import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -42,12 +43,12 @@ class PredictHqService {
 
         return _mapAndFilter(results, city);
       } else {
-        print("❌ Erreur API : ${response.statusCode}");
-        print("📄 Body : ${response.body}");
+        debugPrint("❌ Erreur API : ${response.statusCode}");
+        debugPrint("📄 Body : ${response.body}");
         throw Exception('Erreur API PredictHQ');
       }
     } catch (e) {
-      print("🔥 Erreur fetchEventsByCity : $e");
+      debugPrint("🔥 Erreur fetchEventsByCity : $e");
       return [];
     }
   }
@@ -92,7 +93,7 @@ class PredictHqService {
         throw Exception('Erreur API PredictHQ');
       }
     } catch (e) {
-      print(" Erreur Bathurst : $e");
+      debugPrint(" Erreur Bathurst : $e");
       return [];
     }
   }

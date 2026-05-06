@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/tr_text.dart';
@@ -55,7 +55,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final caregivers = context.watch<CaregiverProvider>();
     final aines = context.watch<AineProvider>();
     final rappelProvider = context.watch<RappelProvider>();
-    final appointmentProvider = context.watch<AppointmentProvider>();
 
     final bool isProcheSansAine = auth.isAidant && aines.selectedAine == null;
 
@@ -90,9 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final rappelsDuJour = isProcheSansAine ? [] : rappelProvider.rappelsDuJour;
 
-    final rendezVousDuJour = isProcheSansAine
-        ? []
-        : appointmentProvider.appointmentsDuJour;
+
 
     return Scaffold(
       key: _scaffoldKey,
@@ -258,9 +255,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.10),
+        color: Colors.orange.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.orange.withOpacity(0.25)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -333,7 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -401,7 +398,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.1),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -480,14 +477,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const Divider(color: Colors.white24, indent: 20, endIndent: 20),
                 _drawerItem(Icons.logout, "Se déconnecter", () async {
+                  final navigator = Navigator.of(context);
                   await auth.logout();
-                  if (mounted) {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/login',
-                      (_) => false,
-                    );
-                  }
+                  if (!mounted) return;
+                  navigator.pushNamedAndRemoveUntil('/login', (_) => false);
                 }, color: Colors.redAccent),
                 const SizedBox(height: 20),
               ],
@@ -617,7 +610,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         margin: const EdgeInsets.only(left: 16),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.12),
+          color: Colors.black.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -803,7 +796,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
+        color: Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -827,14 +820,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       leading: const Icon(Icons.notifications_active_outlined),
       title: Text(r.type),
       subtitle: Text(r.description ?? ""),
-    );
-  }
-
-  Widget _appointmentTile(dynamic r) {
-    return ListTile(
-      leading: const Icon(Icons.calendar_today),
-      title: Text("Dr. ${r.docteur}"),
-      trailing: Text(r.heure ?? ""),
     );
   }
 

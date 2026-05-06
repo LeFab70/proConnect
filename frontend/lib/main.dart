@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -21,7 +21,7 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
-  print("TOKEN CHARGÉ = ${dotenv.env['PREDICT_HQ_TOKEN']}");
+  debugPrint("TOKEN CHARGÉ = ${dotenv.env['PREDICT_HQ_TOKEN']}");
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
 

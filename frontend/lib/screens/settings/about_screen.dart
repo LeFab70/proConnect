@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -44,7 +44,7 @@ class AboutScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -62,7 +62,7 @@ class AboutScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -113,10 +113,10 @@ class AboutScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -150,15 +150,15 @@ class AboutScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: const Color(0xFF004E92).withOpacity(0.25),
+        color: const Color(0xFF004E92).withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: const Color(0xFF4A9FE8).withOpacity(0.3),
+          color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -179,7 +179,7 @@ class AboutScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF004E92).withOpacity(0.6),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.6),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -209,10 +209,10 @@ class AboutScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withValues(alpha: 0.12),
                 width: 1,
               ),
             ),
@@ -220,7 +220,7 @@ class AboutScreen extends StatelessWidget {
               'Version $_version  ·  Build $_build',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.white.withOpacity(0.55),
+                color: Colors.white.withValues(alpha: 0.55),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -231,10 +231,10 @@ class AboutScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF7DC4FF).withOpacity(0.1),
+              color: const Color(0xFF7DC4FF).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFF7DC4FF).withOpacity(0.25),
+                color: const Color(0xFF7DC4FF).withValues(alpha: 0.25),
                 width: 1,
               ),
             ),
@@ -254,7 +254,7 @@ class AboutScreen extends StatelessWidget {
             'ProConnect NB est une application de santé numérique conçue pour aider les aînés et leurs proches aidants à gérer médicaments, activités physiques et rendez-vous médicaux en toute simplicité.',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -291,7 +291,7 @@ class AboutScreen extends StatelessWidget {
                       e.value.$1,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.45),
+                        color: Colors.white.withValues(alpha: 0.45),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -308,7 +308,7 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             if (!isLast)
-              Divider(color: Colors.white.withOpacity(0.06), height: 1),
+              Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
           ],
         );
       }).toList(),
@@ -359,7 +359,7 @@ class AboutScreen extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
-      splashColor: Colors.white.withOpacity(0.04),
+      splashColor: Colors.white.withValues(alpha: 0.04),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 11),
         child: Row(
@@ -368,9 +368,9 @@ class AboutScreen extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: color.withOpacity(0.25), width: 1),
+                border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
               ),
               child: Icon(icon, color: color, size: 17),
             ),
@@ -388,7 +388,7 @@ class AboutScreen extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 13,
-              color: Colors.white.withOpacity(0.25),
+              color: Colors.white.withValues(alpha: 0.25),
             ),
           ],
         ),
@@ -436,10 +436,10 @@ class AboutScreen extends StatelessWidget {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.12),
+                      color: color.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: color.withOpacity(0.3),
+                        color: color.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                     ),
@@ -472,7 +472,7 @@ class AboutScreen extends StatelessWidget {
                           role,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withValues(alpha: 0.4),
                             height: 1.3,
                           ),
                         ),
@@ -484,7 +484,7 @@ class AboutScreen extends StatelessWidget {
             ),
             if (!isLast)
               Divider(
-                color: Colors.white.withOpacity(0.06),
+                color: Colors.white.withValues(alpha: 0.06),
                 height: 1,
                 indent: 56,
               ),
@@ -500,7 +500,7 @@ class AboutScreen extends StatelessWidget {
     return Center(
       child: Text(
         '© 2026 ProConnect NB · Tous droits réservés',
-        style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.25)),
+        style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.25)),
         textAlign: TextAlign.center,
       ),
     );
@@ -516,12 +516,12 @@ class AboutScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -535,10 +535,10 @@ class AboutScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -554,13 +554,13 @@ class AboutScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),
@@ -569,7 +569,7 @@ class AboutScreen extends StatelessWidget {
 
   Widget _buildCardDivider() {
     return Divider(
-      color: Colors.white.withOpacity(0.06),
+      color: Colors.white.withValues(alpha: 0.06),
       height: 1,
       indent: 50,
     );

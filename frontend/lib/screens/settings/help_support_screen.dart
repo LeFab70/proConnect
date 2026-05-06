@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -79,7 +79,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -97,7 +97,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -146,10 +146,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -183,10 +183,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: const Color(0xFF004E92).withOpacity(0.25),
+        color: const Color(0xFF004E92).withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: const Color(0xFF4A9FE8).withOpacity(0.3),
+          color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
@@ -195,15 +195,15 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFF004E92).withOpacity(0.5),
+              color: const Color(0xFF004E92).withValues(alpha: 0.5),
               shape: BoxShape.circle,
               border: Border.all(
-                color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF004E92).withOpacity(0.4),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.4),
                   blurRadius: 12,
                   spreadRadius: 1,
                 ),
@@ -234,7 +234,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   'Consultez la FAQ ou contactez-nous directement.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     height: 1.4,
                   ),
                 ),
@@ -290,8 +290,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
-      splashColor: Colors.white.withOpacity(0.04),
-      highlightColor: Colors.white.withOpacity(0.02),
+      splashColor: Colors.white.withValues(alpha: 0.04),
+      highlightColor: Colors.white.withValues(alpha: 0.02),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
         child: Row(
@@ -300,9 +300,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(11),
-                border: Border.all(color: color.withOpacity(0.25), width: 1),
+                border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
               ),
               child: Icon(icon, color: color, size: 18),
             ),
@@ -324,7 +324,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     value,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.45),
+                      color: Colors.white.withValues(alpha: 0.45),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -334,7 +334,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 13,
-              color: Colors.white.withOpacity(0.25),
+              color: Colors.white.withValues(alpha: 0.25),
             ),
           ],
         ),
@@ -360,7 +360,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               InkWell(
                 onTap: () => setState(() => _expandedFaq = isOpen ? null : i),
                 borderRadius: BorderRadius.circular(12),
-                splashColor: Colors.white.withOpacity(0.04),
+                splashColor: Colors.white.withValues(alpha: 0.04),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Column(
@@ -376,7 +376,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                             decoration: BoxDecoration(
                               color: isOpen
                                   ? const Color(0xFF7DC4FF)
-                                  : Colors.white.withOpacity(0.25),
+                                  : Colors.white.withValues(alpha: 0.25),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -388,7 +388,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                                 fontWeight: FontWeight.w700,
                                 color: isOpen
                                     ? const Color(0xFF7DC4FF)
-                                    : Colors.white.withOpacity(0.85),
+                                    : Colors.white.withValues(alpha: 0.85),
                                 height: 1.3,
                               ),
                             ),
@@ -401,7 +401,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                               Icons.keyboard_arrow_down_rounded,
                               color: isOpen
                                   ? const Color(0xFF7DC4FF)
-                                  : Colors.white.withOpacity(0.3),
+                                  : Colors.white.withValues(alpha: 0.3),
                               size: 20,
                             ),
                           ),
@@ -412,10 +412,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF004E92).withOpacity(0.2),
+                            color: const Color(0xFF004E92).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: const Color(0xFF4A9FE8).withOpacity(0.15),
+                              color: const Color(0xFF4A9FE8).withValues(alpha: 0.15),
                               width: 1,
                             ),
                           ),
@@ -423,7 +423,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                             item.answer,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withValues(alpha: 0.6),
                               height: 1.55,
                             ),
                           ),
@@ -434,7 +434,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 ),
               ),
               if (!isLast)
-                Divider(color: Colors.white.withOpacity(0.06), height: 1),
+                Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
             ],
           );
         }),
@@ -453,10 +453,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFFEF4444).withOpacity(0.08),
+          color: const Color(0xFFEF4444).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFEF4444).withOpacity(0.25),
+            color: const Color(0xFFEF4444).withValues(alpha: 0.25),
             width: 1,
           ),
         ),
@@ -465,14 +465,14 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           children: [
             Icon(
               Icons.bug_report_outlined,
-              color: const Color(0xFFFF7070).withOpacity(0.8),
+              color: const Color(0xFFFF7070).withValues(alpha: 0.8),
               size: 19,
             ),
             const SizedBox(width: 8),
             TrText(
               'Signaler un problème',
               style: TextStyle(
-                color: const Color(0xFFFF7070).withOpacity(0.9),
+                color: const Color(0xFFFF7070).withValues(alpha: 0.9),
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
               ),
@@ -493,12 +493,12 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -512,10 +512,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -531,13 +531,13 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),
@@ -546,7 +546,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
   Widget _buildCardDivider() {
     return Divider(
-      color: Colors.white.withOpacity(0.06),
+      color: Colors.white.withValues(alpha: 0.06),
       height: 1,
       indent: 52,
     );

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -8,14 +8,6 @@ import '../../provider/settings_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  static const List<(MaterialColor, String)> _colorOptions = [
-    (Colors.blue, 'Bleu'),
-    (Colors.indigo, 'Indigo'),
-    (Colors.teal, 'Vert'),
-    (Colors.deepOrange, 'Orange'),
-    (Colors.pink, 'Rose'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +39,7 @@ class SettingsScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -65,7 +57,7 @@ class SettingsScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -201,10 +193,10 @@ class SettingsScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -240,7 +232,7 @@ class SettingsScreen extends StatelessWidget {
       child: TrText(
         titleKey,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.4,
@@ -254,12 +246,12 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildGlassCard({required List<Widget> children}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.25),
+            color: const Color(0xFF000428).withValues(alpha: 0.25),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -274,7 +266,7 @@ class SettingsScreen extends StatelessWidget {
       height: 0,
       indent: 56,
       endIndent: 16,
-      color: Colors.white.withOpacity(0.07),
+      color: Colors.white.withValues(alpha: 0.07),
     );
   }
 
@@ -285,10 +277,10 @@ class SettingsScreen extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: const Color(0xFF004E92).withOpacity(0.45),
+        color: const Color(0xFF004E92).withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFF4A9FE8).withOpacity(0.25),
+          color: const Color(0xFF4A9FE8).withValues(alpha: 0.25),
           width: 1,
         ),
       ),
@@ -308,8 +300,8 @@ class SettingsScreen extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
-      splashColor: Colors.white.withOpacity(0.05),
-      highlightColor: Colors.white.withOpacity(0.03),
+      splashColor: Colors.white.withValues(alpha: 0.05),
+      highlightColor: Colors.white.withValues(alpha: 0.03),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -331,7 +323,7 @@ class SettingsScreen extends StatelessWidget {
                 trailingText,
                 style: TextStyle(
                   fontSize: 13,
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withValues(alpha: 0.4),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -340,7 +332,7 @@ class SettingsScreen extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 13,
-              color: Colors.white.withOpacity(0.25),
+              color: Colors.white.withValues(alpha: 0.25),
             ),
           ],
         ),
@@ -381,7 +373,7 @@ class SettingsScreen extends StatelessWidget {
                   subtitleKey,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                   ),
                 ),
               ],
@@ -392,10 +384,10 @@ class SettingsScreen extends StatelessWidget {
             child: Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: Colors.white,
+              activeThumbColor: Colors.white,
               activeTrackColor: const Color(0xFF004E92),
-              inactiveThumbColor: Colors.white.withOpacity(0.3),
-              inactiveTrackColor: Colors.white.withOpacity(0.1),
+              inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
@@ -413,10 +405,10 @@ class SettingsScreen extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFFEF4444).withOpacity(0.1),
+          color: const Color(0xFFEF4444).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFEF4444).withOpacity(0.3),
+            color: const Color(0xFFEF4444).withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -471,7 +463,7 @@ class SettingsScreen extends StatelessWidget {
                 Navigator.pop(ctx);
               },
             ),
-            Divider(color: Colors.white.withOpacity(0.07), height: 8),
+            Divider(color: Colors.white.withValues(alpha: 0.07), height: 8),
             _buildLangTile(
               context,
               flag: '🇬🇧',
@@ -541,14 +533,14 @@ class SettingsScreen extends StatelessWidget {
         ),
         content: TrText(
           'Voulez-vous vraiment vous déconnecter ?',
-          style: TextStyle(color: Colors.white.withOpacity(0.6), height: 1.5),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: TrText(
               'Annuler',
-              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             ),
           ),
           ElevatedButton(
@@ -602,10 +594,10 @@ class _FontSizeItem extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: const Color(0xFF004E92).withOpacity(0.45),
+        color: const Color(0xFF004E92).withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFF4A9FE8).withOpacity(0.25),
+          color: const Color(0xFF4A9FE8).withValues(alpha: 0.25),
           width: 1,
         ),
       ),
@@ -645,7 +637,7 @@ class _FontSizeItem extends StatelessWidget {
                       _label,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                       ),
                     ),
                   ],
@@ -657,10 +649,10 @@ class _FontSizeItem extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.4),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -681,7 +673,7 @@ class _FontSizeItem extends StatelessWidget {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: const Color(0xFF4A9FE8),
-              inactiveTrackColor: Colors.white.withOpacity(0.1),
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
               thumbColor: Colors.white,
               overlayColor: const Color(0x1A4A9FE8),
               trackHeight: 3,
@@ -705,14 +697,14 @@ class _FontSizeItem extends StatelessWidget {
                   'A',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white.withValues(alpha: 0.25),
                   ),
                 ),
                 Text(
                   'A',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white.withValues(alpha: 0.25),
                   ),
                 ),
               ],

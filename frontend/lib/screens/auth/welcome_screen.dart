@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -102,7 +102,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.6),
+                      const Color(0xFF004E92).withValues(alpha: 0.6),
                       Colors.transparent,
                     ],
                   ),
@@ -120,7 +120,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.05),
+                      Colors.white.withValues(alpha: 0.05),
                       Colors.transparent,
                     ],
                   ),
@@ -138,7 +138,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF4A9FE8).withOpacity(0.15),
+                      const Color(0xFF4A9FE8).withValues(alpha: 0.15),
                       Colors.transparent,
                     ],
                   ),
@@ -158,7 +158,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     // Logo animé
                     AnimatedBuilder(
                       animation: _controller,
-                      builder: (_, __) => Transform.scale(
+                      builder: (_, _) => Transform.scale(
                         scale: _scaleIn.value,
                         child: FadeTransition(
                           opacity: _fadeIn,
@@ -176,7 +176,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 BoxShadow(
                                   color: const Color(
                                     0xFF004E92,
-                                  ).withOpacity(0.6),
+                                  ).withValues(alpha: 0.6),
                                   blurRadius: 32,
                                   spreadRadius: 4,
                                 ),
@@ -197,7 +197,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     // Textes animés
                     AnimatedBuilder(
                       animation: _controller,
-                      builder: (_, __) => FadeTransition(
+                      builder: (_, _) => FadeTransition(
                         opacity: _fadeIn,
                         child: Transform.translate(
                           offset: Offset(0, _slideUp.value),
@@ -210,10 +210,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -231,7 +231,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.white.withOpacity(0.7),
+                                        color: Colors.white.withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ],
@@ -262,7 +262,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 "Vous êtes maintenant connecté à\nProConnect NB.",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                   fontSize: 15,
                                   height: 1.5,
                                 ),
@@ -278,7 +278,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     // Indicateur de chargement
                     AnimatedBuilder(
                       animation: _fadeIn,
-                      builder: (_, __) => FadeTransition(
+                      builder: (_, _) => FadeTransition(
                         opacity: _fadeIn,
                         child: Column(
                           children: [
@@ -287,7 +287,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
                                 child: LinearProgressIndicator(
-                                  backgroundColor: Colors.white.withOpacity(
+                                  backgroundColor: Colors.white.withValues(alpha: 
                                     0.1,
                                   ),
                                   valueColor:
@@ -303,7 +303,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               "Chargement de votre espace…",
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.white.withOpacity(0.35),
+                                color: Colors.white.withValues(alpha: 0.35),
                               ),
                             ),
                           ],
@@ -316,7 +316,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     // Bouton continuer
                     AnimatedBuilder(
                       animation: _fadeIn,
-                      builder: (_, __) => FadeTransition(
+                      builder: (_, _) => FadeTransition(
                         opacity: _fadeIn,
                         child: Column(
                           children: [
@@ -337,7 +337,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   BoxShadow(
                                     color: const Color(
                                       0xFF004E92,
-                                    ).withOpacity(0.5),
+                                    ).withValues(alpha: 0.5),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),

@@ -1,3 +1,4 @@
+﻿import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -25,11 +26,11 @@ class AuthService {
       if (response.statusCode == 200) {
         return json.decode(response.body) as Map<String, dynamic>;
       } else {
-        print("❌ Login error: ${response.body}");
+        debugPrint("❌ Login error: ${response.body}");
         return null;
       }
     } catch (e) {
-      print("🔥 Exception login: $e");
+      debugPrint("🔥 Exception login: $e");
       return null;
     }
   }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -101,7 +101,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -119,7 +119,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -173,10 +173,10 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -204,7 +204,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                   "${_upcoming.length} à venir",
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -227,24 +227,24 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.07),
+              color: Colors.white.withValues(alpha: 0.07),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
             child: Icon(
               Icons.event_outlined,
               size: 48,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
           ),
           const SizedBox(height: 20),
           Text(
             "Aucun rendez-vous prévu",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -253,7 +253,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
           Text(
             "Ajoutez votre premier rendez-vous",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               fontSize: 13,
             ),
           ),
@@ -283,7 +283,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
           _buildSectionLabel(
             "Passés",
             Icons.history_rounded,
-            Colors.white.withOpacity(0.3),
+            Colors.white.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 10),
           ..._past.map((rdv) => _buildAppointmentCard(rdv, false)),
@@ -320,19 +320,19 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: upcoming
-            ? Colors.white.withOpacity(0.09)
-            : Colors.white.withOpacity(0.04),
+            ? Colors.white.withValues(alpha: 0.09)
+            : Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: upcoming
-              ? Colors.white.withOpacity(0.14)
-              : Colors.white.withOpacity(0.06),
+              ? Colors.white.withValues(alpha: 0.14)
+              : Colors.white.withValues(alpha: 0.06),
           width: 1.5,
         ),
         boxShadow: upcoming
             ? [
                 BoxShadow(
-                  color: const Color(0xFF000428).withOpacity(0.3),
+                  color: const Color(0xFF000428).withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -347,13 +347,13 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
               color: upcoming
-                  ? const Color(0xFF004E92).withOpacity(0.5)
-                  : Colors.white.withOpacity(0.05),
+                  ? const Color(0xFF004E92).withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: upcoming
-                    ? const Color(0xFF4A9FE8).withOpacity(0.35)
-                    : Colors.white.withOpacity(0.08),
+                    ? const Color(0xFF4A9FE8).withValues(alpha: 0.35)
+                    : Colors.white.withValues(alpha: 0.08),
                 width: 1,
               ),
             ),
@@ -366,7 +366,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                     fontWeight: FontWeight.w900,
                     color: upcoming
                         ? const Color(0xFF7DC4FF)
-                        : Colors.white.withOpacity(0.25),
+                        : Colors.white.withValues(alpha: 0.25),
                     height: 1,
                   ),
                 ),
@@ -377,8 +377,8 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: upcoming
-                        ? const Color(0xFF7DC4FF).withOpacity(0.7)
-                        : Colors.white.withOpacity(0.2),
+                        ? const Color(0xFF7DC4FF).withValues(alpha: 0.7)
+                        : Colors.white.withValues(alpha: 0.2),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -400,9 +400,9 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                     fontWeight: FontWeight.w800,
                     color: upcoming
                         ? Colors.white
-                        : Colors.white.withOpacity(0.35),
+                        : Colors.white.withValues(alpha: 0.35),
                     decoration: upcoming ? null : TextDecoration.lineThrough,
-                    decorationColor: Colors.white.withOpacity(0.2),
+                    decorationColor: Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
 
@@ -413,7 +413,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                     Icon(
                       Icons.access_time_rounded,
                       size: 12,
-                      color: Colors.white.withOpacity(upcoming ? 0.45 : 0.2),
+                      color: Colors.white.withValues(alpha: upcoming ? 0.45 : 0.2),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -421,7 +421,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white.withOpacity(upcoming ? 0.6 : 0.25),
+                        color: Colors.white.withValues(alpha: upcoming ? 0.6 : 0.25),
                       ),
                     ),
                    if (rdv.lieu.isNotEmpty) ...[
@@ -429,7 +429,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                       Icon(
                         Icons.location_on_outlined,
                         size: 12,
-                        color: Colors.white.withOpacity(upcoming ? 0.45 : 0.2),
+                        color: Colors.white.withValues(alpha: upcoming ? 0.45 : 0.2),
                       ),
                       const SizedBox(width: 3),
                       Expanded(
@@ -439,7 +439,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white.withOpacity(
+                            color: Colors.white.withValues(alpha: 
                               upcoming ? 0.55 : 0.2,
                             ),
                           ),
@@ -457,7 +457,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -466,7 +466,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.white.withOpacity(0.35),
+                        color: Colors.white.withValues(alpha: 0.35),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -481,7 +481,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
           Icon(
             Icons.arrow_forward_ios_rounded,
             size: 13,
-            color: Colors.white.withOpacity(upcoming ? 0.3 : 0.12),
+            color: Colors.white.withValues(alpha: upcoming ? 0.3 : 0.12),
           ),
         ],
       ),

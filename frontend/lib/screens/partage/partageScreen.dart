@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -89,7 +89,7 @@ class _PartageScreenState extends State<PartageScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -107,7 +107,7 @@ class _PartageScreenState extends State<PartageScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -150,10 +150,10 @@ class _PartageScreenState extends State<PartageScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -201,17 +201,17 @@ class _PartageScreenState extends State<PartageScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.07),
+                  color: Colors.white.withValues(alpha: 0.07),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   Icons.lock_outline_rounded,
                   size: 40,
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                 ),
               ),
               const SizedBox(height: 20),
@@ -228,7 +228,7 @@ class _PartageScreenState extends State<PartageScreen> {
                 "Seul un aîné peut partager son suivi.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.45),
+                  color: Colors.white.withValues(alpha: 0.45),
                   fontSize: 14,
                 ),
               ),
@@ -242,7 +242,7 @@ class _PartageScreenState extends State<PartageScreen> {
     if (caregiverProv.isLoading) {
       return Center(
         child: CircularProgressIndicator(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           strokeWidth: 2,
         ),
       );
@@ -257,24 +257,24 @@ class _PartageScreenState extends State<PartageScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.07),
+                color: Colors.white.withValues(alpha: 0.07),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
               child: Icon(
                 Icons.people_outline_rounded,
                 size: 40,
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
               ),
             ),
             const SizedBox(height: 20),
             Text(
               "Aucun proche disponible",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -303,7 +303,7 @@ class _PartageScreenState extends State<PartageScreen> {
                       "Sélectionnez le proche avec qui partager votre suivi",
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.white.withOpacity(0.45),
+                        color: Colors.white.withValues(alpha: 0.45),
                         height: 1.4,
                       ),
                     ),
@@ -323,7 +323,7 @@ class _PartageScreenState extends State<PartageScreen> {
                       "Quel est votre lien avec ce proche ?",
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.white.withOpacity(0.45),
+                        color: Colors.white.withValues(alpha: 0.45),
                         height: 1.4,
                       ),
                     ),
@@ -355,12 +355,12 @@ class _PartageScreenState extends State<PartageScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: dropdownValue != null
-              ? const Color(0xFF4A9FE8).withOpacity(0.5)
-              : Colors.white.withOpacity(0.1),
+              ? const Color(0xFF4A9FE8).withValues(alpha: 0.5)
+              : Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -371,12 +371,12 @@ class _PartageScreenState extends State<PartageScreen> {
           dropdownColor: const Color(0xFF0A1628),
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.white.withValues(alpha: 0.4),
           ),
           hint: Text(
             "Choisir un proche",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.35),
+              color: Colors.white.withValues(alpha: 0.35),
               fontSize: 14,
             ),
           ),
@@ -387,7 +387,7 @@ class _PartageScreenState extends State<PartageScreen> {
           ),
           items: caregivers.map((c) {
             final initiales =
-                "${(c.prenom?.isNotEmpty ?? false) ? c.prenom![0] : ''}${(c.nom?.isNotEmpty ?? false) ? c.nom![0] : ''}"
+                "${c.prenom.isNotEmpty ? c.prenom[0] : ''}${c.nom.isNotEmpty ? c.nom[0] : ''}"
                     .toUpperCase();
 
             return DropdownMenuItem<int>(
@@ -398,10 +398,10 @@ class _PartageScreenState extends State<PartageScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF004E92).withOpacity(0.5),
+                      color: const Color(0xFF004E92).withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                        color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -417,7 +417,7 @@ class _PartageScreenState extends State<PartageScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text("${c.prenom ?? ''} ${c.nom ?? ''}".trim()),
+                  Text("${c.prenom} ${c.nom}".trim()),
                 ],
               ),
             );
@@ -444,13 +444,13 @@ class _PartageScreenState extends State<PartageScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected
-                  ? const Color(0xFF004E92).withOpacity(0.5)
-                  : Colors.white.withOpacity(0.06),
+                  ? const Color(0xFF004E92).withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isSelected
-                    ? const Color(0xFF4A9FE8).withOpacity(0.6)
-                    : Colors.white.withOpacity(0.1),
+                    ? const Color(0xFF4A9FE8).withValues(alpha: 0.6)
+                    : Colors.white.withValues(alpha: 0.1),
                 width: 1.5,
               ),
             ),
@@ -462,7 +462,7 @@ class _PartageScreenState extends State<PartageScreen> {
                   size: 15,
                   color: isSelected
                       ? const Color(0xFF7DC4FF)
-                      : Colors.white.withOpacity(0.35),
+                      : Colors.white.withValues(alpha: 0.35),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -472,7 +472,7 @@ class _PartageScreenState extends State<PartageScreen> {
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
                         ? Colors.white
-                        : Colors.white.withOpacity(0.45),
+                        : Colors.white.withValues(alpha: 0.45),
                   ),
                 ),
               ],
@@ -486,16 +486,16 @@ class _PartageScreenState extends State<PartageScreen> {
   Widget _buildRecapCard(List<Caregiver> caregivers, int selectedId) {
     final proche = caregivers.firstWhere((c) => c.id == selectedId);
     final initiales =
-        "${(proche.prenom?.isNotEmpty ?? false) ? proche.prenom![0] : ''}${(proche.nom?.isNotEmpty ?? false) ? proche.nom![0] : ''}"
+        "${proche.prenom.isNotEmpty ? proche.prenom[0] : ''}${proche.nom.isNotEmpty ? proche.nom[0] : ''}"
             .toUpperCase();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withOpacity(0.08),
+        color: const Color(0xFF10B981).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF10B981).withOpacity(0.25),
+          color: const Color(0xFF10B981).withValues(alpha: 0.25),
           width: 1,
         ),
       ),
@@ -505,10 +505,10 @@ class _PartageScreenState extends State<PartageScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFF004E92).withOpacity(0.5),
+              color: const Color(0xFF004E92).withValues(alpha: 0.5),
               shape: BoxShape.circle,
               border: Border.all(
-                color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -529,7 +529,7 @@ class _PartageScreenState extends State<PartageScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${proche.prenom ?? ''} ${proche.nom ?? ''}".trim(),
+                  "${proche.prenom} ${proche.nom}".trim(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -560,7 +560,7 @@ class _PartageScreenState extends State<PartageScreen> {
           ),
           Icon(
             Icons.check_circle_rounded,
-            color: const Color(0xFF10B981).withOpacity(0.7),
+            color: const Color(0xFF10B981).withValues(alpha: 0.7),
             size: 20,
           ),
         ],
@@ -588,11 +588,11 @@ class _PartageScreenState extends State<PartageScreen> {
                 end: Alignment.bottomRight,
               )
             : null,
-        color: canSubmit ? null : Colors.white.withOpacity(0.06),
+        color: canSubmit ? null : Colors.white.withValues(alpha: 0.06),
         boxShadow: canSubmit
             ? [
                 BoxShadow(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -600,11 +600,13 @@ class _PartageScreenState extends State<PartageScreen> {
             : null,
         border: canSubmit
             ? null
-            : Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+            : Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
       ),
       child: ElevatedButton(
         onPressed: canSubmit
             ? () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
                 final success = await partageProv.aineAjouteProche(
                   aineId: auth.currentUserLocalId ?? 0,
                   procheId: _selectedProcheId!,
@@ -612,8 +614,9 @@ class _PartageScreenState extends State<PartageScreen> {
                   auth: auth,
                 );
 
-                if (success && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                if (!mounted) return;
+                if (success) {
+                  messenger.showSnackBar(
                     SnackBar(
                       content: const TrText(
                         "Suivi partagé avec succès !",
@@ -630,9 +633,9 @@ class _PartageScreenState extends State<PartageScreen> {
                       margin: const EdgeInsets.all(24),
                     ),
                   );
-                  Navigator.pop(context);
-                } else if (mounted && partageProv.error.isNotEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  navigator.pop();
+                } else if (partageProv.error.isNotEmpty) {
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text(
                         partageProv.error,
@@ -677,7 +680,7 @@ class _PartageScreenState extends State<PartageScreen> {
                     Icons.share_rounded,
                     color: canSubmit
                         ? Colors.white
-                        : Colors.white.withOpacity(0.25),
+                        : Colors.white.withValues(alpha: 0.25),
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -686,7 +689,7 @@ class _PartageScreenState extends State<PartageScreen> {
                     style: TextStyle(
                       color: canSubmit
                           ? Colors.white
-                          : Colors.white.withOpacity(0.25),
+                          : Colors.white.withValues(alpha: 0.25),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,
@@ -706,12 +709,12 @@ class _PartageScreenState extends State<PartageScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -725,10 +728,10 @@ class _PartageScreenState extends State<PartageScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -744,13 +747,13 @@ class _PartageScreenState extends State<PartageScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),

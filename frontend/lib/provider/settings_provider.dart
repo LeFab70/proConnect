@@ -103,7 +103,7 @@ class SettingsProvider extends ChangeNotifier {
     _primaryColor = color;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt("primaryColor", color.value);
+    await prefs.setInt("primaryColor", color.toARGB32());
 
     notifyListeners();
   }

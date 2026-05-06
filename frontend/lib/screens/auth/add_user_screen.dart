@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -117,7 +117,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -135,7 +135,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -197,10 +197,10 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
           child: Container(
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 width: 1,
               ),
             ),
@@ -234,7 +234,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF004E92).withOpacity(0.5),
+                color: const Color(0xFF004E92).withValues(alpha: 0.5),
                 blurRadius: 14,
                 spreadRadius: 1,
               ),
@@ -262,7 +262,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
           "Rejoignez ProConnect NB et prenez soin de votre santé.",
           style: TextStyle(
             fontSize: 13,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             height: 1.4,
           ),
         ),
@@ -279,7 +279,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
       children: [
         Text(
           'Choisissez votre rôle dans l\'application',
-          style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.45)),
+          style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.45)),
         ),
         const SizedBox(height: 14),
         Row(
@@ -322,13 +322,13 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFF004E92).withOpacity(0.45)
-              : Colors.white.withOpacity(0.05),
+              ? const Color(0xFF004E92).withValues(alpha: 0.45)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected
-                ? const Color(0xFF4A9FE8).withOpacity(0.6)
-                : Colors.white.withOpacity(0.1),
+                ? const Color(0xFF4A9FE8).withValues(alpha: 0.6)
+                : Colors.white.withValues(alpha: 0.1),
             width: 1.5,
           ),
         ),
@@ -338,15 +338,15 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: selected
-                    ? const Color(0xFF4A9FE8).withOpacity(0.2)
-                    : Colors.white.withOpacity(0.06),
+                    ? const Color(0xFF4A9FE8).withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 color: selected
                     ? const Color(0xFF7DC4FF)
-                    : Colors.white.withOpacity(0.3),
+                    : Colors.white.withValues(alpha: 0.3),
                 size: 26,
               ),
             ),
@@ -356,7 +356,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 14,
-                color: selected ? Colors.white : Colors.white.withOpacity(0.45),
+                color: selected ? Colors.white : Colors.white.withValues(alpha: 0.45),
               ),
             ),
             const SizedBox(height: 4),
@@ -365,7 +365,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.white.withOpacity(selected ? 0.5 : 0.25),
+                color: Colors.white.withValues(alpha: selected ? 0.5 : 0.25),
                 height: 1.3,
               ),
             ),
@@ -374,7 +374,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
               Container(
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4A9FE8).withOpacity(0.2),
+                  color: const Color(0xFF4A9FE8).withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -449,16 +449,16 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
             labelText: "Mot de passe",
             hintText: "Minimum 6 caractères",
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.25),
+              color: Colors.white.withValues(alpha: 0.25),
               fontSize: 13,
             ),
             labelStyle: TextStyle(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha: 0.4),
               fontSize: 13,
             ),
             prefixIcon: Icon(
               Icons.lock_outline_rounded,
-              color: Colors.white.withOpacity(0.35),
+              color: Colors.white.withValues(alpha: 0.35),
               size: 19,
             ),
             suffixIcon: GestureDetector(
@@ -467,12 +467,12 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
                 _obscurePassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: Colors.white.withOpacity(0.35),
+                color: Colors.white.withValues(alpha: 0.35),
                 size: 18,
               ),
             ),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.07),
+            fillColor: Colors.white.withValues(alpha: 0.07),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
@@ -480,14 +480,14 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -533,7 +533,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF004E92).withOpacity(0.5),
+            color: const Color(0xFF004E92).withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -586,15 +586,15 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
         width: double.infinity,
         height: 52,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withOpacity(0.12), width: 1),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1),
         ),
         child: Center(
           child: TrText(
             "J'ai déjà un compte",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               fontWeight: FontWeight.w600,
               fontSize: 15,
             ),
@@ -614,12 +614,12 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -633,10 +633,10 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -652,13 +652,13 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),
@@ -684,12 +684,12 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           fontSize: 13,
         ),
-        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.35), size: 19),
+        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.35), size: 19),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.07),
+        fillColor: Colors.white.withValues(alpha: 0.07),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -697,14 +697,14 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),

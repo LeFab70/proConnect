@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -39,7 +39,7 @@ class NotificationsScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(colors: [
-                    const Color(0xFF004E92).withOpacity(0.5),
+                    const Color(0xFF004E92).withValues(alpha: 0.5),
                     Colors.transparent,
                   ]),
                 ),
@@ -55,7 +55,7 @@ class NotificationsScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(colors: [
-                    Colors.white.withOpacity(0.04),
+                    Colors.white.withValues(alpha: 0.04),
                     Colors.transparent,
                   ]),
                 ),
@@ -94,10 +94,10 @@ class NotificationsScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: Colors.white.withOpacity(0.15), width: 1),
+                    color: Colors.white.withValues(alpha: 0.15), width: 1),
               ),
               child: const Icon(Icons.arrow_back_ios_new_rounded,
                   size: 18, color: Colors.white),
@@ -122,7 +122,7 @@ class NotificationsScreen extends StatelessWidget {
                     fontSize: 12,
                     color: pendingCount > 0
                         ? const Color(0xFFFF7070)
-                        : Colors.white.withOpacity(0.45),
+                        : Colors.white.withValues(alpha: 0.45),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -145,19 +145,19 @@ class NotificationsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.07),
+              color: Colors.white.withValues(alpha: 0.07),
               shape: BoxShape.circle,
               border: Border.all(
-                  color: Colors.white.withOpacity(0.1), width: 1),
+                  color: Colors.white.withValues(alpha: 0.1), width: 1),
             ),
             child: Icon(Icons.notifications_none_rounded,
-                size: 48, color: Colors.white.withOpacity(0.3)),
+                size: 48, color: Colors.white.withValues(alpha: 0.3)),
           ),
           const SizedBox(height: 20),
           Text(
             "Aucune notification active",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -166,7 +166,7 @@ class NotificationsScreen extends StatelessWidget {
           Text(
             "Activez des rappels pour les voir ici",
             style: TextStyle(
-                color: Colors.white.withOpacity(0.3), fontSize: 13),
+                color: Colors.white.withValues(alpha: 0.3), fontSize: 13),
           ),
         ],
       ),
@@ -229,20 +229,20 @@ class NotificationsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isTaken
-            ? Colors.white.withOpacity(0.05)
-            : Colors.white.withOpacity(0.09),
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.09),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isTaken
-              ? Colors.white.withOpacity(0.07)
-              : const Color(0xFFEF4444).withOpacity(0.2),
+              ? Colors.white.withValues(alpha: 0.07)
+              : const Color(0xFFEF4444).withValues(alpha: 0.2),
           width: 1.5,
         ),
         boxShadow: isTaken
             ? null
             : [
                 BoxShadow(
-                  color: const Color(0xFF000428).withOpacity(0.3),
+                  color: const Color(0xFF000428).withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -256,13 +256,13 @@ class NotificationsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isTaken
-                  ? const Color(0xFF10B981).withOpacity(0.12)
-                  : const Color(0xFFEF4444).withOpacity(0.12),
+                  ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                  : const Color(0xFFEF4444).withValues(alpha: 0.12),
               shape: BoxShape.circle,
               border: Border.all(
                 color: isTaken
-                    ? const Color(0xFF10B981).withOpacity(0.3)
-                    : const Color(0xFFEF4444).withOpacity(0.3),
+                    ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                    : const Color(0xFFEF4444).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -289,7 +289,7 @@ class NotificationsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     letterSpacing: 0.2,
                   ),
                 ),
@@ -300,11 +300,11 @@ class NotificationsScreen extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: isTaken
-                        ? Colors.white.withOpacity(0.4)
+                        ? Colors.white.withValues(alpha: 0.4)
                         : Colors.white,
                     decoration:
                         isTaken ? TextDecoration.lineThrough : null,
-                    decorationColor: Colors.white.withOpacity(0.3),
+                    decorationColor: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -329,13 +329,13 @@ class NotificationsScreen extends StatelessWidget {
                       horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: isTaken
-                        ? const Color(0xFF10B981).withOpacity(0.1)
-                        : const Color(0xFFEF4444).withOpacity(0.1),
+                        ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                        : const Color(0xFFEF4444).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isTaken
-                          ? const Color(0xFF10B981).withOpacity(0.35)
-                          : const Color(0xFFEF4444).withOpacity(0.35),
+                          ? const Color(0xFF10B981).withValues(alpha: 0.35)
+                          : const Color(0xFFEF4444).withValues(alpha: 0.35),
                       width: 1,
                     ),
                   ),
@@ -378,17 +378,17 @@ class NotificationsScreen extends StatelessWidget {
       padding:
           const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-            color: Colors.white.withOpacity(0.08), width: 1),
+            color: Colors.white.withValues(alpha: 0.08), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon,
               size: 11,
-              color: Colors.white.withOpacity(isTaken ? 0.25 : 0.45)),
+              color: Colors.white.withValues(alpha: isTaken ? 0.25 : 0.45)),
           const SizedBox(width: 4),
           Text(
             label,
@@ -396,7 +396,7 @@ class NotificationsScreen extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: Colors.white
-                  .withOpacity(isTaken ? 0.25 : 0.55),
+                  .withValues(alpha: isTaken ? 0.25 : 0.55),
             ),
           ),
         ],

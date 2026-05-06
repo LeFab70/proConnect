@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -55,7 +55,7 @@ class RappelDetailScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -73,7 +73,7 @@ class RappelDetailScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -124,10 +124,10 @@ class RappelDetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -159,10 +159,10 @@ class RappelDetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -188,18 +188,18 @@ class RappelDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: isActif
-            ? const Color(0xFF10B981).withOpacity(0.1)
-            : Colors.white.withOpacity(0.06),
+            ? const Color(0xFF10B981).withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: isActif
-              ? const Color(0xFF10B981).withOpacity(0.3)
-              : Colors.white.withOpacity(0.1),
+              ? const Color(0xFF10B981).withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.1),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -212,19 +212,19 @@ class RappelDetailScreen extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: isActif
-                  ? const Color(0xFF10B981).withOpacity(0.15)
-                  : Colors.white.withOpacity(0.05),
+                  ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                  : Colors.white.withValues(alpha: 0.05),
               shape: BoxShape.circle,
               border: Border.all(
                 color: isActif
-                    ? const Color(0xFF10B981).withOpacity(0.4)
-                    : Colors.white.withOpacity(0.1),
+                    ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                    : Colors.white.withValues(alpha: 0.1),
                 width: 1.5,
               ),
               boxShadow: isActif
                   ? [
                       BoxShadow(
-                        color: const Color(0xFF10B981).withOpacity(0.3),
+                        color: const Color(0xFF10B981).withValues(alpha: 0.3),
                         blurRadius: 12,
                         spreadRadius: 1,
                       ),
@@ -237,7 +237,7 @@ class RappelDetailScreen extends StatelessWidget {
                   : Icons.notifications_off_outlined,
               color: isActif
                   ? const Color(0xFF34D399)
-                  : Colors.white.withOpacity(0.25),
+                  : Colors.white.withValues(alpha: 0.25),
               size: 26,
             ),
           ),
@@ -255,9 +255,9 @@ class RappelDetailScreen extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     color: isActif
                         ? Colors.white
-                        : Colors.white.withOpacity(0.4),
+                        : Colors.white.withValues(alpha: 0.4),
                     decoration: isActif ? null : TextDecoration.lineThrough,
-                    decorationColor: Colors.white.withOpacity(0.2),
+                    decorationColor: Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -268,13 +268,13 @@ class RappelDetailScreen extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isActif
-                        ? const Color(0xFF10B981).withOpacity(0.15)
-                        : Colors.white.withOpacity(0.05),
+                        ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isActif
-                          ? const Color(0xFF10B981).withOpacity(0.4)
-                          : Colors.white.withOpacity(0.08),
+                          ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                          : Colors.white.withValues(alpha: 0.08),
                       width: 1,
                     ),
                   ),
@@ -288,7 +288,7 @@ class RappelDetailScreen extends StatelessWidget {
                         size: 12,
                         color: isActif
                             ? const Color(0xFF34D399)
-                            : Colors.white.withOpacity(0.3),
+                            : Colors.white.withValues(alpha: 0.3),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -298,7 +298,7 @@ class RappelDetailScreen extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: isActif
                               ? const Color(0xFF34D399)
-                              : Colors.white.withOpacity(0.3),
+                              : Colors.white.withValues(alpha: 0.3),
                         ),
                       ),
                     ],
@@ -400,12 +400,12 @@ class RappelDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -419,10 +419,10 @@ class RappelDetailScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -438,13 +438,13 @@ class RappelDetailScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),
@@ -461,7 +461,7 @@ class RappelDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(icon, size: 17, color: Colors.white.withOpacity(0.35)),
+          Icon(icon, size: 17, color: Colors.white.withValues(alpha: 0.35)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -471,7 +471,7 @@ class RappelDetailScreen extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -482,7 +482,7 @@ class RappelDetailScreen extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: value.isEmpty
-                        ? Colors.white.withOpacity(0.25)
+                        ? Colors.white.withValues(alpha: 0.25)
                         : (valueColor ?? Colors.white),
                   ),
                 ),
@@ -496,7 +496,7 @@ class RappelDetailScreen extends StatelessWidget {
 
   Widget _buildDivider() {
     return Divider(
-      color: Colors.white.withOpacity(0.06),
+      color: Colors.white.withValues(alpha: 0.06),
       height: 18,
       indent: 29,
     );
@@ -517,7 +517,7 @@ class RappelDetailScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF004E92).withOpacity(0.5),
+            color: const Color(0xFF004E92).withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),

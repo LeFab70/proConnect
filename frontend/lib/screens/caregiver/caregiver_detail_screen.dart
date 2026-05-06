@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -39,14 +39,14 @@ class CaregiverDetailScreen extends StatelessWidget {
         ),
         content: TrText(
           "Voulez-vous vraiment annuler ce partage ? Le proche n'aura plus accès à votre suivi.",
-          style: TextStyle(color: Colors.white.withOpacity(0.6), height: 1.5),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: TrText(
               "Non",
-              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             ),
           ),
           ElevatedButton(
@@ -88,7 +88,7 @@ class CaregiverDetailScreen extends StatelessWidget {
     final bool partageExiste = partageExistant != null;
 
     final initiales =
-        "${(caregiver.prenom?.isNotEmpty ?? false) ? caregiver.prenom![0] : ''}${(caregiver.nom?.isNotEmpty ?? false) ? caregiver.nom![0] : ''}"
+        "${caregiver.prenom.isNotEmpty ? caregiver.prenom[0] : ''}${caregiver.nom.isNotEmpty ? caregiver.nom[0] : ''}"
             .toUpperCase();
 
     return Scaffold(
@@ -114,7 +114,7 @@ class CaregiverDetailScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -132,7 +132,7 @@ class CaregiverDetailScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -195,10 +195,10 @@ class CaregiverDetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -232,10 +232,10 @@ class CaregiverDetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -261,7 +261,7 @@ class CaregiverDetailScreen extends StatelessWidget {
     IconData statutIcon;
 
     if (!partageExiste) {
-      statutColor = Colors.white.withOpacity(0.3);
+      statutColor = Colors.white.withValues(alpha: 0.3);
       statutLabel = "Non partagé";
       statutIcon = Icons.link_off_rounded;
     } else {
@@ -291,14 +291,14 @@ class CaregiverDetailScreen extends StatelessWidget {
           height: 88,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF004E92).withOpacity(0.5),
+            color: const Color(0xFF004E92).withValues(alpha: 0.5),
             border: Border.all(
-              color: const Color(0xFF4A9FE8).withOpacity(0.4),
+              color: const Color(0xFF4A9FE8).withValues(alpha: 0.4),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF004E92).withOpacity(0.5),
+                color: const Color(0xFF004E92).withValues(alpha: 0.5),
                 blurRadius: 24,
                 spreadRadius: 2,
               ),
@@ -334,9 +334,9 @@ class CaregiverDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
-            color: statutColor.withOpacity(0.12),
+            color: statutColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: statutColor.withOpacity(0.4), width: 1),
+            border: Border.all(color: statutColor.withValues(alpha: 0.4), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -442,18 +442,18 @@ class CaregiverDetailScreen extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-          solidColor: partageExiste ? Colors.white.withOpacity(0.06) : null,
+          solidColor: partageExiste ? Colors.white.withValues(alpha: 0.06) : null,
           icon: partageExiste
               ? Icons.lock_outline_rounded
               : Icons.share_rounded,
           iconColor: partageExiste
-              ? Colors.white.withOpacity(0.3)
+              ? Colors.white.withValues(alpha: 0.3)
               : Colors.white,
           label: partageExiste ? "Suivi déjà partagé" : "Partager mon suivi",
           labelColor: partageExiste
-              ? Colors.white.withOpacity(0.3)
+              ? Colors.white.withValues(alpha: 0.3)
               : Colors.white,
-          borderColor: partageExiste ? Colors.white.withOpacity(0.08) : null,
+          borderColor: partageExiste ? Colors.white.withValues(alpha: 0.08) : null,
           hasShadow: !partageExiste,
         ),
 
@@ -487,8 +487,8 @@ class CaregiverDetailScreen extends StatelessWidget {
                 );
               }
             },
-            solidColor: const Color(0xFFEF4444).withOpacity(0.12),
-            borderColor: const Color(0xFFEF4444).withOpacity(0.3),
+            solidColor: const Color(0xFFEF4444).withValues(alpha: 0.12),
+            borderColor: const Color(0xFFEF4444).withValues(alpha: 0.3),
             icon: Icons.link_off_rounded,
             iconColor: const Color(0xFFFF7070),
             label: "Annuler le partage",
@@ -526,7 +526,7 @@ class CaregiverDetailScreen extends StatelessWidget {
           boxShadow: hasShadow
               ? [
                   BoxShadow(
-                    color: const Color(0xFF004E92).withOpacity(0.45),
+                    color: const Color(0xFF004E92).withValues(alpha: 0.45),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -561,12 +561,12 @@ class CaregiverDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -580,10 +580,10 @@ class CaregiverDetailScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -599,13 +599,13 @@ class CaregiverDetailScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),
@@ -617,7 +617,7 @@ class CaregiverDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(icon, size: 17, color: Colors.white.withOpacity(0.35)),
+          Icon(icon, size: 17, color: Colors.white.withValues(alpha: 0.35)),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,7 +626,7 @@ class CaregiverDetailScreen extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withValues(alpha: 0.4),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -637,7 +637,7 @@ class CaregiverDetailScreen extends StatelessWidget {
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: value.isEmpty
-                      ? Colors.white.withOpacity(0.25)
+                      ? Colors.white.withValues(alpha: 0.25)
                       : Colors.white,
                 ),
               ),
@@ -650,7 +650,7 @@ class CaregiverDetailScreen extends StatelessWidget {
 
   Widget _buildDivider() {
     return Divider(
-      color: Colors.white.withOpacity(0.06),
+      color: Colors.white.withValues(alpha: 0.06),
       height: 18,
       indent: 29,
     );

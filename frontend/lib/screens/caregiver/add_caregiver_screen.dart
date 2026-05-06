@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -161,7 +161,7 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.55),
+                      const Color(0xFF004E92).withValues(alpha: 0.55),
                       Colors.transparent,
                     ],
                   ),
@@ -179,7 +179,7 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -227,10 +227,10 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -259,7 +259,7 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
                       .trim(),
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -280,12 +280,12 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -299,10 +299,10 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -318,13 +318,13 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 26),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 26),
           ...children,
         ],
       ),
@@ -429,12 +429,12 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           fontSize: 13,
         ),
-        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.35), size: 19),
+        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.35), size: 19),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.07),
+        fillColor: Colors.white.withValues(alpha: 0.07),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -442,14 +442,14 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -484,7 +484,7 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF004E92).withOpacity(0.5),
+            color: const Color(0xFF004E92).withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),

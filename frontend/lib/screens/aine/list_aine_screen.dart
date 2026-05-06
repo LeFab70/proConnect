@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -45,9 +45,9 @@ class _ListAineScreenState extends State<ListAineScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -81,14 +81,14 @@ class _ListAineScreenState extends State<ListAineScreen> {
           count == 1
               ? "Retirer cet aîné de votre liste ?"
               : "Retirer les $count aînés sélectionnés ?",
-          style: TextStyle(color: Colors.white.withOpacity(0.6), height: 1.5),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: TrText(
               "Annuler",
-              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             ),
           ),
           ElevatedButton(
@@ -191,7 +191,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -220,7 +220,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
                   "${aineProvider.aines.length} aîné(s) suivi(s)",
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                   ),
                 ),
             ],
@@ -248,7 +248,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(11),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withOpacity(0.15),
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -273,7 +273,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
     if (aineProvider.isLoading) {
       return Center(
         child: CircularProgressIndicator(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           strokeWidth: 2,
         ),
       );
@@ -287,13 +287,13 @@ class _ListAineScreenState extends State<ListAineScreen> {
             Icon(
               Icons.elderly_outlined,
               size: 64,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 20),
             Text(
               "Aucun aîné partagé",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 16,
               ),
             ),
@@ -301,7 +301,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
             TrText(
               "Vous n'avez pas encore de suivi partagé",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 fontSize: 13,
               ),
             ),
@@ -382,17 +382,17 @@ class _ListAineScreenState extends State<ListAineScreen> {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: isCurrent
-                  ? const Color(0xFF10B981).withOpacity(0.22)
+                  ? const Color(0xFF10B981).withValues(alpha: 0.22)
                   : isSelected
-                  ? Colors.white.withOpacity(0.16)
-                  : Colors.white.withOpacity(0.08),
+                  ? Colors.white.withValues(alpha: 0.16)
+                  : Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isCurrent
                     ? const Color(0xFF10B981)
                     : isSelected
-                    ? Colors.white.withOpacity(0.55)
-                    : Colors.white.withOpacity(0.11),
+                    ? Colors.white.withValues(alpha: 0.55)
+                    : Colors.white.withValues(alpha: 0.11),
                 width: 1.5,
               ),
             ),
@@ -402,7 +402,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF004E92).withOpacity(0.45),
+                    color: const Color(0xFF004E92).withValues(alpha: 0.45),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -435,7 +435,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
                           telephone,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withOpacity(0.55),
+                            color: Colors.white.withValues(alpha: 0.55),
                           ),
                         ),
                       const SizedBox(height: 8),
@@ -463,7 +463,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFF4A9FE8)
-                            : Colors.white.withOpacity(0.22),
+                            : Colors.white.withValues(alpha: 0.22),
                         width: 1.5,
                       ),
                     ),
@@ -476,7 +476,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
                         : Icon(
                             Icons.arrow_forward_ios_rounded,
                             size: 13,
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withValues(alpha: 0.3),
                           ),
                   ),
               ],

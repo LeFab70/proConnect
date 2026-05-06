@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -52,7 +52,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.55),
+                      const Color(0xFF004E92).withValues(alpha: 0.55),
                       Colors.transparent,
                     ],
                   ),
@@ -70,7 +70,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -119,10 +119,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -156,10 +156,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF004E92).withOpacity(0.25),
+        color: const Color(0xFF004E92).withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF4A9FE8).withOpacity(0.3),
+          color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -168,10 +168,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF004E92).withOpacity(0.5),
+              color: const Color(0xFF004E92).withValues(alpha: 0.5),
               shape: BoxShape.circle,
               border: Border.all(
-                color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -186,7 +186,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             child: TrText(
               "Remplissez les détails du rendez-vous médical.",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 13,
                 height: 1.4,
               ),
@@ -204,13 +204,13 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: _ajouterAuxRappels
-            ? const Color(0xFF10B981).withOpacity(0.1)
-            : Colors.white.withOpacity(0.05),
+            ? const Color(0xFF10B981).withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: _ajouterAuxRappels
-              ? const Color(0xFF10B981).withOpacity(0.3)
-              : Colors.white.withOpacity(0.08),
+              ? const Color(0xFF10B981).withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.08),
           width: 1,
         ),
       ),
@@ -222,7 +222,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 : Icons.notifications_off_outlined,
             color: _ajouterAuxRappels
                 ? const Color(0xFF34D399)
-                : Colors.white.withOpacity(0.3),
+                : Colors.white.withValues(alpha: 0.3),
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -234,7 +234,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   "Ajouter aux rappels",
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14,
                   ),
                 ),
@@ -244,7 +244,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       ? "Rappel automatique 1h avant"
                       : "Aucun rappel ne sera créé",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     fontSize: 12,
                   ),
                 ),
@@ -255,10 +255,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             scale: 0.85,
             child: Switch(
               value: _ajouterAuxRappels,
-              activeColor: Colors.white,
+              activeThumbColor: Colors.white,
               activeTrackColor: const Color(0xFF10B981),
-              inactiveThumbColor: Colors.white.withOpacity(0.3),
-              inactiveTrackColor: Colors.white.withOpacity(0.1),
+              inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
               onChanged: (value) => setState(() => _ajouterAuxRappels = value),
             ),
           ),
@@ -273,12 +273,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -293,10 +293,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -312,14 +312,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
 
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
 
           // Formulaire injecté
           AddAppointmentForm(
@@ -334,6 +334,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 notes: notes ?? '',
                 aineId: 1,
               );
+
+              final navigator = Navigator.of(context);
 
               if (_ajouterAuxRappels) {
                 final rappel = Rappel(
@@ -355,9 +357,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 await context.read<RappelProvider>().addRappel(rappel, auth);
               }
 
-              if (context.mounted) {
-                Navigator.pop(context, nouveauRDV);
-              }
+              if (!mounted) return;
+              navigator.pop(nouveauRDV);
             },
           ),
         ],

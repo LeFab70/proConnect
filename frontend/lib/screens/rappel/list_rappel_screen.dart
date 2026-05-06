@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -89,7 +89,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -107,7 +107,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -197,10 +197,10 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -232,7 +232,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                   '${rappels.where((r) => r.actif).length} actif(s)',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -245,10 +245,10 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(11),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withOpacity(0.15),
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFFEF4444).withOpacity(0.3),
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -273,24 +273,24 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.07),
+              color: Colors.white.withValues(alpha: 0.07),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
             child: Icon(
               Icons.alarm_outlined,
               size: 48,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
           ),
           const SizedBox(height: 20),
           Text(
             'Aucun rappel disponible',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -299,7 +299,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
           Text(
             'Ajoutez votre premier rappel',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               fontSize: 13,
             ),
           ),
@@ -331,7 +331,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
           _buildSectionLabel(
             'Inactifs',
             Icons.notifications_off_outlined,
-            Colors.white.withOpacity(0.3),
+            Colors.white.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 10),
           ...inactifs.map((r) => _buildRappelCard(r)),
@@ -396,18 +396,18 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.white.withOpacity(0.16)
-              : Colors.white.withOpacity(0.08),
+              ? Colors.white.withValues(alpha: 0.16)
+              : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected
-                ? Colors.white.withOpacity(0.55)
-                : Colors.white.withOpacity(0.11),
+                ? Colors.white.withValues(alpha: 0.55)
+                : Colors.white.withValues(alpha: 0.11),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF000428).withOpacity(0.3),
+              color: const Color(0xFF000428).withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -421,13 +421,13 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
               height: 48,
               decoration: BoxDecoration(
                 color: isActif
-                    ? const Color(0xFF10B981).withOpacity(0.15)
-                    : Colors.white.withOpacity(0.05),
+                    ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                    : Colors.white.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isActif
-                      ? const Color(0xFF10B981).withOpacity(0.35)
-                      : Colors.white.withOpacity(0.08),
+                      ? const Color(0xFF10B981).withValues(alpha: 0.35)
+                      : Colors.white.withValues(alpha: 0.08),
                   width: 1,
                 ),
               ),
@@ -437,7 +437,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                     : Icons.notifications_off_outlined,
                 color: isActif
                     ? const Color(0xFF34D399)
-                    : Colors.white.withOpacity(0.25),
+                    : Colors.white.withValues(alpha: 0.25),
                 size: 22,
               ),
             ),
@@ -456,9 +456,9 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                       fontWeight: FontWeight.w800,
                       color: isActif
                           ? Colors.white
-                          : Colors.white.withOpacity(0.35),
+                          : Colors.white.withValues(alpha: 0.35),
                       decoration: isActif ? null : TextDecoration.lineThrough,
-                      decorationColor: Colors.white.withOpacity(0.2),
+                      decorationColor: Colors.white.withValues(alpha: 0.2),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -474,7 +474,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                         _formatDateTime(rappel.dateHeureNotification),
                         isActif
                             ? const Color(0xFF7DC4FF)
-                            : Colors.white.withOpacity(0.2),
+                            : Colors.white.withValues(alpha: 0.2),
                         isActif,
                       ),
                       const SizedBox(width: 6),
@@ -483,7 +483,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                         _formatTime(rappel.dateHeurePrise),
                         isActif
                             ? const Color(0xFF34D399)
-                            : Colors.white.withOpacity(0.2),
+                            : Colors.white.withValues(alpha: 0.2),
                         isActif,
                       ),
                     ],
@@ -507,7 +507,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                 border: Border.all(
                   color: isSelected
                       ? const Color(0xFF4A9FE8)
-                      : Colors.white.withOpacity(0.22),
+                      : Colors.white.withValues(alpha: 0.22),
                   width: 1.5,
                 ),
               ),
@@ -520,7 +520,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                   : Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 12,
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                     ),
             ),
           ],
@@ -539,13 +539,13 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: isActif
-            ? color.withOpacity(0.1)
-            : Colors.white.withOpacity(0.04),
+            ? color.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isActif
-              ? color.withOpacity(0.3)
-              : Colors.white.withOpacity(0.06),
+              ? color.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.06),
           width: 1,
         ),
       ),

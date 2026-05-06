@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -79,17 +79,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         textStyle: const TextStyle(color: Colors.white),
         inputDecoration: InputDecoration(
           hintText: 'Chercher un pays...',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
-          prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.5)),
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35)),
+          prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.5)),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.07),
+          fillColor: Colors.white.withValues(alpha: 0.07),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
@@ -127,7 +127,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Text(
                 'Ce code sera demandé à chaque ouverture après verrouillage.',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -153,7 +153,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               onPressed: () => Navigator.pop(ctx),
               child: Text(
                 'Annuler',
-                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
               ),
             ),
             ElevatedButton(
@@ -233,31 +233,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           fontSize: 12,
         ),
         counterText: '',
         filled: true,
-        fillColor: Colors.white.withOpacity(0.07),
+        fillColor: Colors.white.withValues(alpha: 0.07),
         suffixIcon: GestureDetector(
           onTap: onToggle,
           child: Icon(
             obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-            color: Colors.white.withOpacity(0.35),
+            color: Colors.white.withValues(alpha: 0.35),
             size: 18,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -339,7 +339,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -356,7 +356,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -412,10 +412,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -453,12 +453,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF4A9FE8).withOpacity(0.5),
+                  color: const Color(0xFF4A9FE8).withValues(alpha: 0.5),
                   width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF004E92).withOpacity(0.5),
+                    color: const Color(0xFF004E92).withValues(alpha: 0.5),
                     blurRadius: 24,
                     spreadRadius: 2,
                   ),
@@ -466,7 +466,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               child: CircleAvatar(
                 radius: 56,
-                backgroundColor: const Color(0xFF004E92).withOpacity(0.5),
+                backgroundColor: const Color(0xFF004E92).withValues(alpha: 0.5),
                 child: ClipOval(
                   child: SizedBox(
                     width: 112,
@@ -520,7 +520,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _emailController.text.isNotEmpty ? _emailController.text : "",
           style: TextStyle(
             fontSize: 13,
-            color: Colors.white.withOpacity(0.45),
+            color: Colors.white.withValues(alpha: 0.45),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -536,27 +536,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return Image.network(
           imagePath,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Icon(
+          errorBuilder: (_, _, _) => Icon(
             Icons.person,
             size: 60,
-            color: const Color(0xFF7DC4FF).withOpacity(0.7),
+            color: const Color(0xFF7DC4FF).withValues(alpha: 0.7),
           ),
         );
       }
       return Image.file(
         File(imagePath),
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Icon(
+        errorBuilder: (_, _, _) => Icon(
           Icons.person,
           size: 60,
-          color: const Color(0xFF7DC4FF).withOpacity(0.7),
+          color: const Color(0xFF7DC4FF).withValues(alpha: 0.7),
         ),
       );
     }
     return Icon(
       Icons.person,
       size: 60,
-      color: const Color(0xFF7DC4FF).withOpacity(0.7),
+      color: const Color(0xFF7DC4FF).withValues(alpha: 0.7),
     );
   }
 
@@ -570,12 +570,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -589,10 +589,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -608,13 +608,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),
@@ -661,7 +661,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           "Protégez l'accès à l'application après verrouillage de votre téléphone.",
           style: TextStyle(
             fontSize: 13,
-            color: Colors.white.withOpacity(0.45),
+            color: Colors.white.withValues(alpha: 0.45),
             height: 1.4,
           ),
         ),
@@ -673,13 +673,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: _securiteActivee
-                ? const Color(0xFF10B981).withOpacity(0.1)
-                : Colors.white.withOpacity(0.05),
+                ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                : Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _securiteActivee
-                  ? const Color(0xFF10B981).withOpacity(0.3)
-                  : Colors.white.withOpacity(0.08),
+                  ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.08),
               width: 1,
             ),
           ),
@@ -689,7 +689,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _securiteActivee ? Icons.lock_rounded : Icons.lock_open_rounded,
                 color: _securiteActivee
                     ? const Color(0xFF34D399)
-                    : Colors.white.withOpacity(0.3),
+                    : Colors.white.withValues(alpha: 0.3),
                 size: 20,
               ),
               const SizedBox(width: 12),
@@ -701,7 +701,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       "Verrouillage activé",
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 14,
                       ),
                     ),
@@ -711,7 +711,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ? "L'app est protégée"
                           : "Aucune protection active",
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                         fontSize: 12,
                       ),
                     ),
@@ -722,10 +722,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 scale: 0.85,
                 child: Switch(
                   value: _securiteActivee,
-                  activeColor: Colors.white,
+                  activeThumbColor: Colors.white,
                   activeTrackColor: const Color(0xFF10B981),
-                  inactiveThumbColor: Colors.white.withOpacity(0.3),
-                  inactiveTrackColor: Colors.white.withOpacity(0.1),
+                  inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
                   onChanged: (val) {
                     if (!val) {
                       setState(() {
@@ -750,7 +750,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               letterSpacing: 0.3,
             ),
           ),
@@ -788,10 +788,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF4A9FE8).withOpacity(0.1),
+              color: const Color(0xFF4A9FE8).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF4A9FE8).withOpacity(0.25),
+                color: const Color(0xFF4A9FE8).withValues(alpha: 0.25),
                 width: 1,
               ),
             ),
@@ -800,7 +800,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Icon(
                   Icons.info_outline_rounded,
                   size: 14,
-                  color: const Color(0xFF7DC4FF).withOpacity(0.8),
+                  color: const Color(0xFF7DC4FF).withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -810,7 +810,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         : "Biométrie active — scan requis à l'ouverture",
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       height: 1.4,
                     ),
                   ),
@@ -837,13 +837,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF004E92).withOpacity(0.4)
-              : Colors.white.withOpacity(0.05),
+              ? const Color(0xFF004E92).withValues(alpha: 0.4)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF4A9FE8).withOpacity(0.55)
-                : Colors.white.withOpacity(0.08),
+                ? const Color(0xFF4A9FE8).withValues(alpha: 0.55)
+                : Colors.white.withValues(alpha: 0.08),
             width: 1.5,
           ),
         ),
@@ -853,8 +853,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF4A9FE8).withOpacity(0.2)
-                    : Colors.white.withOpacity(0.05),
+                    ? const Color(0xFF4A9FE8).withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -862,7 +862,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 size: 18,
                 color: isSelected
                     ? const Color(0xFF7DC4FF)
-                    : Colors.white.withOpacity(0.3),
+                    : Colors.white.withValues(alpha: 0.3),
               ),
             ),
             const SizedBox(width: 12),
@@ -877,7 +877,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       fontWeight: FontWeight.w700,
                       color: isSelected
                           ? Colors.white
-                          : Colors.white.withOpacity(0.55),
+                          : Colors.white.withValues(alpha: 0.55),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -885,7 +885,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(isSelected ? 0.5 : 0.3),
+                      color: Colors.white.withValues(alpha: isSelected ? 0.5 : 0.3),
                     ),
                   ),
                 ],
@@ -895,7 +895,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4A9FE8).withOpacity(0.2),
+                  color: const Color(0xFF4A9FE8).withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -908,7 +908,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Icon(
                 Icons.chevron_right_rounded,
                 size: 18,
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
               ),
           ],
         ),
@@ -991,17 +991,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         labelText: label,
         hintText: hint,
         hintStyle: TextStyle(
-          color: Colors.white.withOpacity(0.25),
+          color: Colors.white.withValues(alpha: 0.25),
           fontSize: 13,
         ),
         labelStyle: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           fontSize: 13,
         ),
-        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.35), size: 19),
+        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.35), size: 19),
         suffixIcon: suffix,
         filled: true,
-        fillColor: Colors.white.withOpacity(0.07),
+        fillColor: Colors.white.withValues(alpha: 0.07),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -1009,14 +1009,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -1054,13 +1054,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.07),
+          color: Colors.white.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white.withOpacity(0.35), size: 19),
+            Icon(icon, color: Colors.white.withValues(alpha: 0.35), size: 19),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -1070,7 +1070,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label,
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1088,7 +1088,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             Icon(
               Icons.chevron_right_rounded,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               size: 20,
             ),
           ],
@@ -1112,7 +1112,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF004E92).withOpacity(0.5),
+            color: const Color(0xFF004E92).withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),

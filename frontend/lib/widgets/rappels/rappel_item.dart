@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Nécessite le package intl pour formater l'heure
+﻿import 'package:flutter/material.dart';
 
 class RappelItem extends StatelessWidget {
   final String type;
@@ -39,7 +38,7 @@ class RappelItem extends StatelessWidget {
         ),
         trailing: Switch(
           value: actif,
-          activeColor: const Color(0xFF4A3AFF),
+          activeThumbColor: const Color(0xFF4A3AFF),
           onChanged: onToggle,
         ),
       ),

@@ -1,3 +1,4 @@
+﻿import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,7 +29,7 @@ class TranslationService {
         return data["data"]["translations"][0]["translatedText"];
       }
     } catch (e) {
-      print("Erreur de traduction : $e");
+      debugPrint("Erreur de traduction : $e");
     }
 
     return text;

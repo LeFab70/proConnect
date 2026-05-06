@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/tr_text.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -91,7 +91,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF405667).withOpacity(0.1),
+                    color: const Color(0xFF405667).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.lock_outline_rounded,
@@ -338,7 +338,7 @@ class _Card extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2))
           ],

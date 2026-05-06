@@ -1,5 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../models/medication.dart';
 import 'api.dart';
@@ -25,6 +29,38 @@ class MedicationService {
         .map((e) => Medication.fromJson(e as Map<String, dynamic>))
         .where((m) => !m.isDeleted)
         .toList();
+  }
+
+  Future<String?> uploadMedicamentImage(String imagePath, String token) async {
+    try {
+      final file = File(imagePath);
+      if (!await file.exists()) return null;
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse("${_api.baseUrl}/api/images/upload"),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        imagePath,
+        contentType: MediaType('image', 'jpeg'),
+      ));
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return decoded['url'] as String?;
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Erreur uploadMedicamentImage: $e");
+      return null;
+    }
   }
 
   Future<bool> createMedicament(Map<String, dynamic> body, String token) async {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -46,7 +46,7 @@ class ActivityItem extends StatelessWidget {
           // =========================
           leading: CircleAvatar(
             radius: 22,
-            backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
+            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
             child: Icon(Icons.event, color: theme.colorScheme.primary),
           ),
 

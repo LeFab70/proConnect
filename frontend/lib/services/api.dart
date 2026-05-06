@@ -1,3 +1,4 @@
+﻿import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'secrets.dart';
@@ -228,7 +229,7 @@ class Api {
       }
       return [];
     } catch (e) {
-      print("Erreur GET Aines: $e");
+      debugPrint("Erreur GET Aines: $e");
       return [];
     }
   }
@@ -245,10 +246,10 @@ class Api {
         body: jsonEncode(data),
       );
 
-      print("Status Code Aine: ${response.statusCode}");
+      debugPrint("Status Code Aine: ${response.statusCode}");
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      print("Erreur POST Aine: $e");
+      debugPrint("Erreur POST Aine: $e");
       return false;
     }
   }
@@ -316,7 +317,7 @@ class Api {
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      print("Erreur POST générique : $e");
+      debugPrint("Erreur POST générique : $e");
       return false;
     }
   }
@@ -346,7 +347,7 @@ class Api {
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      print("Erreur DELETE : $e");
+      debugPrint("Erreur DELETE : $e");
       return false;
     }
   }
@@ -413,10 +414,10 @@ class Api {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
 
-      print("Erreur getUser: Status ${response.statusCode}");
+      debugPrint("Erreur getUser: Status ${response.statusCode}");
       return null;
     } catch (e) {
-      print("Exception getUser: $e");
+      debugPrint("Exception getUser: $e");
       return null;
     }
   }

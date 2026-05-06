@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/aine.dart';
-import '../../widgets/tr_text.dart';
 
 class AineDetailScreen extends StatelessWidget {
   final Aine aine;
@@ -14,8 +13,8 @@ class AineDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
-    final String prenom = aine.prenom ?? '';
-    final String nom = aine.nom ?? '';
+    final String prenom = aine.prenom;
+    final String nom = aine.nom;
     final initiales =
         "${prenom.isNotEmpty ? prenom[0] : ''}${nom.isNotEmpty ? nom[0] : ''}"
             .toUpperCase();
@@ -43,7 +42,7 @@ class AineDetailScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -61,7 +60,7 @@ class AineDetailScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -112,10 +111,10 @@ class AineDetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -151,14 +150,14 @@ class AineDetailScreen extends StatelessWidget {
           height: 88,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF004E92).withOpacity(0.5),
+            color: const Color(0xFF004E92).withValues(alpha: 0.5),
             border: Border.all(
-              color: const Color(0xFF4A9FE8).withOpacity(0.4),
+              color: const Color(0xFF4A9FE8).withValues(alpha: 0.4),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF004E92).withOpacity(0.5),
+                color: const Color(0xFF004E92).withValues(alpha: 0.5),
                 blurRadius: 24,
                 spreadRadius: 2,
               ),
@@ -178,7 +177,7 @@ class AineDetailScreen extends StatelessWidget {
                 : Icon(
                     Icons.elderly_rounded,
                     size: 36,
-                    color: const Color(0xFF7DC4FF).withOpacity(0.7),
+                    color: const Color(0xFF7DC4FF).withValues(alpha: 0.7),
                   ),
           ),
         ),
@@ -200,10 +199,10 @@ class AineDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
-            color: const Color(0xFF7DC4FF).withOpacity(0.1),
+            color: const Color(0xFF7DC4FF).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: const Color(0xFF7DC4FF).withOpacity(0.25),
+              color: const Color(0xFF7DC4FF).withValues(alpha: 0.25),
               width: 1,
             ),
           ),
@@ -213,13 +212,13 @@ class AineDetailScreen extends StatelessWidget {
               Icon(
                 Icons.elderly_rounded,
                 size: 13,
-                color: const Color(0xFF7DC4FF).withOpacity(0.8),
+                color: const Color(0xFF7DC4FF).withValues(alpha: 0.8),
               ),
               const SizedBox(width: 5),
               Text(
                 "Aîné suivi",
                 style: TextStyle(
-                  color: const Color(0xFF7DC4FF).withOpacity(0.9),
+                  color: const Color(0xFF7DC4FF).withValues(alpha: 0.9),
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
@@ -243,9 +242,9 @@ class AineDetailScreen extends StatelessWidget {
           DateFormat('dd MMMM yyyy', 'fr').format(aine.dateNaissance),
         ),
         _buildDivider(),
-        _buildInfoRow(Icons.phone_rounded, "Téléphone", aine.telephone ?? ''),
+        _buildInfoRow(Icons.phone_rounded, "Téléphone", aine.telephone),
         _buildDivider(),
-        _buildInfoRow(Icons.alternate_email_rounded, "Email", aine.email ?? ''),
+        _buildInfoRow(Icons.alternate_email_rounded, "Email", aine.email),
       ],
     );
   }
@@ -296,13 +295,13 @@ class AineDetailScreen extends StatelessWidget {
         _buildInfoRow(
           Icons.person_search_rounded,
           "Médecin traitant",
-          aine.docteur ?? '',
+          aine.docteur,
         ),
         _buildDivider(),
         _buildInfoRow(
           Icons.phone_in_talk_rounded,
           "Contact médecin",
-          aine.numeroDocteur ?? '',
+          aine.numeroDocteur,
         ),
       ],
     );
@@ -316,12 +315,12 @@ class AineDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.3),
+            color: const Color(0xFF000428).withValues(alpha: 0.3),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -335,10 +334,10 @@ class AineDetailScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withOpacity(0.5),
+                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: const Color(0xFF4A9FE8).withOpacity(0.3),
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -354,13 +353,13 @@ class AineDetailScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          Divider(color: Colors.white.withOpacity(0.08), height: 24),
+          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
           ...children,
         ],
       ),
@@ -372,7 +371,7 @@ class AineDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(icon, size: 17, color: Colors.white.withOpacity(0.35)),
+          Icon(icon, size: 17, color: Colors.white.withValues(alpha: 0.35)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -382,7 +381,7 @@ class AineDetailScreen extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -393,7 +392,7 @@ class AineDetailScreen extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: value.isEmpty
-                        ? Colors.white.withOpacity(0.25)
+                        ? Colors.white.withValues(alpha: 0.25)
                         : Colors.white,
                   ),
                 ),
@@ -407,7 +406,7 @@ class AineDetailScreen extends StatelessWidget {
 
   Widget _buildDivider() {
     return Divider(
-      color: Colors.white.withOpacity(0.06),
+      color: Colors.white.withValues(alpha: 0.06),
       height: 18,
       indent: 29,
     );

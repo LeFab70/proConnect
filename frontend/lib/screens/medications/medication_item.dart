@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/tr_text.dart';
 
 class MedicationItem extends StatelessWidget {
@@ -101,7 +101,7 @@ class MedicationItem extends StatelessWidget {
           trailing: Switch(
             value: isActive,
             onChanged: onToggle,
-            activeColor: const Color(0xFF0052D4),
+            activeThumbColor: const Color(0xFF0052D4),
           ),
         ),
       ),
