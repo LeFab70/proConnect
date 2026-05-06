@@ -7,6 +7,7 @@ import '../../models/rappel.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/medication_provider.dart';
 import '../../provider/rappel_provider.dart';
+import '../../services/medication_service.dart';
 import '../../services/notification_service.dart';
 
 class AddMedicationScreen extends StatefulWidget {
@@ -207,12 +208,28 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       final rappelProvider = context.read<RappelProvider>();
       final auth = context.read<AuthProvider>();
 
-      final name = _nameController.text.trim();
-      final marque = _marqueController.text.trim();
-      final dosage = _dosageController.text.trim();
-      final urlPhoto = _urlPhotoController.text.trim().isEmpty
-          ? null
-          : _urlPhotoController.text.trim();
+    final name = _nameController.text.trim();
+    final marque = _marqueController.text.trim();
+    final dosage = _dosageController.text.trim();
+
+    final photoPath = _urlPhotoController.text.trim();
+
+    String? urlPhoto;
+    if (photoPath.isEmpty) {
+      urlPhoto = null;
+    } else if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      urlPhoto = photoPath;
+    } else {
+      urlPhoto = await MedicationService().uploadMedicamentImage(
+        photoPath,
+        auth.token ?? '',
+      );
+      if (urlPhoto == null) {
+        _showSnackBar("Impossible d'envoyer la photo", isError: true);
+        setState(() => _isLoading = false);
+        return;
+      }
+    }
 
       final bool success;
 
@@ -649,15 +666,93 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        _buildField(
-          _urlPhotoController,
-          'URL photo',
-          Icons.image_outlined,
-          hint: 'Optionnel',
-          type: TextInputType.url,
-          required: false,
-        ),
+        _buildImagePicker(),
       ],
+    );
+  }
+
+  Widget _buildImagePicker() {
+    final imagePath = _urlPhotoController.text.trim();
+
+    return GestureDetector(
+      onTap: _isLoading ? null : _showImageSourceSheet,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.07),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+              ),
+              child: imagePath.isEmpty
+                  ? Icon(
+                      Icons.image_outlined,
+                      color: Colors.white.withOpacity(0.4),
+                    )
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: imagePath.startsWith('http')
+                          ? Image.network(
+                              imagePath,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.broken_image_outlined,
+                                color: Colors.white.withOpacity(0.4),
+                              ),
+                            )
+                          : Image.file(
+                              File(imagePath),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.broken_image_outlined,
+                                color: Colors.white.withOpacity(0.4),
+                              ),
+                            ),
+                    ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Photo du médicament',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    imagePath.isEmpty
+                        ? 'Appareil photo ou galerie'
+                        : 'Image sélectionnée',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.45),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.add_a_photo_outlined,
+              color: const Color(0xFF7DC4FF).withOpacity(0.9),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
