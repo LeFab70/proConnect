@@ -268,10 +268,10 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white.withAlpha((0.08 * 255).round()),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.12),
+                        color: Colors.white.withAlpha((0.12 * 255).round()),
                         width: 1,
                       ),
                     ),
@@ -280,14 +280,14 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                         Icon(
                           Icons.calendar_today_rounded,
                           size: 14,
-                          color: Colors.white.withOpacity(0.55),
+                          color: Colors.white.withAlpha((0.55 * 255).round()),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             startLabel,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withAlpha((0.8 * 255).round()),
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
@@ -300,7 +300,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                             child: Icon(
                               Icons.close_rounded,
                               size: 16,
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withAlpha((0.5 * 255).round()),
                             ),
                           ),
                       ],
@@ -332,10 +332,10 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white.withAlpha((0.08 * 255).round()),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.12),
+                        color: Colors.white.withAlpha((0.12 * 255).round()),
                         width: 1,
                       ),
                     ),
@@ -344,14 +344,14 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                         Icon(
                           Icons.event_available_rounded,
                           size: 14,
-                          color: Colors.white.withOpacity(0.55),
+                          color: Colors.white.withAlpha((0.55 * 255).round()),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             endLabel,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withAlpha((0.8 * 255).round()),
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
@@ -364,7 +364,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                             child: Icon(
                               Icons.close_rounded,
                               size: 16,
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withAlpha((0.5 * 255).round()),
                             ),
                           ),
                       ],
@@ -377,10 +377,10 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.08),
+                    color: Colors.white.withAlpha((0.08 * 255).round()),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withAlpha((0.12 * 255).round()),
                       width: 1,
                     ),
                   ),
@@ -388,11 +388,11 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                     child: DropdownButton<String>(
                       value: _selectedMedicationId,
                       dropdownColor: const Color(0xFF0B1A4A),
-                      iconEnabledColor: Colors.white.withOpacity(0.6),
+                      iconEnabledColor: Colors.white.withAlpha((0.6 * 255).round()),
                       hint: Text(
                         'Tous médicaments',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withAlpha((0.7 * 255).round()),
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                         ),
@@ -417,7 +417,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                         setState(() => _selectedMedicationId = v);
                       },
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha((0.9 * 255).round()),
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
@@ -443,7 +443,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                   child: Text(
                     'Réinitialiser les filtres',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withAlpha((0.7 * 255).round()),
                       fontWeight: FontWeight.w700,
                       fontSize: 12,
                     ),
