@@ -25,6 +25,7 @@ public class UserService(AppDbContext db) : IUserService
                 Prenom = u.Prenom,
                 Telephone = u.Telephone,
                 Email = u.Email,
+                Type = EF.Property<string>(u, "type"),
                 Adresse = u.Adresse == null ? null : new AdresseDto
                 {
                     Numero = u.Adresse.Numero,
@@ -49,6 +50,7 @@ public class UserService(AppDbContext db) : IUserService
                 Prenom = u.Prenom,
                 Telephone = u.Telephone,
                 Email = u.Email,
+                Type = EF.Property<string>(u, "type"),
                 Adresse = u.Adresse == null ? null : new AdresseDto
                 {
                     Numero = u.Adresse.Numero,

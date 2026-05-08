@@ -29,4 +29,16 @@ public class RegisterRequestDto
     [MinLength(8, ErrorMessage = "Le mot de passe doit contenir au moins 8 caractères.")] // Validation pour s'assurer que le mot de passe contient au moins 8 caractères
     [MaxLength(200, ErrorMessage = "Le mot de passe ne doit pas dépasser 200 caractères.")] // Validation pour s'assurer que le mot de passe ne dépasse pas 200 caractères
     public required string Password { get; set; } // Mot de passe obligatoire pour user, entre 8 et 200 caractères
+
+    /// <summary>
+    /// Optionnel. Valeurs attendues côté app: "AINE" ou "AIDANT".
+    /// Si absent: création par défaut en ProcheAidant.
+    /// </summary>
+    public string? Role { get; set; }
+
+    // Champs spécifiques Aîné (requis uniquement si Role == "AINE")
+    public DateOnly? DateNaissance { get; set; }
+    public backend.Dtos.Adresse.AdresseDto? Adresse { get; set; }
+    public string? Docteur { get; set; }
+    public string? NumeroTelephoneDocteur { get; set; }
 }

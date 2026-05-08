@@ -10,5 +10,6 @@ public class UserResponseDto
     public required string Telephone { get; set; }
     public required string Email { get; set; }
     public AdresseDto? Adresse { get; set; }
+    public string? Type { get; set; } // "Aine" | "ProcheAidant" | "User"
 }
 

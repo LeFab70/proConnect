@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using backend.Dtos.Adresse;
 
 namespace backend.Services;
 
@@ -23,22 +24,55 @@ public class AuthService(AppDbContext db, IEmailService email) : IAuthService
         var exists = await _db.Users.AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
         if (exists) throw new InvalidOperationException("Email already exists.");
 
-        // Default behavior: a newly registered account is a ProcheAidant.
-        // This matches the app's expectations (aidant by default) and the seed strategy.
-        var user = new ProcheAidant
+        var role = (dto.Role ?? "AIDANT").Trim().ToUpperInvariant();
+
+        User user;
+        if (role == "AINE")
         {
-            Nom = dto.Nom,
-            Prenom = dto.Prenom,
-            Telephone = dto.Telephone,
-            Email = dto.Email,
-            PasswordHash = "temp" // overwritten below
-        };
+            if (dto.DateNaissance == null)
+                throw new InvalidOperationException("DateNaissance est obligatoire pour un compte Aîné.");
+            if (dto.Adresse == null)
+                throw new InvalidOperationException("Adresse est obligatoire pour un compte Aîné.");
+
+            user = new Aine
+            {
+                Nom = dto.Nom,
+                Prenom = dto.Prenom,
+                Telephone = dto.Telephone,
+                Email = dto.Email,
+                PasswordHash = "temp", // overwritten below
+                DateNaissance = dto.DateNaissance.Value,
+                Adresse = new Adresse
+                {
+                    Numero = dto.Adresse.Numero,
+                    Rue = dto.Adresse.Rue,
+                    Ville = dto.Adresse.Ville,
+                    CodePostal = dto.Adresse.CodePostal,
+                    Province = dto.Adresse.Province
+                },
+                Docteur = dto.Docteur ?? string.Empty,
+                NumeroTelephoneDocteur = dto.NumeroTelephoneDocteur ?? string.Empty
+            };
+        }
+        else
+        {
+            // Default behavior: a newly registered account is a ProcheAidant.
+            user = new ProcheAidant
+            {
+                Nom = dto.Nom,
+                Prenom = dto.Prenom,
+                Telephone = dto.Telephone,
+                Email = dto.Email,
+                PasswordHash = "temp" // overwritten below
+            };
+        }
+
         user.PasswordHash = _hasher.HashPassword(user, dto.Password);
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        return IssueJwt(user.Id, user.Email, roles: Array.Empty<string>());
+        return IssueJwt(user, roles: GetRolesFor(user));
     }
 
     public async Task<TokenResponseDto?> Login(LoginRequestDto dto)
@@ -49,7 +83,7 @@ public class AuthService(AppDbContext db, IEmailService email) : IAuthService
         var ok = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
         if (ok == PasswordVerificationResult.Failed) return null;
 
-        return IssueJwt(user.Id, user.Email, roles: Array.Empty<string>());
+        return IssueJwt(user, roles: GetRolesFor(user));
     }
 
     public async Task RequestPasswordReset(ForgotPasswordRequestDto dto)
@@ -97,7 +131,17 @@ public class AuthService(AppDbContext db, IEmailService email) : IAuthService
         return Convert.ToHexString(bytes);
     }
 
-    private static TokenResponseDto IssueJwt(long userId, string email, string[] roles)
+    private static string[] GetRolesFor(User user)
+    {
+        return user switch
+        {
+            Aine => ["AINE"],
+            ProcheAidant => ["AIDANT"],
+            _ => ["AIDANT"]
+        };
+    }
+
+    private static TokenResponseDto IssueJwt(User user, string[] roles)
     {
         var jwtKey = Environment.GetEnvironmentVariable("JWT__Key")
                      ?? throw new InvalidOperationException("Missing env var: JWT__Key");
@@ -107,8 +151,8 @@ public class AuthService(AppDbContext db, IEmailService email) : IAuthService
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, userId.ToString()),
-            new(ClaimTypes.Email, email)
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email)
         };
         foreach (var r in roles)
         {
