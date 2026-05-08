@@ -40,7 +40,10 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
                     Autorisation = pa.Autorisation,
                     Relation = pa.Relation,
                     AineId = pa.AineId,
-                    ProcheAidantId = pa.ProcheAidantId
+                    ProcheAidantId = pa.ProcheAidantId,
+                    ProcheEmail = pa.ProcheEmail,
+                    Statut = pa.Statut,
+                    CreatedAtUtc = pa.CreatedAtUtc
                 }).ToList()
             })
             .ToListAsync();
@@ -72,7 +75,10 @@ public class ProcheAidantService(AppDbContext db) : IProcheAidantService
                     Autorisation = pa.Autorisation,
                     Relation = pa.Relation,
                     AineId = pa.AineId,
-                    ProcheAidantId = pa.ProcheAidantId
+                    ProcheAidantId = pa.ProcheAidantId,
+                    ProcheEmail = pa.ProcheEmail,
+                    Statut = pa.Statut,
+                    CreatedAtUtc = pa.CreatedAtUtc
                 }).ToList()
             })
             .FirstOrDefaultAsync();

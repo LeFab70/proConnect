@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'secrets.dart';
@@ -366,11 +366,37 @@ class Api {
           "autorisation": _partageAutorisationApi(partage.autorisation),
           "relation": partage.relation,
           "aineId": partage.aineId,
-          "procheAidantId": partage.procheAidantId,
+          if (partage.procheAidantId > 0) "procheAidantId": partage.procheAidantId,
+          if (partage.procheEmail != null && partage.procheEmail!.trim().isNotEmpty)
+            "procheEmail": partage.procheEmail!.trim().toLowerCase(),
         }),
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> acceptPartage(int partageId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/api/partages-suivi/$partageId/accept"),
+        headers: authHeaders(token),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> rejectPartage(int partageId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/api/partages-suivi/$partageId/reject"),
+        headers: authHeaders(token),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (_) {
       return false;
     }
   }

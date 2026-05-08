@@ -133,6 +133,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Relation).HasColumnName("relation");
             e.Property(x => x.AineId).HasColumnName("aine_id");
             e.Property(x => x.ProcheAidantId).HasColumnName("proche_aidant_id");
+            e.Property(x => x.ProcheEmail).HasColumnName("proche_email");
+            e.Property(x => x.Statut).HasColumnName("statut");
+            e.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc");
         });
     }
 }

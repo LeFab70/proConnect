@@ -11,14 +11,7 @@ class PartageProvider extends ChangeNotifier {
   String _error = '';
   final List<PartageSuivi> _partages = [];
 
-  // Fabrice | 2026-05-05T04:56:37Z | L’API ne porte pas statut/email : tout ce qui vient du GET est traité comme actif.
-  PartageSuivi _partageFromApi(Map<String, dynamic> m) {
-    return PartageSuivi.fromJson({
-      ...m,
-      'statut': 'actif',
-      'procheEmail': null,
-    });
-  }
+  PartageSuivi _partageFromApi(Map<String, dynamic> m) => PartageSuivi.fromJson(m);
 
   bool get isLoading => _isLoading;
   String get error => _error;
@@ -73,7 +66,7 @@ class PartageProvider extends ChangeNotifier {
       final ok = await _api.upsertPartage(partage, auth.token!);
       if (!ok) {
         _error =
-            'Création du partage refusée (droits admin requis sur l’API ou données invalides)';
+            'Création du partage refusée (données invalides ou API indisponible)';
         notifyListeners();
         return false;
       }
@@ -179,8 +172,16 @@ class PartageProvider extends ChangeNotifier {
     _error = '';
 
     try {
-      // Fabrice | 2026-05-05T04:56:37Z | Pas d’endpoint métier « acceptation » côté API : mise à jour locale uniquement.
-      await Future.delayed(const Duration(milliseconds: 300));
+      if (auth.token == null) {
+        _error = 'Session invalide';
+        return false;
+      }
+
+      final ok = await _api.acceptPartage(partageId, auth.token!);
+      if (!ok) {
+        _error = 'Impossible d’accepter la demande (API)';
+        return false;
+      }
 
       final index = _partages.indexWhere((p) => p.id == partageId);
 
@@ -191,16 +192,10 @@ class PartageProvider extends ChangeNotifier {
 
       final partage = _partages[index];
 
-      final currentUserId = auth.currentUserLocalId ?? 0;
-      final currentEmail = auth.email?.toLowerCase().trim();
-
-      final emailMatch =
-          currentEmail != null &&
-          partage.procheEmail?.toLowerCase().trim() == currentEmail;
-
       _partages[index] = partage.copyWith(
         statut: StatutPartage.actif,
-        procheAidantId: emailMatch ? currentUserId : partage.procheAidantId,
+        procheAidantId: auth.currentUserLocalId ?? partage.procheAidantId,
+        procheEmail: null,
       );
 
       notifyListeners();
@@ -218,7 +213,11 @@ class PartageProvider extends ChangeNotifier {
     _error = '';
 
     try {
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Refus côté API si possible (sinon on garde la suppression locale)
+      // Ici on a un endpoint /reject
+      // Si pas de token (hors-ligne), on retombe sur le comportement local
+      // (pour ne pas bloquer l'UI).
+      // Note: l’écran ne passe pas AuthProvider ici.
 
       final index = _partages.indexWhere((p) => p.id == partageId);
 

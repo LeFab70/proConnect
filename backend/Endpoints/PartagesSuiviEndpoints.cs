@@ -1,6 +1,8 @@
 using backend.Dtos.Partages;
 using backend.Infrastructure;
 using backend.Services.Interfaces;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Endpoints;
 
@@ -21,6 +23,16 @@ public static class PartagesSuiviEndpoints
         route.MapPost("/", Create)
             .Produces(StatusCodes.Status201Created)
             .WithSummary("Crée un partage de suivi");
+
+        route.MapPost("/{id:long}/accept", Accept)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithSummary("Accepte une invitation (Proche aidant)");
+
+        route.MapPost("/{id:long}/reject", Reject)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithSummary("Refuse une invitation (Proche aidant)");
 
         route.MapPut("/{id:long}", Update)
             .Produces(StatusCodes.Status204NoContent)
@@ -50,8 +62,49 @@ public static class PartagesSuiviEndpoints
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
 
+        if ((dto.ProcheAidantId == null || dto.ProcheAidantId <= 0) &&
+            string.IsNullOrWhiteSpace(dto.ProcheEmail))
+        {
+            return Results.BadRequest(new { message = "ProcheAidantId ou ProcheEmail est requis." });
+        }
+
         var created = await svc.Create(dto);
         return Results.Created($"/api/partages-suivi/{created.Id}", created);
+    }
+
+    private static async Task<IResult> Accept(
+        long id,
+        ClaimsPrincipal user,
+        AppDbContext db,
+        CancellationToken ct)
+    {
+        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
+
+        var entity = await db.PartagesSuivi.FirstOrDefaultAsync(p => p.Id == id, ct);
+        if (entity == null) return Results.NotFound();
+
+        // Associate to current proche aidant
+        entity.ProcheAidantId = userId;
+        entity.ProcheEmail = null;
+        entity.Statut = "actif";
+        await db.SaveChangesAsync(ct);
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> Reject(
+        long id,
+        AppDbContext db,
+        CancellationToken ct)
+    {
+        var entity = await db.PartagesSuivi.FirstOrDefaultAsync(p => p.Id == id, ct);
+        if (entity == null) return Results.NotFound();
+
+        entity.Statut = "refuse";
+        await db.SaveChangesAsync(ct);
+
+        return Results.NoContent();
     }
 
     private static async Task<IResult> Update(long id, UpsertPartageSuiviRequestDto dto, IPartageSuiviService svc)

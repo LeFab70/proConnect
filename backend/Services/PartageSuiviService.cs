@@ -23,7 +23,10 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
                 Autorisation = p.Autorisation,
                 Relation = p.Relation,
                 AineId = p.AineId,
-                ProcheAidantId = p.ProcheAidantId
+                ProcheAidantId = p.ProcheAidantId,
+                ProcheEmail = p.ProcheEmail,
+                Statut = p.Statut,
+                CreatedAtUtc = p.CreatedAtUtc
             })
             .ToListAsync();
     }
@@ -39,7 +42,10 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
                 Autorisation = p.Autorisation,
                 Relation = p.Relation,
                 AineId = p.AineId,
-                ProcheAidantId = p.ProcheAidantId
+                ProcheAidantId = p.ProcheAidantId,
+                ProcheEmail = p.ProcheEmail,
+                Statut = p.Statut,
+                CreatedAtUtc = p.CreatedAtUtc
             })
             .FirstOrDefaultAsync();
     }
@@ -51,7 +57,10 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
             Autorisation = dto.Autorisation,
             Relation = dto.Relation,
             AineId = dto.AineId,
-            ProcheAidantId = dto.ProcheAidantId
+            ProcheAidantId = dto.ProcheAidantId,
+            ProcheEmail = string.IsNullOrWhiteSpace(dto.ProcheEmail) ? null : dto.ProcheEmail.Trim().ToLowerInvariant(),
+            Statut = "enAttente",
+            CreatedAtUtc = DateTime.UtcNow
         };
         _db.PartagesSuivi.Add(entity);
         await _db.SaveChangesAsync();
@@ -67,6 +76,7 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
         entity.Relation = dto.Relation;
         entity.AineId = dto.AineId;
         entity.ProcheAidantId = dto.ProcheAidantId;
+        entity.ProcheEmail = string.IsNullOrWhiteSpace(dto.ProcheEmail) ? entity.ProcheEmail : dto.ProcheEmail.Trim().ToLowerInvariant();
 
         await _db.SaveChangesAsync();
         return true;

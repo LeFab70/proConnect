@@ -18,6 +18,7 @@ public class UpsertPartageSuiviRequestDto
     [Range(1, long.MaxValue, ErrorMessage = "AineId doit être un identifiant valide (> 0).")] // Indique que la propriété AineId doit être un entier positif supérieur à 0.
     public long AineId { get; set; } // Identifiant de l'aîné, doit être un entier positif supérieur à 0.
 
-    [Range(1, long.MaxValue, ErrorMessage = "ProcheAidantId doit être un identifiant valide (> 0).")] // Indique que la propriété ProcheAidantId doit être un entier positif supérieur à 0.
-    public long ProcheAidantId { get; set; } // Identifiant du proche aidant, doit être un entier positif supérieur à 0.
+    // Invitation possible par id OU par email
+    public long? ProcheAidantId { get; set; }
+    public string? ProcheEmail { get; set; }
 }
