@@ -157,6 +157,7 @@ class Api {
     required String telephone,
     required String email,
     required String password,
+    String? role,
   }) async {
     try {
       final response = await http.post(
@@ -168,6 +169,7 @@ class Api {
           "telephone": telephone,
           "email": email.trim(),
           "password": password,
+          if (role != null && role.trim().isNotEmpty) "role": role.trim(),
         }),
       );
 

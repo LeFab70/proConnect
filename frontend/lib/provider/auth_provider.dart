@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../api.dart';
+import '../services/api.dart';
 
 class AuthProvider with ChangeNotifier {
   final Api _api = Api();
