@@ -722,7 +722,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _medicationTile(BuildContext context, dynamic med) {
-    final isTaken = med.isTaken;
+   // final isTaken = med.isTaken;
     final isActive = med.isActive;
 
     return Opacity(

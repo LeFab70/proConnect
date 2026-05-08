@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/api.dart';
+import '../api.dart';
 
 class AuthProvider with ChangeNotifier {
   final Api _api = Api();
@@ -31,8 +31,15 @@ class AuthProvider with ChangeNotifier {
 
   int get nbDemandes => _nbDemandes;
 
-  bool get isAine => _role == "AINE";
-  bool get isAidant => _role == "AIDANT";
+  bool get isAine {
+    final r = (_role ?? '').trim().toUpperCase();
+    return r == "AINE" || r == "AÎNÉ" || r == "AINEE";
+  }
+
+  bool get isAidant {
+    final r = (_role ?? '').trim().toUpperCase();
+    return r == "AIDANT" || r == "PROCHE" || r == "PROCHE_AIDANT";
+  }
 
   void setNbDemandes(int count) {
     _nbDemandes = count;
@@ -58,15 +65,12 @@ class AuthProvider with ChangeNotifier {
       _token = result["token"];
       _email = email.trim().toLowerCase();
       _firstName = result["firstName"] ?? email.split('@')[0];
-      _role = result["role"];
+      _role = result["role"]?.toString().trim().toUpperCase();
       _userId = result["userId"];
       _profilePicture = result["profilePicture"];
+      _nbDemandes = result["nbDemandes"] ?? 0;
 
-      if (result["nbDemandes"] != null) {
-        _nbDemandes = result["nbDemandes"];
-      }
-
-      if (_token == null || _role == null) {
+      if (_token == null || _role == null || _role!.isEmpty) {
         _errorMessage = "Réponse serveur invalide";
         _isAuthenticated = false;
         return false;
@@ -94,73 +98,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /*
-  REGISTER FINAL AVEC APPEL api.register(...)
-  Future<bool> register({
-  required String firstName,
-  required String lastName,
-  required String email,
-  required String password,
-  required String phone,
-  required String role,
-}) async {
-  if (_isLoading) return false;
-
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
-
-  try {
-    final result = await _api.register(
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.trim().toLowerCase(),
-      password: password.trim(),
-      phone: phone.trim(),
-      role: role,
-    );
-
-    if (result == null || result["success"] == false) {
-      _errorMessage = result?["message"] ?? "Erreur création compte";
-      _isAuthenticated = false;
-      return false;
-    }
-
-    _token = result["token"];
-    _email = email.trim().toLowerCase();
-    _firstName = result["firstName"] ?? firstName.trim();
-    _role = result["role"] ?? role;
-    _userId = result["userId"];
-    _profilePicture = result["profilePicture"];
-    _nbDemandes = result["nbDemandes"] ?? 0;
-
-    if (_token == null || _role == null || _userId == null) {
-      return await login(email.trim().toLowerCase(), password.trim());
-    }
-
-    _isAuthenticated = true;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("token", _token!);
-    await prefs.setString("email", _email!);
-    await prefs.setString("firstName", _firstName ?? "");
-    await prefs.setString("role", _role!);
-    await prefs.setInt("userId", _userId!);
-    await prefs.setString("profilePicture", _profilePicture ?? "");
-    await prefs.setBool("isAuth", true);
-
-    return true;
-  } catch (e) {
-    _errorMessage = "Erreur serveur lors de l'inscription";
-    _isAuthenticated = false;
-    return false;
-  } finally {
-    _isLoading = false;
-    notifyListeners();
-  }
-}
-*/
-  // Fabrice | 2026-05-05T04:47:29Z | Inscription réelle /api/auth/register puis session identique au login.
   Future<bool> register({
     required String firstName,
     required String lastName,
@@ -176,16 +113,20 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      final normalizedRole = role.trim().toUpperCase();
+
       final result = await _api.register(
         nom: lastName.trim(),
         prenom: firstName.trim(),
         telephone: phone.trim(),
         email: email.trim().toLowerCase(),
         password: password,
+        role: normalizedRole,
       );
 
       if (result["success"] != true) {
-        _errorMessage = result["message"]?.toString() ?? "Erreur création compte";
+        _errorMessage =
+            result["message"]?.toString() ?? "Erreur création compte";
         _isAuthenticated = false;
         return false;
       }
@@ -193,12 +134,12 @@ class AuthProvider with ChangeNotifier {
       _token = result["token"] as String?;
       _email = email.trim().toLowerCase();
       _firstName = result["firstName"]?.toString() ?? firstName.trim();
-      _role = result["role"]?.toString() ?? role;
+      _role = result["role"]?.toString().trim().toUpperCase() ?? normalizedRole;
       _userId = result["userId"] as int?;
-      _profilePicture = null;
+      _profilePicture = result["profilePicture"]?.toString();
       _nbDemandes = result["nbDemandes"] as int? ?? 0;
 
-      if (_token == null || _role == null) {
+      if (_token == null || _role == null || _role!.isEmpty) {
         _errorMessage = "Réponse serveur invalide";
         _isAuthenticated = false;
         return false;
@@ -212,7 +153,7 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString("firstName", _firstName ?? "");
       await prefs.setString("role", _role!);
       if (_userId != null) await prefs.setInt("userId", _userId!);
-      await prefs.setString("profilePicture", "");
+      await prefs.setString("profilePicture", _profilePicture ?? "");
       await prefs.setBool("isAuth", true);
 
       return true;
@@ -247,7 +188,7 @@ class AuthProvider with ChangeNotifier {
 
     _token = token;
     _email = email;
-    _role = role;
+    _role = role.trim().toUpperCase();
     _userId = userId;
     _firstName = firstName;
     _profilePicture = (profilePicture == null || profilePicture.isEmpty)
@@ -260,13 +201,13 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> updateProfilePicture(String newUrl) async {
-  _profilePicture = newUrl.trim().isEmpty ? null : newUrl;
+    _profilePicture = newUrl.trim().isEmpty ? null : newUrl;
 
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString("profilePicture", _profilePicture ?? "");
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("profilePicture", _profilePicture ?? "");
 
-  notifyListeners();
-}
+    notifyListeners();
+  }
 
   Future<void> updateUserInfo({String? newName, String? newEmail}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -284,12 +225,8 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  //METHODE POUR MODIFIER LE MOT DE PASSE
   Future<bool> updatePassword(String newPassword) async {
     try {
-      //final result = await _api.changePassword(_token, newPassword);
-
-      // Simulation d'une réussite pour le moment
       await Future.delayed(const Duration(milliseconds: 500));
       return true;
     } catch (e) {

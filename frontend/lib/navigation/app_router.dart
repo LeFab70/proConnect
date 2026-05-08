@@ -19,7 +19,7 @@ import '../screens/settings/about_screen.dart';
 import '../screens/settings/notifications_screen.dart';
 import '../screens/settings/help_support_screen.dart';
 import '../screens/settings/change_password_screen.dart';
-import '../screens/partage/partageScreen.dart';
+import '../screens/partage/partage_screen.dart';
 import '../screens/user/profile_screen.dart';
 import '../screens/partage/demandes_recues_screen.dart';
 import '../screens/medications/medication_history_screen.dart';

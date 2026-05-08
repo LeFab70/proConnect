@@ -320,7 +320,7 @@ class CaregiverDetailScreen extends StatelessWidget {
         const SizedBox(height: 14),
 
         TrText(
-          "${caregiver.prenom ?? ''} ${caregiver.nom ?? ''}".trim(),
+          "${caregiver.prenom} ${caregiver.nom}".trim(),
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
@@ -367,13 +367,13 @@ class CaregiverDetailScreen extends StatelessWidget {
         _buildInfoRow(
           Icons.phone_rounded,
           "Téléphone",
-          caregiver.telephone ?? '',
+          caregiver.telephone,
         ),
         _buildDivider(),
         _buildInfoRow(
           Icons.alternate_email_rounded,
           "Email",
-          caregiver.email ?? '',
+          caregiver.email,
         ),
       ],
     );

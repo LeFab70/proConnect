@@ -23,16 +23,13 @@ class Api {
         }),
       );
 
-      print('LOGIN STATUS: ${response.statusCode}');
-      print('LOGIN BODY: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
         return {
           'success': true,
           'token': data['accessToken'],
-          'role': data['role'] ?? 'AINE',
+          'role': data['role'],
           'firstName': data['firstName'] ?? email.split('@')[0],
           'userId': data['userId'],
           'profilePicture': data['profilePicture'],
@@ -42,11 +39,58 @@ class Api {
 
       return {'success': false, 'message': 'Email ou mot de passe incorrect'};
     } catch (e) {
-      print('===================');
-      print('LOGIN ERROR');
-      print(e);
-      print('===================');
+      return {'success': false, 'message': 'Erreur de connexion au serveur'};
+    }
+  }
 
+  Future<Map<String, dynamic>> register({
+    required String nom,
+    required String prenom,
+    required String telephone,
+    required String email,
+    required String password,
+    required String role,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/auth/register'),
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'nom': nom.trim(),
+          'prenom': prenom.trim(),
+          'telephone': telephone.trim(),
+          'email': email.trim().toLowerCase(),
+          'password': password,
+          'role': role.trim().toUpperCase(),
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+
+        return {
+          'success': true,
+          'token': data['accessToken'] ?? data['token'],
+          'role': data['role'] ?? role.trim().toUpperCase(),
+          'firstName': data['firstName'] ?? data['prenom'] ?? prenom,
+          'userId': data['userId'] ?? data['id'],
+          'profilePicture': data['profilePicture'],
+          'nbDemandes': data['nbDemandes'] ?? 0,
+        };
+      }
+
+      String message = "Erreur création compte";
+
+      try {
+        final errorData = jsonDecode(response.body);
+        message = errorData['message']?.toString() ?? message;
+      } catch (_) {}
+
+      return {'success': false, 'message': message};
+    } catch (e) {
       return {'success': false, 'message': 'Erreur de connexion au serveur'};
     }
   }

@@ -129,7 +129,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF004E92).withOpacity(0.5),
+                      const Color(0xFF004E92).withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -146,7 +146,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.04),
+                      Colors.white.withValues(alpha: 0.04),
                       Colors.transparent,
                     ],
                   ),
@@ -190,10 +190,10 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -221,7 +221,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                   "$total médicament(s)",
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -498,9 +498,9 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.25), width: 1),
+          border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
         ),
         child: Column(
           children: [
@@ -519,7 +519,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: color.withOpacity(0.7),
+                color: color.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -538,24 +538,24 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.07),
+              color: Colors.white.withValues(alpha: 0.07),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
             child: Icon(
               Icons.history_rounded,
               size: 48,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
           ),
           const SizedBox(height: 20),
           TrText(
             "Aucun médicament dans l'historique",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.3),
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -564,7 +564,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
           Text(
             "L'historique apparaîtra ici",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               fontSize: 13,
             ),
           ),
@@ -644,17 +644,17 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(isNonPris ? 0.04 : 0.08),
+        color: Colors.white.withValues(alpha:isNonPris ? 0.04 : 0.08),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isNonPris
-              ? const Color(0xFFEF4444).withOpacity(0.15)
-              : Colors.white.withOpacity(0.11),
+              ? const Color(0xFFEF4444).withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.11),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF000428).withOpacity(0.25),
+            color: const Color(0xFF000428).withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -669,10 +669,10 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.12),
+                  color: statusColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: statusColor.withOpacity(0.3),
+                    color: statusColor.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -689,12 +689,12 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: isNonPris
-                            ? Colors.white.withOpacity(0.45)
+                            ? Colors.white.withValues(alpha: 0.45)
                             : Colors.white,
                         decoration: isNonPris
                             ? TextDecoration.lineThrough
                             : null,
-                        decorationColor: Colors.white.withOpacity(0.3),
+                        decorationColor: Colors.white.withValues(alpha: 0.3),
                       ),
                     ),
                     if ((med.marque ?? '').isNotEmpty)
@@ -702,7 +702,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                         med.marque ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -716,10 +716,10 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: statusColor.withOpacity(0.3),
+                    color: statusColor.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -736,15 +736,15 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
           ),
 
           const SizedBox(height: 14),
-          Divider(color: Colors.white.withOpacity(0.06), height: 1),
+          Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
           const SizedBox(height: 12),
 
           // ── Infos pills ──
           const SizedBox(height: 14),
           Divider(
             color: isPris
-                ? const Color(0xFF10B981).withOpacity(0.15)
-                : Colors.white.withOpacity(0.06),
+                ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.06),
             height: 1,
           ),
           const SizedBox(height: 12),
@@ -773,7 +773,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                 med.isActive ? "Actif" : "Inactif",
                 med.isActive
                     ? const Color(0xFF34D399)
-                    : Colors.white.withOpacity(0.3),
+                    : Colors.white.withValues(alpha: 0.3),
               ),
               const SizedBox(width: 12),
               if (med.isDeleted)
@@ -813,21 +813,21 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: Colors.white.withOpacity(0.4)),
+          Icon(icon, size: 12, color: Colors.white.withValues(alpha: 0.4)),
           const SizedBox(width: 5),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withOpacity(0.55),
+              color: Colors.white.withValues(alpha: 0.55),
             ),
           ),
         ],
@@ -856,13 +856,13 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
   Widget _buildDateRow(IconData icon, String label, String value, Color color) {
     return Row(
       children: [
-        Icon(icon, size: 13, color: color.withOpacity(0.7)),
+        Icon(icon, size: 13, color: color.withValues(alpha: 0.7)),
         const SizedBox(width: 6),
         Text(
           "$label : ",
           style: TextStyle(
             fontSize: 12,
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.white.withValues(alpha: 0.4),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -872,7 +872,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: color.withOpacity(0.8),
+              color: color.withValues(alpha: 0.8),
             ),
             overflow: TextOverflow.ellipsis,
           ),
