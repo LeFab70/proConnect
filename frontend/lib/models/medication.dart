@@ -11,6 +11,16 @@ class Medication {
   final bool isActive;
   final bool isDeleted;
 
+  // Nouveaux champs pour le suivi du médicament
+  final DateTime? lastTakenAt;
+  final DateTime? missedAt;
+
+  /// Valeurs possibles :
+  /// "enAttente" = pas encore marqué comme pris
+  /// "pris" = médicament pris
+  /// "nonPris" = médicament non pris après 1h
+  final String status;
+
   Medication({
     required this.id,
     required this.name,
@@ -22,6 +32,9 @@ class Medication {
     this.isTaken = false,
     this.isActive = false,
     this.isDeleted = false,
+    this.lastTakenAt,
+    this.missedAt,
+    this.status = 'enAttente',
   });
 
   String get time => schedules.isNotEmpty ? schedules.first : '';
@@ -29,6 +42,12 @@ class Medication {
   String get schedule => schedules.join(', ');
 
   String get frequence => schedule;
+
+  bool get isPending => status == 'enAttente';
+
+  bool get isMissed => status == 'nonPris';
+
+  bool get isConfirmedTaken => status == 'pris';
 
   Medication copyWith({
     String? id,
@@ -41,6 +60,11 @@ class Medication {
     bool? isTaken,
     bool? isActive,
     bool? isDeleted,
+    DateTime? lastTakenAt,
+    DateTime? missedAt,
+    String? status,
+    bool clearLastTakenAt = false,
+    bool clearMissedAt = false,
   }) {
     return Medication(
       id: id ?? this.id,
@@ -53,6 +77,9 @@ class Medication {
       isTaken: isTaken ?? this.isTaken,
       isActive: isActive ?? this.isActive,
       isDeleted: isDeleted ?? this.isDeleted,
+      lastTakenAt: clearLastTakenAt ? null : lastTakenAt ?? this.lastTakenAt,
+      missedAt: clearMissedAt ? null : missedAt ?? this.missedAt,
+      status: status ?? this.status,
     );
   }
 
@@ -79,6 +106,8 @@ class Medication {
 
     parsedSchedules = parsedSchedules.toSet().toList()..sort();
 
+    final isTakenValue = json['isTaken'] == true || json['IsTaken'] == true;
+
     return Medication(
       id: json['id']?.toString() ?? json['Id']?.toString() ?? '',
       name:
@@ -91,21 +120,33 @@ class Medication {
       schedules: parsedSchedules,
       urlPhoto: json['urlPhoto']?.toString() ?? json['UrlPhoto']?.toString(),
       aineId: _parseInt(json['aineId'] ?? json['AineId']),
-      isTaken: json['isTaken'] == true,
+      isTaken: isTakenValue,
       isActive: json['isActive'] == true || json['IsActive'] == true,
       isDeleted: json['isDeleted'] == true || json['IsDeleted'] == true,
+      lastTakenAt: _parseDateTime(json['lastTakenAt'] ?? json['LastTakenAt']),
+      missedAt: _parseDateTime(json['missedAt'] ?? json['MissedAt']),
+      status:
+          json['status']?.toString() ??
+          json['Status']?.toString() ??
+          (isTakenValue ? 'pris' : 'enAttente'),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'nom': name,
       'marque': marque,
       'dosage': dosage,
       'frequence': schedules.join(', '),
       'aineId': aineId,
       'urlPhoto': urlPhoto,
+      'isTaken': isTaken,
       'isActive': isActive,
+      'isDeleted': isDeleted,
+      'lastTakenAt': lastTakenAt?.toIso8601String(),
+      'missedAt': missedAt?.toIso8601String(),
+      'status': status,
     };
   }
 
@@ -115,8 +156,13 @@ class Medication {
     return int.tryParse(value.toString()) ?? 0;
   }
 
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString());
+  }
+
   @override
   String toString() {
-    return 'Medication(name: $name, marque: $marque, dosage: $dosage, schedules: $schedules, urlPhoto: $urlPhoto, active: $isActive)';
+    return 'Medication(id: $id, name: $name, marque: $marque, dosage: $dosage, schedules: $schedules, status: $status, active: $isActive, taken: $isTaken)';
   }
 }

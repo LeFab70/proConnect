@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/medication.dart';
 import '../../models/rappel.dart';
+import '../../provider/aine_provider.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/medication_provider.dart';
 import '../../provider/rappel_provider.dart';
@@ -31,7 +32,7 @@ class AddMedicationScreen extends StatefulWidget {
     this.initialDosage,
     this.initialSchedules,
     this.initialUrlPhoto,
-    this.initialAineId = 1,
+    this.initialAineId = 0,
     this.initialIsActive = true,
   });
 
@@ -87,6 +88,24 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     _dosageController.dispose();
     _urlPhotoController.dispose();
     super.dispose();
+  }
+
+  int _resolveAineId(AuthProvider auth, AineProvider aineProvider) {
+    if (_isEditMode && widget.initialAineId > 0) {
+      return widget.initialAineId;
+    }
+
+    final selectedAineId = aineProvider.selectedAine?.id;
+    if (selectedAineId != null && selectedAineId > 0) {
+      return selectedAineId;
+    }
+
+    final currentUserId = auth.currentUserLocalId;
+    if (currentUserId != null && currentUserId > 0) {
+      return currentUserId;
+    }
+
+    return 0;
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -263,12 +282,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         dateHeurePrise = dateHeurePrise.add(const Duration(days: 1));
       }
 
-      final heureBackend = _heureBackendFromSchedule(schedule);
-
       final rappel = Rappel(
         id: DateTime.now().microsecondsSinceEpoch,
         dateDebut: DateTime.now(),
-        heureDebut: heureBackend,
+        heureDebut: _heureBackendFromSchedule(schedule),
         minutesAvantRappel: minutesAvant,
         dateHeurePrise: dateHeurePrise,
         dateHeureNotification: dateHeurePrise.subtract(
@@ -317,29 +334,45 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       final medicationProvider = context.read<MedicationProvider>();
       final rappelProvider = context.read<RappelProvider>();
       final auth = context.read<AuthProvider>();
+      final aineProvider = context.read<AineProvider>();
+
+      final aineId = _resolveAineId(auth, aineProvider);
+
+      if (aineId <= 0) {
+        _showSnackBar(
+          "Impossible d'enregistrer : aucun aîné sélectionné.",
+          isError: true,
+        );
+        return;
+      }
 
       final name = _nameController.text.trim();
       final marque = _marqueController.text.trim();
       final dosage = _dosageController.text.trim();
-
       final photoPath = _urlPhotoController.text.trim();
 
       String? urlPhoto;
+
       if (photoPath.isEmpty) {
         urlPhoto = null;
-      } else if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      } else if (photoPath.startsWith('http://') ||
+          photoPath.startsWith('https://')) {
         urlPhoto = photoPath;
       } else {
         urlPhoto = await MedicationService().uploadMedicamentImage(
           photoPath,
           auth.token ?? '',
         );
+
         if (urlPhoto == null) {
           _showSnackBar("Impossible d'envoyer la photo", isError: true);
           setState(() => _isLoading = false);
           return;
         }
       }
+
+      debugPrint("AUTH USER: ${auth.currentUserLocalId}");
+      debugPrint("AINE ID UTILISÉ POUR MEDICAMENT: $aineId");
 
       final bool success;
 
@@ -351,7 +384,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           dosage,
           schedules,
           urlPhoto: urlPhoto,
-          aineId: widget.initialAineId,
+          aineId: aineId,
           isActive: _isActive,
           auth: auth,
         );
@@ -378,7 +411,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           dosage,
           schedules,
           urlPhoto: urlPhoto,
-          aineId: widget.initialAineId,
+          aineId: aineId,
           isActive: _isActive,
           auth: auth,
         );
@@ -387,7 +420,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           Medication? match;
 
           for (final m in medicationProvider.medications) {
-            if (m.name == name && m.marque == marque) {
+            if (m.name == name && m.marque == marque && m.aineId == aineId) {
               match = m;
             }
           }
@@ -447,7 +480,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         ),
         content: Text(
           'Cette action est irréversible.',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), height: 1.5),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
@@ -534,68 +570,30 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             colors: [Color(0xFF004E92), Color(0xFF000428)],
           ),
         ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -60,
-              right: -80,
-              child: Container(
-                width: 260,
-                height: 260,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFF004E92).withValues(alpha: 0.55),
-                      Colors.transparent,
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                    children: [
+                      _buildInfoCard(),
+                      const SizedBox(height: 16),
+                      _buildSchedulesCard(),
+                      const SizedBox(height: 16),
+                      _buildActiveToggle(),
+                      const SizedBox(height: 24),
+                      _buildSubmitButton(),
                     ],
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              bottom: 80,
-              left: -60,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.04),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      child: ListView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-                        children: [
-                          _buildInfoCard(),
-                          const SizedBox(height: 16),
-                          _buildSchedulesCard(),
-                          const SizedBox(height: 16),
-                          _buildActiveToggle(),
-                          const SizedBox(height: 24),
-                          _buildSubmitButton(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -684,7 +682,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF000428).withValues(alpha: 0.3),
@@ -763,7 +764,11 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
           color: Colors.white.withValues(alpha: 0.4),
           fontSize: 13,
         ),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.35), size: 19),
+        prefixIcon: Icon(
+          icon,
+          color: Colors.white.withValues(alpha: 0.35),
+          size: 19,
+        ),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.07),
         contentPadding: const EdgeInsets.symmetric(
@@ -847,7 +852,10 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
         child: Row(
           children: [
@@ -891,7 +899,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Photo du médicament',
+                    "Photo de l'ordonnance",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -1001,8 +1009,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                       onTap: _isLoading
                           ? null
                           : () => setState(() {
-                                _selectedTimes.remove(time);
-                              }),
+                              _selectedTimes.remove(time);
+                            }),
                       child: Icon(
                         Icons.close_rounded,
                         size: 14,

@@ -60,13 +60,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final nbDemandes = partage.countDemandesPourProche(auth);
 
+    final int aineIdActif =
+        aines.selectedAine?.id ?? auth.currentUserLocalId ?? 0;
+
     final activeMeds = isProcheSansAine
         ? []
-        : meds.medications.where((m) => m.isActive).toList();
+        : meds.medications
+              .where((m) => m.aineId == aineIdActif)
+              .where((m) => m.isActive)
+              .where((m) => !m.isDeleted)
+              .toList();
 
     final remainingMeds = isProcheSansAine
         ? 0
-        : activeMeds.where((m) => !m.isTaken).length;
+        : activeMeds.where((m) => m.status == 'enAttente').length;
+
+    final missedMeds = isProcheSansAine
+        ? 0
+        : activeMeds.where((m) => m.status == 'nonPris').length;
 
     final activeReminders = isProcheSansAine
         ? 0
@@ -88,8 +99,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final activityData = isProcheSansAine ? null : activity.todayActivity;
 
     final rappelsDuJour = isProcheSansAine ? [] : rappelProvider.rappelsDuJour;
-
-
 
     return Scaffold(
       key: _scaffoldKey,
@@ -119,6 +128,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       label: "À prendre",
                       icon: Icons.medication,
                       color: const Color(0xFF8370D8),
+                      disabled: isProcheSansAine,
+                    ),
+                    const SizedBox(width: 10),
+                    _buildStatCard(
+                      value: missedMeds.toString().padLeft(2, '0'),
+                      label: "Non pris",
+                      icon: Icons.warning_amber_rounded,
+                      color: const Color(0xFFE86C5D),
                       disabled: isProcheSansAine,
                     ),
                     const SizedBox(width: 10),
@@ -193,7 +210,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _disabledInfoBox(
                             "Sélectionnez un aîné pour afficher ses médicaments.",
                           )
-                        else if (meds.medications.isEmpty)
+                        else if (activeMeds.isEmpty)
                           const Padding(
                             padding: EdgeInsets.all(20),
                             child: TrText(
@@ -202,9 +219,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           )
                         else
-                          ...meds.medications
-                              .take(3)
-                              .map((med) => _medicationTile(context, med)),
+                          ...activeMeds.map(
+                            (med) => _medicationTile(context, med),
+                          ),
 
                         const SizedBox(height: 12),
                         if (!isProcheSansAine) _warningCard(remainingMeds),
@@ -236,8 +253,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           )
                         else
-                          ...rappelsDuJour.take(3).map((r) => _rappelTile(r)),
-
+                          ...rappelsDuJour.map((r) => _rappelTile(r)),
                       ],
                     ),
                   ),
@@ -470,6 +486,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   "Rendez-vous",
                   () => Navigator.pushNamed(context, '/appointments'),
                 ),
+                _drawerItem(
+                  Icons.history,
+                  "Historique médicaments",
+                  () => Navigator.pushNamed(context, '/medicationHistory'),
+                ),
+                const Divider(color: Colors.white24, indent: 20, endIndent: 20),
                 _drawerItem(
                   Icons.calendar_month,
                   "Paramètres",
@@ -718,9 +740,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               radius: 4,
               backgroundColor: !isActive
                   ? Colors.grey
-                  : isTaken
+                  : med.status == 'pris'
                   ? const Color(0xFF6FC27B)
-                  : const Color(0xFFEF6A5A),
+                  : med.status == 'nonPris'
+                  ? Colors.red
+                  : const Color(0xFFFFB547),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -747,9 +771,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       TrText(
-                        isActive
-                            ? (isTaken ? "pris" : "à prendre")
-                            : "désactivé",
+                        !isActive
+                            ? "désactivé"
+                            : med.status == 'pris'
+                            ? "pris"
+                            : med.status == 'nonPris'
+                            ? "non pris"
+                            : "à prendre",
                         style: const TextStyle(
                           color: Color(0xFF8A8178),
                           fontSize: 10,
@@ -766,10 +794,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 icon: Icon(
-                  isTaken ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: isTaken
+                  med.status == 'pris'
+                      ? Icons.check_circle
+                      : med.status == 'nonPris'
+                      ? Icons.cancel
+                      : Icons.radio_button_unchecked,
+                  color: med.status == 'pris'
                       ? const Color(0xFF61B66D)
-                      : const Color(0xFFFF6B3D),
+                      : med.status == 'nonPris'
+                      ? Colors.red
+                      : const Color(0xFFFFB547),
                   size: 22,
                 ),
                 onPressed: () =>

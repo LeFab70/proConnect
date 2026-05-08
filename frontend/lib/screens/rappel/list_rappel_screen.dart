@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/rappel.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/rappel_provider.dart';
+import '../../provider/medication_provider.dart';
 import 'add_rappel_screen.dart';
 import 'rappel_details_screen.dart';
 
@@ -17,6 +18,16 @@ class ListRappelScreen extends StatefulWidget {
 
 class _ListRappelScreenState extends State<ListRappelScreen> {
   final Set<int> _selectedIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = context.read<AuthProvider>();
+      context.read<RappelProvider>().fetchRappels(auth);
+    });
+  }
 
   String _formatDateTime(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
@@ -35,9 +46,11 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
   Future<void> _deleteSelected(BuildContext context) async {
     final provider = context.read<RappelProvider>();
     final auth = context.read<AuthProvider>();
+
     for (final id in _selectedIds) {
       await provider.deleteRappel(id, auth);
     }
+
     setState(() => _selectedIds.clear());
 
     if (context.mounted) {
@@ -78,7 +91,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
         ),
         child: Stack(
           children: [
-            // Orb haut-droit
             Positioned(
               top: -80,
               right: -80,
@@ -96,7 +108,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                 ),
               ),
             ),
-            // Orb bas-gauche
             Positioned(
               bottom: 100,
               left: -60,
@@ -114,7 +125,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                 ),
               ),
             ),
-
             SafeArea(
               child: Column(
                 children: [
@@ -130,7 +140,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
           ],
         ),
       ),
-
       floatingActionButton: hasSelection
           ? FloatingActionButton.extended(
               onPressed: () => _deleteSelected(context),
@@ -213,7 +222,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
               ),
             ),
           ),
-
           Column(
             children: [
               Text(
@@ -238,7 +246,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                 ),
             ],
           ),
-
           hasSelection
               ? GestureDetector(
                   onTap: () => _deleteSelected(context),
@@ -309,7 +316,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
   }
 
   Widget _buildList(List<Rappel> rappels) {
-    // Sépare actifs / inactifs
     final actifs = rappels.where((r) => r.actif).toList();
     final inactifs = rappels.where((r) => !r.actif).toList();
 
@@ -449,19 +455,35 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    rappel.type,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: isActif
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.35),
-                      decoration: isActif ? null : TextDecoration.lineThrough,
-                      decorationColor: Colors.white.withValues(alpha: 0.2),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Consumer<MedicationProvider>(
+                    builder: (context, medicationProvider, _) {
+                      final med = rappel.medicamentId == null
+                          ? null
+                          : medicationProvider.getMedicationById(
+                              rappel.medicamentId.toString(),
+                            );
+
+                      final title = med == null
+                          ? rappel.type
+                          : 'Médicament : ${med.name}';
+
+                      return Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: isActif
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.35),
+                          decoration: isActif
+                              ? null
+                              : TextDecoration.lineThrough,
+                          decorationColor: Colors.white.withValues(alpha: 0.2),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 6),
@@ -477,7 +499,9 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                             : Colors.white.withValues(alpha: 0.2),
                         isActif,
                       ),
+
                       const SizedBox(width: 6),
+
                       _buildTimePill(
                         Icons.medication_rounded,
                         _formatTime(rappel.dateHeurePrise),

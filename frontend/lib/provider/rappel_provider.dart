@@ -13,10 +13,9 @@ class RappelProvider with ChangeNotifier {
   List<Rappel> get rappels => List.unmodifiable(_rappels);
 
   List<Rappel> get rappelsActifs {
-    return _rappels.where((r) => r.actif).toList()
-      ..sort(
-        (a, b) => a.dateHeureNotification.compareTo(b.dateHeureNotification),
-      );
+    return _rappels.where((r) => r.actif).toList()..sort(
+      (a, b) => a.dateHeureNotification.compareTo(b.dateHeureNotification),
+    );
   }
 
   List<Rappel> get rappelsDuJour {
@@ -27,24 +26,26 @@ class RappelProvider with ChangeNotifier {
           r.dateHeureNotification.year == today.year &&
           r.dateHeureNotification.month == today.month &&
           r.dateHeureNotification.day == today.day;
-    }).toList()
-      ..sort(
-        (a, b) => a.dateHeureNotification.compareTo(b.dateHeureNotification),
-      );
+    }).toList()..sort(
+      (a, b) => a.dateHeureNotification.compareTo(b.dateHeureNotification),
+    );
   }
 
-  // Fabrice | 2026-05-05T04:56:37Z | Synchronise avec GET /api/rappels.
   Future<void> fetchRappels(AuthProvider auth) async {
-    if (auth.token == null) return;
+    if (auth.token == null || auth.token!.isEmpty) return;
 
     try {
       final list = await _service.getRappels(auth.token!);
+
       _rappels
         ..clear()
         ..addAll(list);
+
       _sort();
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erreur fetchRappels: $e');
+    }
   }
 
   Future<bool> addRappel(Rappel rappel, AuthProvider auth) async {
@@ -58,10 +59,21 @@ class RappelProvider with ChangeNotifier {
     if (existeDeja) return false;
 
     final token = auth.token;
-    if (token != null) {
+
+    if (token != null && token.isNotEmpty) {
       final id = await _service.createRappel(rappel, token);
+
+      debugPrint("CREATE RAPPEL ID: $id");
+
       if (id != null) {
+        final saved = rappel.copyWith(id: id);
+
+        _rappels.add(saved);
+        _sort();
+        notifyListeners();
+
         await fetchRappels(auth);
+
         return true;
       }
     }
@@ -69,6 +81,7 @@ class RappelProvider with ChangeNotifier {
     _rappels.add(rappel);
     _sort();
     notifyListeners();
+
     return true;
   }
 
@@ -79,10 +92,21 @@ class RappelProvider with ChangeNotifier {
 
   Future<bool> updateRappel(Rappel rappel, AuthProvider auth) async {
     final token = auth.token;
-    if (token != null && rappel.id > 0) {
+
+    if (token != null && token.isNotEmpty && rappel.id > 0) {
       final ok = await _service.updateRappel(rappel.id, rappel, token);
+
       if (ok) {
+        final index = _rappels.indexWhere((r) => r.id == rappel.id);
+
+        if (index != -1) {
+          _rappels[index] = rappel;
+          _sort();
+          notifyListeners();
+        }
+
         await fetchRappels(auth);
+
         return true;
       }
     }
@@ -102,8 +126,10 @@ class RappelProvider with ChangeNotifier {
     await NotificationService.cancelNotification(id);
 
     final token = auth.token;
-    if (token != null && id > 0) {
+
+    if (token != null && token.isNotEmpty && id > 0) {
       final ok = await _service.deleteRappel(id, token);
+
       if (ok) {
         _rappels.removeWhere((r) => r.id == id);
         notifyListeners();
@@ -127,7 +153,9 @@ class RappelProvider with ChangeNotifier {
     int medicamentId,
     AuthProvider auth,
   ) async {
-    final toRemove = _rappels.where((r) => r.medicamentId == medicamentId).toList();
+    final toRemove = _rappels
+        .where((r) => r.medicamentId == medicamentId)
+        .toList();
 
     for (final r in toRemove) {
       await deleteRappel(r.id, auth);
@@ -140,8 +168,9 @@ class RappelProvider with ChangeNotifier {
     int rendezVousMedicalId,
     AuthProvider auth,
   ) async {
-    final toRemove =
-        _rappels.where((r) => r.rendezVousMedicalId == rendezVousMedicalId).toList();
+    final toRemove = _rappels
+        .where((r) => r.rendezVousMedicalId == rendezVousMedicalId)
+        .toList();
 
     for (final r in toRemove) {
       await deleteRappel(r.id, auth);

@@ -22,7 +22,7 @@ import '../screens/settings/change_password_screen.dart';
 import '../screens/partage/partageScreen.dart';
 import '../screens/user/profile_screen.dart';
 import '../screens/partage/demandes_recues_screen.dart';
-
+import '../screens/medications/medication_history_screen.dart';
 
 class AppRouter {
   static const String aineDetail = '/aine-detail';
@@ -66,6 +66,9 @@ class AppRouter {
 
       case '/medications':
         return MaterialPageRoute(builder: (_) => const MedicationListScreen());
+
+      case '/medicationHistory':
+        return MaterialPageRoute(builder: (_) => const MedicationHistoryScreen());
 
       case '/rappel':
         return MaterialPageRoute(builder: (_) => const ListRappelScreen());

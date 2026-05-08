@@ -41,11 +41,13 @@ class MedicationService {
         Uri.parse("${_api.baseUrl}/api/images/upload"),
       );
       request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        imagePath,
-        contentType: MediaType('image', 'jpeg'),
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          imagePath,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
 
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);

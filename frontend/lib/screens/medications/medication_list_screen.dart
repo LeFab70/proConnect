@@ -5,9 +5,9 @@ import 'package:provider/provider.dart';
 import '../../models/rappel.dart';
 import '../../models/medication.dart';
 import '../../provider/auth_provider.dart';
+import '../../provider/aine_provider.dart';
 import '../../provider/medication_provider.dart';
 import '../../provider/rappel_provider.dart';
-import '../../services/notification_service.dart';
 import 'add_medication_screen.dart';
 
 class MedicationListScreen extends StatefulWidget {
@@ -48,6 +48,20 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
     });
   }
 
+  bool _isValidHourSchedule(String schedule) {
+    final regex = RegExp(r'^\d{1,2}:\d{2}$');
+
+    if (!regex.hasMatch(schedule)) return false;
+
+    final parts = schedule.split(':');
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+
+    if (hour == null || minute == null) return false;
+
+    return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+  }
+
   DateTime _buildDateTimeFromTime(String time) {
     final now = DateTime.now();
     final parts = time.split(':');
@@ -64,15 +78,42 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
     final rappelProvider = context.read<RappelProvider>();
     final auth = context.read<AuthProvider>();
 
-    await medicationProvider.toggleActive(med.id, value, auth);
-
     final medicamentId = int.tryParse(med.id);
-    if (medicamentId == null) return;
+
+    if (medicamentId == null) {
+      _showSnackBar("ID médicament invalide", isError: true);
+      return;
+    }
+
+    final validSchedules = med.schedules.where(_isValidHourSchedule).toList();
+
+    if (value && validSchedules.isEmpty) {
+      _showSnackBar(
+        "Impossible d'ajouter ce médicament aux rappels : aucune heure valide.",
+        isError: true,
+      );
+      return;
+    }
+
+    final ok = await medicationProvider.toggleActive(med.id, value, auth);
+
+    if (!ok) {
+      _showSnackBar(
+        "Impossible de modifier l'état du médicament",
+        isError: true,
+      );
+      return;
+    }
 
     await rappelProvider.deleteRappelByMedicamentId(medicamentId, auth);
-    if (!value) return;
 
-    for (final schedule in med.schedules) {
+    if (!value) {
+      await rappelProvider.fetchRappels(auth);
+      _showSnackBar("Rappel désactivé");
+      return;
+    }
+
+    for (final schedule in validSchedules) {
       var dateHeurePrise = _buildDateTimeFromTime(schedule);
       const minutesAvant = 10;
 
@@ -100,17 +141,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
 
     await rappelProvider.fetchRappels(auth);
 
-    for (final r
-        in rappelProvider.rappels.where((x) => x.medicamentId == medicamentId)) {
-      try {
-        await NotificationService.scheduleDailyRappel(
-          id: r.id,
-          title: 'Rappel médicament',
-          body: 'Il est temps de prendre ${med.name}',
-          dateTime: r.dateHeureNotification,
-        );
-      } catch (_) {}
-    }
+    _showSnackBar("Rappel activé");
   }
 
   Future<void> _deleteSelected() async {
@@ -127,8 +158,8 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
       if (medId != null) {
         await rappelProvider.deleteRappelByMedicamentId(medId, auth);
       }
-      final success =
-          await medicationProvider.deleteMedication(id, auth: auth);
+
+      final success = await medicationProvider.deleteMedication(id, auth: auth);
       if (!success) allSuccess = false;
     }
 
@@ -183,32 +214,22 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
     );
   }
 
-  Widget _buildMedicationAvatar(Medication med, bool isSelected) {
-    if (isSelected) {
-      return Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: const Color(0xFF4A9FE8),
-          shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFF7DC4FF), width: 1.5),
-        ),
-        child: const Icon(Icons.check_rounded, color: Colors.white, size: 22),
-      );
-    }
+  Widget _buildMedicationAvatar(Medication med) {
+    const double size = 82;
 
     if (med.urlPhoto != null && med.urlPhoto!.trim().isNotEmpty) {
       return Container(
-        width: 48,
-        height: 48,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
+            color: const Color(0xFF4A9FE8).withValues(alpha: 0.35),
             width: 1.5,
           ),
         ),
-        child: ClipOval(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
           child: Image.network(
             med.urlPhoto!,
             fit: BoxFit.cover,
@@ -222,14 +243,16 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
   }
 
   Widget _defaultAvatar(Medication med) {
+    const double size = 82;
+
     return Container(
-      width: 48,
-      height: 48,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: med.isActive
             ? const Color(0xFF004E92).withValues(alpha: 0.5)
             : Colors.white.withValues(alpha: 0.05),
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: med.isActive
               ? const Color(0xFF4A9FE8).withValues(alpha: 0.35)
@@ -242,7 +265,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
         color: med.isActive
             ? const Color(0xFF7DC4FF)
             : Colors.white.withValues(alpha: 0.25),
-        size: 22,
+        size: 34,
       ),
     );
   }
@@ -265,7 +288,6 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
         ),
         child: Stack(
           children: [
-            // Orb haut-droit
             Positioned(
               top: -80,
               right: -80,
@@ -283,7 +305,6 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                 ),
               ),
             ),
-            // Orb bas-gauche
             Positioned(
               bottom: 100,
               left: -60,
@@ -301,7 +322,6 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                 ),
               ),
             ),
-
             SafeArea(
               child: Column(
                 children: [
@@ -309,8 +329,14 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                   Expanded(
                     child: Consumer<MedicationProvider>(
                       builder: (context, provider, child) {
+                        final aineProvider = context.watch<AineProvider>();
+                        final selectedAine = aineProvider.selectedAine;
+                        final auth = context.watch<AuthProvider>();
+                        final int aineIdActif =
+                            selectedAine?.id ?? auth.currentUserLocalId ?? 0;
                         final meds = provider.medications
                             .where((med) => !med.isDeleted)
+                            .where((med) => med.aineId == aineIdActif)
                             .toList();
 
                         if (meds.isEmpty) return _buildEmptyState();
@@ -334,7 +360,6 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
           ],
         ),
       ),
-
       floatingActionButton: hasSelection
           ? FloatingActionButton.extended(
               onPressed: _isDeleting ? null : _deleteSelected,
@@ -366,10 +391,17 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
             )
           : FloatingActionButton.extended(
               onPressed: () {
+                final auth = context.read<AuthProvider>();
+                final selectedAine = context.read<AineProvider>().selectedAine;
+
+                final int aineIdActif =
+                    selectedAine?.id ?? auth.currentUserLocalId ?? 0;
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const AddMedicationScreen(),
+                    builder: (_) =>
+                        AddMedicationScreen(initialAineId: aineIdActif),
                   ),
                 );
               },
@@ -423,7 +455,6 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
               ),
             ),
           ),
-
           Column(
             children: [
               Text(
@@ -440,9 +471,18 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
               if (!hasSelection)
                 Consumer<MedicationProvider>(
                   builder: (_, provider, _) {
+                    final auth = context.watch<AuthProvider>();
+                    final aineProvider = context.watch<AineProvider>();
+                    final selectedAine = aineProvider.selectedAine;
+
+                    final int aineIdActif =
+                        selectedAine?.id ?? auth.currentUserLocalId ?? 0;
+
                     final count = provider.medications
                         .where((m) => !m.isDeleted)
+                        .where((m) => m.aineId == aineIdActif)
                         .length;
+
                     return Text(
                       '$count traitement(s)',
                       style: TextStyle(
@@ -455,7 +495,6 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                 ),
             ],
           ),
-
           const SizedBox(width: 44),
         ],
       ),
@@ -518,7 +557,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.white.withValues(alpha: 0.16)
@@ -539,22 +578,21 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
           ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar
             GestureDetector(
               onTap: () => _toggleSelection(med.id),
-              child: _buildMedicationAvatar(med, isSelected),
+              child: _buildMedicationAvatar(med),
             ),
-
             const SizedBox(width: 14),
-
-            // Infos
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     med.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -567,10 +605,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                       decorationColor: Colors.white.withValues(alpha: 0.3),
                     ),
                   ),
-
                   const SizedBox(height: 4),
-
-                  // Marque + dosage
                   Row(
                     children: [
                       if (med.marque.isNotEmpty) ...[
@@ -580,12 +615,16 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                           color: Colors.white.withValues(alpha: 0.4),
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          med.marque,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.5),
-                            fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: Text(
+                            med.marque,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -596,20 +635,21 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                         color: Colors.white.withValues(alpha: 0.4),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        med.dosage,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Text(
+                          med.dosage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 6),
-
-                  // Horaires sous forme de chips
                   if (med.schedules.isNotEmpty)
                     Wrap(
                       spacing: 6,
@@ -627,7 +667,9 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: med.isActive
-                                  ? const Color(0xFF4A9FE8).withValues(alpha: 0.3)
+                                  ? const Color(
+                                      0xFF4A9FE8,
+                                    ).withValues(alpha: 0.3)
                                   : Colors.white.withValues(alpha: 0.07),
                               width: 1,
                             ),
@@ -639,7 +681,9 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                                 Icons.access_time_rounded,
                                 size: 10,
                                 color: med.isActive
-                                    ? const Color(0xFF7DC4FF).withValues(alpha: 0.8)
+                                    ? const Color(
+                                        0xFF7DC4FF,
+                                      ).withValues(alpha: 0.8)
                                     : Colors.white.withValues(alpha: 0.2),
                               ),
                               const SizedBox(width: 3),
@@ -658,10 +702,7 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                         );
                       }).toList(),
                     ),
-
                   const SizedBox(height: 6),
-
-                  // Badge statut
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -694,50 +735,52 @@ class _MedicationListScreenState extends State<MedicationListScreen> {
                 ],
               ),
             ),
-
             const SizedBox(width: 8),
-
-            // Switch
-            Transform.scale(
-              scale: 0.85,
-              child: Switch(
-                value: med.isActive,
-                activeThumbColor: Colors.white,
-                activeTrackColor: const Color(0xFF004E92),
-                inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
-                inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-                onChanged: (value) async {
-                  await _createOrRemoveRappels(med: med, value: value);
-                },
-              ),
-            ),
-
-            const SizedBox(width: 6),
-
-            // Checkbox sélection
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 28,
-              width: 28,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF4A9FE8)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF4A9FE8)
-                      : Colors.white.withValues(alpha: 0.22),
-                  width: 1.5,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Transform.scale(
+                  scale: 0.78,
+                  child: Switch(
+                    value: med.isActive,
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: const Color(0xFF004E92),
+                    inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
+                    inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+                    onChanged: (value) async {
+                      await _createOrRemoveRappels(med: med, value: value);
+                    },
+                  ),
                 ),
-              ),
-              child: isSelected
-                  ? const Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    )
-                  : null,
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => _toggleSelection(med.id),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 30,
+                    width: 30,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF4A9FE8)
+                          : Colors.white.withValues(alpha: 0.06),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF7DC4FF)
+                            : Colors.white.withValues(alpha: 0.28),
+                        width: 1.6,
+                      ),
+                    ),
+                    child: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 17,
+                          )
+                        : null,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
