@@ -19,22 +19,19 @@ public static class RappelsEndpoints
             .WithSummary("Récupère un rappel par id");
 
         route.MapPost("/", Create)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
-            .WithSummary("Crée un rappel (Admin). Type: Medicament (medicament_id) ou RendezVousMedical (rendez_vous_medical_id). MinutesAvantRappel = décalage avant la prise ou le RDV.");
+            .WithSummary("Crée un rappel. Type: Medicament (medicament_id) ou RendezVousMedical (rendez_vous_medical_id). MinutesAvantRappel = décalage avant la prise ou le RDV.");
 
         route.MapPut("/{id:long}", Update)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Met à jour un rappel (Admin)");
+            .WithSummary("Met à jour un rappel");
 
         route.MapDelete("/{id:long}", Delete)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Supprime un rappel (Admin)");
+            .WithSummary("Supprime un rappel");
     }
 
     private static async Task<IResult> GetAll(IRappelService svc)

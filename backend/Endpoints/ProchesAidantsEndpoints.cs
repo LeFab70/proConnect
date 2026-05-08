@@ -19,21 +19,18 @@ public static class ProchesAidantsEndpoints
             .WithSummary("Récupère un proche aidant par id");
 
         route.MapPost("/", Create)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
-            .WithSummary("Crée un proche aidant (Admin)");
+            .WithSummary("Crée un proche aidant");
 
         route.MapPut("/{id:long}", Update)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Met à jour un proche aidant (Admin)");
+            .WithSummary("Met à jour un proche aidant");
 
         route.MapDelete("/{id:long}", Delete)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Supprime un proche aidant (Admin)");
+            .WithSummary("Supprime un proche aidant");
     }
 
     private static async Task<IResult> GetAll(IProcheAidantService svc)

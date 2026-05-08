@@ -19,21 +19,18 @@ public static class PartagesSuiviEndpoints
             .WithSummary("Récupère un partage de suivi par id");
 
         route.MapPost("/", Create)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
-            .WithSummary("Crée un partage de suivi (Admin)");
+            .WithSummary("Crée un partage de suivi");
 
         route.MapPut("/{id:long}", Update)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Met à jour un partage de suivi (Admin)");
+            .WithSummary("Met à jour un partage de suivi");
 
         route.MapDelete("/{id:long}", Delete)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Supprime un partage de suivi (Admin)");
+            .WithSummary("Supprime un partage de suivi");
     }
 
     private static async Task<IResult> GetAll(IPartageSuiviService svc)

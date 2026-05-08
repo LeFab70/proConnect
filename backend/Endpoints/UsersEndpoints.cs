@@ -21,21 +21,18 @@ public static class UsersEndpoints
             .WithSummary("Récupère un utilisateur par id");
 
         route.MapPost("/", Create)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
-            .WithSummary("Crée un utilisateur local (Admin)");
+            .WithSummary("Crée un utilisateur local");
 
         route.MapPut("/{id:long}", Update)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Met à jour un utilisateur (Admin)");
+            .WithSummary("Met à jour un utilisateur");
 
         route.MapDelete("/{id:long}", Delete)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Supprime un utilisateur (Admin)");
+            .WithSummary("Supprime un utilisateur");
     }
 
     private static async Task<IResult> GetAll(IUserService svc)

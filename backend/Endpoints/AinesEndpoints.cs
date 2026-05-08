@@ -25,21 +25,18 @@ public static class AinesEndpoints
             .WithSummary("Récupère un aîné par id");
 
         route.MapPost("/", Create)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
-            .WithSummary("Crée un aîné (Admin)");
+            .WithSummary("Crée un aîné");
 
         route.MapPut("/{id:long}", Update)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Met à jour un aîné (Admin)");
+            .WithSummary("Met à jour un aîné");
 
         route.MapDelete("/{id:long}", Delete)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Supprime un aîné (Admin)");
+            .WithSummary("Supprime un aîné");
     }
 
     private static async Task<IResult> GetAll(IAineService svc)

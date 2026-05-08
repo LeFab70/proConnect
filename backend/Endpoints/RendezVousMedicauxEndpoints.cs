@@ -19,21 +19,18 @@ public static class RendezVousMedicauxEndpoints
             .WithSummary("Récupère un rendez-vous médical par id");
 
         route.MapPost("/", Create)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status201Created)
-            .WithSummary("Crée un rendez-vous médical (Admin)");
+            .WithSummary("Crée un rendez-vous médical");
 
         route.MapPut("/{id:long}", Update)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Met à jour un rendez-vous médical (Admin)");
+            .WithSummary("Met à jour un rendez-vous médical");
 
         route.MapDelete("/{id:long}", Delete)
-            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Supprime un rendez-vous médical (Admin)");
+            .WithSummary("Supprime un rendez-vous médical");
     }
 
     private static async Task<IResult> GetAll(IRendezVousMedicalService svc)
