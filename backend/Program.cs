@@ -55,6 +55,7 @@ builder.Services.AddScoped<IRendezVousMedicalService, RendezVousMedicalService>(
 builder.Services.AddScoped<IRappelService, RappelService>();
 builder.Services.AddScoped<IPartageSuiviService, PartageSuiviService>();
 builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
+builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
 
 // EF Core: migrations + runtime (services EF)
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -131,6 +132,16 @@ if (enableSwagger)
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Static files for uploaded images
+Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "uploads"));
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(app.Environment.ContentRootPath, "uploads")
+    ),
+    RequestPath = "/uploads"
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

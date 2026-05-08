@@ -178,6 +178,45 @@ Dans l’app Flutter : écran **Connexion** → champ **Email** + champ **Mot de
 
 ---
 
+## Cinquième passe (2026-05-08T00:00:00Z) — Upload photos ordonnance (local uploads)
+
+### Objectif
+- Permettre d’**envoyer** une image (photo d’ordonnance) depuis Flutter, l’**enregistrer** côté backend .NET dans un dossier accessible via FileZilla, puis **retourner une URL publique** et l’afficher dans l’app.
+
+### Backend (.NET Minimal APIs)
+
+#### Endpoint
+- `POST /api/images/upload` (multipart form-data, champ `file`)
+- Réponse JSON: retourne **`urlImage`** et **`fileUrl`** (même valeur) et garde aussi **`url`** pour compatibilité (ancienne implémentation).
+
+#### Stockage
+- Les images sont sauvegardées dans le dossier `backend/uploads/` (créé automatiquement).
+- Le backend expose `GET /uploads/{filename}` via `UseStaticFiles`, ce qui rend l’image accessible via une URL publique.
+
+#### Fichiers touchés
+- `backend/Endpoints/ImagesEndpoints.cs`
+  - **Pourquoi** : construire une URL publique et retourner `{ urlImage, fileUrl, url }` pour compatibilité Flutter.
+- `backend/Program.cs`
+  - **Pourquoi** : servir le dossier `uploads/` en statique sous `/uploads` et enregistrer `LocalImageStorageService`.
+- `backend/Services/LocalImageStorageService.cs` *(nouveau)*
+  - **Pourquoi** : écrire l’image sur disque (`uploads/`) et retourner le nom de fichier généré.
+- `backend/Services/Interfaces/IImageStorageService.cs` *(nouveau)*
+  - **Pourquoi** : abstraction du stockage d’images (local aujourd’hui, remplaçable par Azure/FTP demain).
+
+### Frontend (Flutter)
+
+#### Upload
+- `MedicationService.uploadMedicamentImage(...)` envoie le fichier via `http.MultipartRequest` sur `POST /api/images/upload`.
+- La méthode lit maintenant la réponse dans l’ordre : `urlImage` → `fileUrl` → `url`.
+
+#### Affichage ordonnance
+- Le modèle `Medication` stocke l’URL dans `urlPhoto`.
+- Les écrans de médicaments affichent déjà l’ordonnance via `Image.network(urlPhoto)` quand `urlPhoto` est une URL HTTP.
+
+#### Fichiers touchés
+- `frontend/lib/services/medication_service.dart`
+  - **Pourquoi** : compatibilité avec la nouvelle forme de réponse `{ urlImage, fileUrl, url }`.
+
 ## Fichiers ajoutés
 
 ### readmefab (ce fichier)

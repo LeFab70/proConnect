@@ -10,10 +10,10 @@ public static class ImagesEndpoints
             .RequireAuthorization("AdminOnly")
             .DisableAntiforgery()
             .WithTags("Images")
-            .WithSummary("Upload une image vers Azure Blob Storage, retourne { url }");
+            .WithSummary("Upload une image, retourne { urlImage, fileUrl, url }");
     }
 
-    private static async Task<IResult> Upload(IFormFile? file, IAzureBlobService blobService)
+    private static async Task<IResult> Upload(HttpRequest request, IFormFile? file, IImageStorageService imageStorageService, CancellationToken ct)
     {
         if (file == null || file.Length == 0)
             return Results.BadRequest("Aucun fichier reçu.");
@@ -21,7 +21,15 @@ public static class ImagesEndpoints
         if (!file.ContentType.StartsWith("image/"))
             return Results.BadRequest("Le fichier doit être une image.");
 
-        var url = await blobService.UploadImageAsync(file);
-        return Results.Ok(new { url });
+        var stored = await imageStorageService.UploadImageAsync(file, ct);
+
+        // If storage returns an absolute URL, keep it. Otherwise build public URL.
+        var publicUrl = stored.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                        stored.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            ? stored
+            : $"{request.Scheme}://{request.Host}/uploads/{stored.TrimStart('/')}";
+
+        // Keep backward compatibility: Flutter currently reads "url".
+        return Results.Ok(new { urlImage = publicUrl, fileUrl = publicUrl, url = publicUrl });
     }
 }

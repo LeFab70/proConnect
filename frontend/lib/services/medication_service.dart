@@ -55,7 +55,12 @@ class MedicationService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map<String, dynamic>) {
-          return decoded['url'] as String?;
+          final urlImage = decoded['urlImage']?.toString();
+          final fileUrl = decoded['fileUrl']?.toString();
+          final url = decoded['url']?.toString(); // compat
+          return (urlImage?.isNotEmpty == true ? urlImage : null) ??
+              (fileUrl?.isNotEmpty == true ? fileUrl : null) ??
+              (url?.isNotEmpty == true ? url : null);
         }
       }
       return null;
