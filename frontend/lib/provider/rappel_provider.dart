@@ -9,7 +9,7 @@ class RappelProvider with ChangeNotifier {
   final RappelService _service = RappelService();
 
   final List<Rappel> _rappels = [];
-  final Set<int> _scheduledNotificationIds = {};
+  final Map<int, DateTime> _scheduledAt = {};
 
   List<Rappel> get rappels => List.unmodifiable(_rappels);
 
@@ -51,19 +51,33 @@ class RappelProvider with ChangeNotifier {
   }
 
   Future<void> _syncNotifications() async {
-    final desired = _rappels.where((r) => r.actif).map((r) => r.id).toSet();
-
-    // Cancel notifications that are no longer active/present.
-    final toCancel = _scheduledNotificationIds.difference(desired);
-    for (final id in toCancel) {
-      await NotificationService.cancelNotification(id);
-      _scheduledNotificationIds.remove(id);
+    int notifIdFor(Rappel r) {
+      // Android notification ids are effectively 32-bit; keep stable + positive.
+      return (r.id.hashCode & 0x7fffffff);
     }
 
-    // Schedule missing active notifications.
-    for (final r in _rappels) {
-      if (!r.actif) continue;
-      if (_scheduledNotificationIds.contains(r.id)) continue;
+    final active = _rappels.where((r) => r.actif).toList();
+    final desiredIds = active.map((r) => notifIdFor(r)).toSet();
+
+    // Cancel notifications that are no longer active/present.
+    final toCancel = _scheduledAt.keys.where((id) => !desiredIds.contains(id)).toList();
+    for (final id in toCancel) {
+      await NotificationService.cancelNotification(id);
+      _scheduledAt.remove(id);
+    }
+
+    // Schedule / reschedule active notifications.
+    for (final r in active) {
+      final notifId = notifIdFor(r);
+      final scheduledAt = _scheduledAt[notifId];
+
+      // If time changed, cancel then reschedule.
+      if (scheduledAt != null && scheduledAt != r.dateHeureNotification) {
+        await NotificationService.cancelNotification(notifId);
+        _scheduledAt.remove(notifId);
+      }
+
+      if (_scheduledAt.containsKey(notifId)) continue;
 
       final title = r.type.toLowerCase().contains('medicament')
           ? 'Rappel médicament'
@@ -73,13 +87,13 @@ class RappelProvider with ChangeNotifier {
           : 'Vous avez un rappel prévu.';
 
       await NotificationService.scheduleDailyRappel(
-        id: r.id,
+        id: notifId,
         title: title,
         body: body,
         dateTime: r.dateHeureNotification,
       );
 
-      _scheduledNotificationIds.add(r.id);
+      _scheduledAt[notifId] = r.dateHeureNotification;
     }
   }
 
@@ -161,8 +175,8 @@ class RappelProvider with ChangeNotifier {
   }
 
   Future<bool> deleteRappel(int id, AuthProvider auth) async {
-    await NotificationService.cancelNotification(id);
-    _scheduledNotificationIds.remove(id);
+    await NotificationService.cancelNotification(id.hashCode & 0x7fffffff);
+    _scheduledAt.remove(id.hashCode & 0x7fffffff);
 
     final token = auth.token;
 

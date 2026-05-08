@@ -16,7 +16,8 @@ class MedicationHistoryScreen extends StatefulWidget {
 }
 
 class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
-  DateTime? _selectedDate;
+  DateTime? _startDate;
+  DateTime? _endDate;
   String? _selectedMedicationId;
 
   Color _statusColor(String status) {
@@ -52,6 +53,11 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
     }
   }
 
+  String _formatDateTime(DateTime? dt) {
+    if (dt == null) return '';
+    return DateFormat('yyyy-MM-dd HH:mm').format(dt);
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
@@ -74,16 +80,25 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
         if (m.id != _selectedMedicationId) return false;
       }
 
-      if (_selectedDate == null) return true;
+      if (_startDate == null && _endDate == null) return true;
 
-      final d = _selectedDate!;
-      bool matches(DateTime? dt) {
+      bool inRange(DateTime? dt) {
         if (dt == null) return false;
-        return dt.year == d.year && dt.month == d.month && dt.day == d.day;
+        final day = DateTime(dt.year, dt.month, dt.day);
+        final startDay = _startDate == null
+            ? null
+            : DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
+        final endDay = _endDate == null
+            ? null
+            : DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
+
+        if (startDay != null && day.isBefore(startDay)) return false;
+        if (endDay != null && day.isAfter(endDay)) return false;
+        return true;
       }
 
-      // Show meds that had an event that day (taken/missed)
-      return matches(m.lastTakenAt) || matches(m.missedAt);
+      // Show meds that had an event in the selected period (taken/missed)
+      return inRange(m.lastTakenAt) || inRange(m.missedAt);
     }).toList();
 
     final prisList = meds.where((m) => m.status == 'pris').toList();
@@ -221,9 +236,8 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
 
   Widget _buildFilters(List<dynamic> allMeds) {
     final df = DateFormat('yyyy-MM-dd');
-    final selectedDateLabel = _selectedDate == null
-        ? 'Toutes dates'
-        : df.format(_selectedDate!);
+    final startLabel = _startDate == null ? 'Début' : df.format(_startDate!);
+    final endLabel = _endDate == null ? 'Fin' : df.format(_endDate!);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -237,7 +251,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                     final now = DateTime.now();
                     final picked = await showDatePicker(
                       context: context,
-                      initialDate: _selectedDate ?? now,
+                      initialDate: _startDate ?? now,
                       firstDate: DateTime(now.year - 2),
                       lastDate: DateTime(now.year + 2),
                       builder: (context, child) => Theme(
@@ -246,7 +260,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                       ),
                     );
                     if (!mounted) return;
-                    setState(() => _selectedDate = picked);
+                    setState(() => _startDate = picked);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -271,7 +285,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            selectedDateLabel,
+                            startLabel,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontWeight: FontWeight.w700,
@@ -280,9 +294,73 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (_selectedDate != null)
+                        if (_startDate != null)
                           GestureDetector(
-                            onTap: () => setState(() => _selectedDate = null),
+                            onTap: () => setState(() => _startDate = null),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    final now = DateTime.now();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _endDate ?? _startDate ?? now,
+                      firstDate: DateTime(now.year - 2),
+                      lastDate: DateTime(now.year + 2),
+                      builder: (context, child) => Theme(
+                        data: ThemeData.dark(),
+                        child: child ?? const SizedBox.shrink(),
+                      ),
+                    );
+                    if (!mounted) return;
+                    setState(() => _endDate = picked);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.12),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.event_available_rounded,
+                          size: 14,
+                          color: Colors.white.withOpacity(0.55),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            endLabel,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (_endDate != null)
+                          GestureDetector(
+                            onTap: () => setState(() => _endDate = null),
                             child: Icon(
                               Icons.close_rounded,
                               size: 16,
@@ -349,14 +427,17 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
               ),
             ],
           ),
-          if (_selectedDate != null || (_selectedMedicationId ?? '').isNotEmpty)
+          if (_startDate != null ||
+              _endDate != null ||
+              (_selectedMedicationId ?? '').isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
                   onPressed: () => setState(() {
-                    _selectedDate = null;
+                    _startDate = null;
+                    _endDate = null;
                     _selectedMedicationId = null;
                   }),
                   child: Text(
@@ -710,7 +791,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
             _buildDateRow(
               Icons.check_circle_outline_rounded,
               "Pris le",
-              med.lastTakenAt.toString(),
+              _formatDateTime(med.lastTakenAt),
               const Color(0xFF34D399),
             ),
           ],
@@ -719,7 +800,7 @@ class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
             _buildDateRow(
               Icons.cancel_outlined,
               "Non pris le",
-              med.missedAt.toString(),
+              _formatDateTime(med.missedAt),
               const Color(0xFFEF4444),
             ),
           ],
