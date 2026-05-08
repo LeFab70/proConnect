@@ -30,7 +30,7 @@ public class UpsertAineRequestDto
     public DateOnly DateNaissance { get; set; } // Date de naissance de l'aîné obligatoire
 
     [Required(ErrorMessage = "L'adresse est obligatoire.")] // Adresse de l'aîné obligatoire
-    public AdresseDto Adresse { get; set; } // Adresse de l'aîné obligatoire, doit être un objet AdresseDto (Pour ne pas l'ajouter dans la base de données comme classe séparée, mais plutôt comme une propriété complexe de l'aîné)
+    public required AdresseDto Adresse { get; set; } // Adresse de l'aîné obligatoire, doit être un objet AdresseDto (Pour ne pas l'ajouter dans la base de données comme classe séparée, mais plutôt comme une propriété complexe de l'aîné)
 
     [MaxLength(100, ErrorMessage = "Le nom du docteur ne doit pas dépasser 100 caractères.")] // Nom du docteur de l'aîné ne doit pas dépasser 100 caractères
     public string Docteur { get; set; } = string.Empty; // Nom du docteur de l'aîné, ne doit pas dépasser 100 caractères

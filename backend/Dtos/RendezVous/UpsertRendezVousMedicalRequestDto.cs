@@ -9,7 +9,7 @@ public class UpsertRendezVousMedicalRequestDto
     public DateTime DateHeure { get; set; }
 
     [Required(ErrorMessage = "Le lieu est obligatoire.")]
-    public AdresseDto Lieu { get; set; }
+    public required AdresseDto Lieu { get; set; }
 
     [Required(ErrorMessage = "Le docteur est obligatoire.")]
     [MinLength(1, ErrorMessage = "Le docteur ne peut pas être vide.")]

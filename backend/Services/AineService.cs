@@ -23,11 +23,11 @@ public class AineService(AppDbContext db) : IAineService
         DateNaissance = a.DateNaissance,
         Adresse = new AdresseDto
         {
-            Numero = a.Adresse.Numero,
-            Rue = a.Adresse.Rue,
-            Ville = a.Adresse.Ville,
-            CodePostal = a.Adresse.CodePostal,
-            Province = a.Adresse.Province
+            Numero = a.Adresse!.Numero,
+            Rue = a.Adresse!.Rue,
+            Ville = a.Adresse!.Ville,
+            CodePostal = a.Adresse!.CodePostal,
+            Province = a.Adresse!.Province
         },
         Docteur = a.Docteur,
         NumeroTelephoneDocteur = a.NumeroTelephoneDocteur

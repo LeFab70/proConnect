@@ -7,7 +7,7 @@ public class RendezVousMedicalResponseDto
 {
     public long Id { get; set; } // Identifiant unique du rendez-vous médical
     public DateTime DateHeure { get; set; } // Date et heure du rendez-vous médical
-    public AdresseDto Lieu { get; set; } // Lieu du rendez-vous médical
+    public required AdresseDto Lieu { get; set; } // Lieu du rendez-vous médical
     public required string Docteur { get; set; } // Nom du docteur
     public string? Notes { get; set; } // Notes éventuelles sur le rendez-vous médical
     public long AineId { get; set; } // Identifiant de l'aîné associé au rendez-vous médical

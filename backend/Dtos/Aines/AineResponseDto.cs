@@ -11,7 +11,7 @@ public class AineResponseDto
     public required string Telephone { get; set; } // Numéro de téléphone de l'aîné
     public required string Email { get; set; } // Adresse e-mail de l'aîné
     public DateOnly DateNaissance { get; set; } // Date de naissance de l'aîné
-    public AdresseDto Adresse { get; set; } // Adresse de l'aîné
+    public required AdresseDto Adresse { get; set; } // Adresse de l'aîné
     public string Docteur { get; set; } = string.Empty; // Nom du docteur de l'aîné
     public string NumeroTelephoneDocteur { get; set; } = string.Empty; // Numéro de téléphone du docteur de l'aîné
 }
