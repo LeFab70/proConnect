@@ -21,7 +21,7 @@ public class UpsertActiviteCommunautaireRequestDto
     public DateTime DateHeure { get; set; } // Date et heure de l'activité obligatoire
 
     [Required(ErrorMessage = "L'adresse du lieu est obligatoire.")] // Adresse du lieu de l'activité obligatoire
-    public AdresseDto Lieu { get; set; } // Lieu de l'activité obligatoire
+    public required AdresseDto Lieu { get; set; } // Lieu de l'activité obligatoire
 
     [Range(1, long.MaxValue, ErrorMessage = "CalendrierCommunautaireId doit être un identifiant valide (> 0).")] // CalendrierCommunautaireId doit être un identifiant valide (supérieur à 0)
     public long CalendrierCommunautaireId { get; set; } // Identifiant du calendrier communautaire obligatoire
