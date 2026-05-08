@@ -23,7 +23,9 @@ public class AuthService(AppDbContext db, IEmailService email) : IAuthService
         var exists = await _db.Users.AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
         if (exists) throw new InvalidOperationException("Email already exists.");
 
-        var user = new StandardUser
+        // Default behavior: a newly registered account is a ProcheAidant.
+        // This matches the app's expectations (aidant by default) and the seed strategy.
+        var user = new ProcheAidant
         {
             Nom = dto.Nom,
             Prenom = dto.Prenom,
