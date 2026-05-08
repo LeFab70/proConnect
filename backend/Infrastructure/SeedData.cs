@@ -21,6 +21,16 @@ public static class SeedData
                           string.Equals(seedVar, "yes", StringComparison.OrdinalIgnoreCase);
         if (!seedEnabled) return;
 
+        // Seed reset: remove existing seed data to avoid accumulating multiple test datasets.
+        // We target proconnect.local accounts (seed users) and cascade-delete their dependent data.
+        await db.Database.ExecuteSqlRawAsync("""
+            DELETE FROM rappels;
+            DELETE FROM partages_suivi;
+            DELETE FROM medicaments;
+            DELETE FROM rendez_vous_medicaux;
+            DELETE FROM users WHERE lower(email) LIKE '%@proconnect.local';
+            """, ct);
+
         // Remplacement "Option 2" : on supprime les anciens aînés seedés (et leurs dépendances)
         // pour éviter de cumuler plusieurs jeux de données de test.
         var oldAineEmails = new[]
