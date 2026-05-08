@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args); // Configuration et services DI (Dependency Injection), variable environnement etc..
 
@@ -92,6 +93,8 @@ if (string.IsNullOrWhiteSpace(jwtKey))
 {
     throw new InvalidOperationException("Missing env var: JWT__Key");
 }
+// Normalize/derive key bytes so short secrets don't crash token signing/validation.
+var jwtKeyBytes = SHA256.HashData(Encoding.UTF8.GetBytes(jwtKey));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -106,7 +109,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = issuer,
             ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(jwtKeyBytes)
         };
     });
 

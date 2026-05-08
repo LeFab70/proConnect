@@ -159,7 +159,9 @@ public class AuthService(AppDbContext db, IEmailService email) : IAuthService
             claims.Add(new Claim(ClaimTypes.Role, r));
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        // Derive a fixed-length key for HS256 even if JWT__Key is short.
+        var keyBytes = SHA256.HashData(Encoding.UTF8.GetBytes(jwtKey));
+        var key = new SymmetricSecurityKey(keyBytes);
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(
             issuer: issuer,
