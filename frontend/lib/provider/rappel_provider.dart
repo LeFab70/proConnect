@@ -9,6 +9,7 @@ class RappelProvider with ChangeNotifier {
   final RappelService _service = RappelService();
 
   final List<Rappel> _rappels = [];
+  final Set<int> _scheduledNotificationIds = {};
 
   List<Rappel> get rappels => List.unmodifiable(_rappels);
 
@@ -42,9 +43,43 @@ class RappelProvider with ChangeNotifier {
         ..addAll(list);
 
       _sort();
+      await _syncNotifications();
       notifyListeners();
     } catch (e) {
       debugPrint('Erreur fetchRappels: $e');
+    }
+  }
+
+  Future<void> _syncNotifications() async {
+    final desired = _rappels.where((r) => r.actif).map((r) => r.id).toSet();
+
+    // Cancel notifications that are no longer active/present.
+    final toCancel = _scheduledNotificationIds.difference(desired);
+    for (final id in toCancel) {
+      await NotificationService.cancelNotification(id);
+      _scheduledNotificationIds.remove(id);
+    }
+
+    // Schedule missing active notifications.
+    for (final r in _rappels) {
+      if (!r.actif) continue;
+      if (_scheduledNotificationIds.contains(r.id)) continue;
+
+      final title = r.type.toLowerCase().contains('medicament')
+          ? 'Rappel médicament'
+          : 'Rappel';
+      final body = r.type.toLowerCase().contains('medicament')
+          ? 'Il est temps de prendre votre médicament.'
+          : 'Vous avez un rappel prévu.';
+
+      await NotificationService.scheduleDailyRappel(
+        id: r.id,
+        title: title,
+        body: body,
+        dateTime: r.dateHeureNotification,
+      );
+
+      _scheduledNotificationIds.add(r.id);
     }
   }
 
@@ -72,6 +107,7 @@ class RappelProvider with ChangeNotifier {
         _sort();
         notifyListeners();
 
+        await _syncNotifications();
         await fetchRappels(auth);
 
         return true;
@@ -80,6 +116,7 @@ class RappelProvider with ChangeNotifier {
 
     _rappels.add(rappel);
     _sort();
+    await _syncNotifications();
     notifyListeners();
 
     return true;
@@ -117,6 +154,7 @@ class RappelProvider with ChangeNotifier {
 
     _rappels[index] = rappel;
     _sort();
+    await _syncNotifications();
     notifyListeners();
 
     return true;
@@ -124,6 +162,7 @@ class RappelProvider with ChangeNotifier {
 
   Future<bool> deleteRappel(int id, AuthProvider auth) async {
     await NotificationService.cancelNotification(id);
+    _scheduledNotificationIds.remove(id);
 
     final token = auth.token;
 
@@ -132,6 +171,7 @@ class RappelProvider with ChangeNotifier {
 
       if (ok) {
         _rappels.removeWhere((r) => r.id == id);
+        await _syncNotifications();
         notifyListeners();
         return true;
       }
@@ -142,6 +182,7 @@ class RappelProvider with ChangeNotifier {
     _rappels.removeWhere((r) => r.id == id);
 
     if (_rappels.length < initialLength) {
+      await _syncNotifications();
       notifyListeners();
       return true;
     }
