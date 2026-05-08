@@ -7,7 +7,7 @@ public static class ImagesEndpoints
     public static void MapImagesEndpoints(this WebApplication app)
     {
         app.MapPost("/api/images/upload", Upload)
-            .RequireAuthorization("AdminOnly")
+            .RequireAuthorization()
             .DisableAntiforgery()
             .WithTags("Images")
             .WithSummary("Upload une image, retourne { urlImage, fileUrl, url }");
