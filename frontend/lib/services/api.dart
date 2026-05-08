@@ -41,7 +41,8 @@ class Api {
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final accessToken = body["accessToken"] as String?;
+      final accessToken =
+          (body["accessToken"] ?? body["AccessToken"]) as String?;
       if (accessToken == null || accessToken.isEmpty) {
         return {"success": false, "message": "Réponse serveur invalide"};
       }
@@ -180,7 +181,8 @@ class Api {
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final accessToken = body["accessToken"] as String?;
+      final accessToken =
+          (body["accessToken"] ?? body["AccessToken"]) as String?;
       if (accessToken == null || accessToken.isEmpty) {
         return {"success": false, "message": "Réponse serveur invalide"};
       }
