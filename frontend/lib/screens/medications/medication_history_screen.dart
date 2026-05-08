@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 import '../../provider/auth_provider.dart';
 import '../../provider/aine_provider.dart';
 import '../../provider/medication_provider.dart';
 import '../../widgets/tr_text.dart';
 
-class MedicationHistoryScreen extends StatelessWidget {
+class MedicationHistoryScreen extends StatefulWidget {
   const MedicationHistoryScreen({super.key});
+
+  @override
+  State<MedicationHistoryScreen> createState() => _MedicationHistoryScreenState();
+}
+
+class _MedicationHistoryScreenState extends State<MedicationHistoryScreen> {
+  DateTime? _selectedDate;
+  String? _selectedMedicationId;
 
   Color _statusColor(String status) {
     switch (status) {
@@ -53,12 +62,29 @@ class MedicationHistoryScreen extends StatelessWidget {
 
     final int aineIdActif = selectedAine?.id ?? auth.currentUserLocalId ?? 0;
 
-    final meds = context
+    final allMeds = context
         .watch<MedicationProvider>()
         .medications
         .where((m) => !m.isDeleted)
         .where((m) => m.aineId == aineIdActif)
         .toList();
+
+    final meds = allMeds.where((m) {
+      if (_selectedMedicationId != null && _selectedMedicationId!.isNotEmpty) {
+        if (m.id != _selectedMedicationId) return false;
+      }
+
+      if (_selectedDate == null) return true;
+
+      final d = _selectedDate!;
+      bool matches(DateTime? dt) {
+        if (dt == null) return false;
+        return dt.year == d.year && dt.month == d.month && dt.day == d.day;
+      }
+
+      // Show meds that had an event that day (taken/missed)
+      return matches(m.lastTakenAt) || matches(m.missedAt);
+    }).toList();
 
     final prisList = meds.where((m) => m.status == 'pris').toList();
     final nonPrisList = meds.where((m) => m.status == 'nonPris').toList();
@@ -116,6 +142,7 @@ class MedicationHistoryScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _buildHeader(context, meds.length),
+                  _buildFilters(allMeds),
                   if (meds.isNotEmpty)
                     _buildSummaryRow(
                       prisList.length,
@@ -187,6 +214,162 @@ class MedicationHistoryScreen extends StatelessWidget {
           ),
 
           const SizedBox(width: 44),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters(List<dynamic> allMeds) {
+    final df = DateFormat('yyyy-MM-dd');
+    final selectedDateLabel = _selectedDate == null
+        ? 'Toutes dates'
+        : df.format(_selectedDate!);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    final now = DateTime.now();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate ?? now,
+                      firstDate: DateTime(now.year - 2),
+                      lastDate: DateTime(now.year + 2),
+                      builder: (context, child) => Theme(
+                        data: ThemeData.dark(),
+                        child: child ?? const SizedBox.shrink(),
+                      ),
+                    );
+                    if (!mounted) return;
+                    setState(() => _selectedDate = picked);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.12),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                          color: Colors.white.withOpacity(0.55),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            selectedDateLabel,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (_selectedDate != null)
+                          GestureDetector(
+                            onTap: () => setState(() => _selectedDate = null),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.12),
+                      width: 1,
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedMedicationId,
+                      dropdownColor: const Color(0xFF0B1A4A),
+                      iconEnabledColor: Colors.white.withOpacity(0.6),
+                      hint: Text(
+                        'Tous médicaments',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      isExpanded: true,
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('Tous médicaments'),
+                        ),
+                        ...allMeds.map((m) {
+                          return DropdownMenuItem<String>(
+                            value: m.id,
+                            child: Text(
+                              m.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }),
+                      ],
+                      onChanged: (v) {
+                        setState(() => _selectedMedicationId = v);
+                      },
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_selectedDate != null || (_selectedMedicationId ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => setState(() {
+                    _selectedDate = null;
+                    _selectedMedicationId = null;
+                  }),
+                  child: Text(
+                    'Réinitialiser les filtres',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
