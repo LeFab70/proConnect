@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'services/secrets.dart';
 
 class Api {
   Api({
@@ -102,5 +104,32 @@ class Api {
     if (response.statusCode == 404) return 'Utilisateur introuvable';
 
     return 'Erreur: ${response.statusCode}';
+  }
+
+  Future<bool> put(
+    String endpoint,
+    Map<String, dynamic> body,
+    String token,
+  ) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'x-api-key': Secrets.apiKey,
+        },
+        body: jsonEncode(body),
+      );
+
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      debugPrint('PUT ERROR: $e');
+      return false;
+    }
+  }
+
+  Future<bool> rejectPartage(int partageId, String token) async {
+    return await put('/api/partages-suivi/$partageId/reject', {}, token);
   }
 }

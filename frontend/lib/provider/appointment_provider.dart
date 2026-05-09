@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/appointment.dart';
 import '../services/appointment_service.dart';
 import 'auth_provider.dart';
@@ -6,32 +7,70 @@ import 'auth_provider.dart';
 class AppointmentProvider with ChangeNotifier {
   final AppointmentService _service = AppointmentService();
 
-  List<RendezVousMedical> _appointments = [];
+  final List<RendezVousMedical> _appointments = [];
+
   bool _isLoading = false;
   String _error = '';
 
-  List<RendezVousMedical> get appointments => List.unmodifiable(_appointments);
+  List<RendezVousMedical> get appointments {
+    final list = [..._appointments];
+    list.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
+    return List.unmodifiable(list);
+  }
+
   bool get isLoading => _isLoading;
   String get error => _error;
 
   List<RendezVousMedical> get appointmentsDuJour {
     final today = DateTime.now();
 
-    return _appointments.where((a) {
+    final list = _appointments.where((a) {
       return a.dateHeure.year == today.year &&
           a.dateHeure.month == today.month &&
           a.dateHeure.day == today.day;
-    }).toList()..sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
+    }).toList();
+
+    list.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
+    return list;
+  }
+
+  List<RendezVousMedical> get upcomingAppointments {
+    final now = DateTime.now();
+
+    final list = _appointments.where((a) {
+      return a.dateHeure.isAfter(now);
+    }).toList();
+
+    list.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
+    return list;
+  }
+
+  List<RendezVousMedical> get pastAppointments {
+    final now = DateTime.now();
+
+    final list = _appointments.where((a) {
+      return !a.dateHeure.isAfter(now);
+    }).toList();
+
+    list.sort((a, b) => b.dateHeure.compareTo(a.dateHeure));
+    return list;
   }
 
   Future<void> fetchAppointments(AuthProvider auth) async {
-    if (auth.token == null) return;
+    if (auth.token == null || auth.token!.isEmpty) {
+      return;
+    }
 
     _setLoading(true);
 
     try {
       final result = await _service.getAppointments(auth.token!);
-      _appointments = result.whereType<RendezVousMedical>().toList();
+
+      _appointments
+        ..clear()
+        ..addAll(result.whereType<RendezVousMedical>());
+
+      _appointments.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
       _error = '';
     } catch (_) {
       _error = "Erreur lors du chargement des rendez-vous";
@@ -44,7 +83,9 @@ class AppointmentProvider with ChangeNotifier {
     Map<String, dynamic> data,
     AuthProvider auth,
   ) async {
-    if (auth.token == null) return false;
+    if (auth.token == null || auth.token!.isEmpty) {
+      return false;
+    }
 
     _setLoading(true);
 
@@ -53,6 +94,7 @@ class AppointmentProvider with ChangeNotifier {
 
       if (success) {
         await fetchAppointments(auth);
+        _error = '';
         return true;
       }
 
@@ -67,20 +109,50 @@ class AppointmentProvider with ChangeNotifier {
   }
 
   Future<bool> addLocalAppointment(RendezVousMedical rdv) async {
-    _appointments.add(rdv);
+    final index = _appointments.indexWhere((a) => a.id == rdv.id);
+
+    if (index == -1) {
+      _appointments.add(rdv);
+    } else {
+      _appointments[index] = rdv;
+    }
+
     _appointments.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
+    _error = '';
     notifyListeners();
+
+    return true;
+  }
+
+  Future<bool> updateLocalAppointment(RendezVousMedical rdv) async {
+    final index = _appointments.indexWhere((a) => a.id == rdv.id);
+
+    if (index == -1) {
+      _error = "Rendez-vous introuvable";
+      notifyListeners();
+      return false;
+    }
+
+    _appointments[index] = rdv;
+    _appointments.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
+
+    _error = '';
+    notifyListeners();
+
     return true;
   }
 
   Future<bool> deleteAppointment(int id, AuthProvider auth) async {
-    if (auth.token == null) return false;
+    if (auth.token == null || auth.token!.isEmpty) {
+      return deleteLocalAppointment(id);
+    }
 
     try {
       final success = await _service.deleteAppointment(id, auth.token!);
 
       if (success) {
         _appointments.removeWhere((a) => a.id == id);
+        _error = '';
         notifyListeners();
       }
 
@@ -92,18 +164,28 @@ class AppointmentProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> deleteLocalAppointment(int id) async {
+    _appointments.removeWhere((a) => a.id == id);
+    _error = '';
+    notifyListeners();
+    return true;
+  }
+
   Future<bool> updateAppointment(
     int id,
     Map<String, dynamic> data,
     AuthProvider auth,
   ) async {
-    if (auth.token == null) return false;
+    if (auth.token == null || auth.token!.isEmpty) {
+      return false;
+    }
 
     try {
       final success = await _service.updateAppointment(id, data, auth.token!);
 
       if (success) {
         await fetchAppointments(auth);
+        _error = '';
       }
 
       return success;
@@ -114,25 +196,21 @@ class AppointmentProvider with ChangeNotifier {
     }
   }
 
-  List<RendezVousMedical> get upcomingAppointments {
-    final now = DateTime.now();
-
-    final list = _appointments.where((a) => a.dateHeure.isAfter(now)).toList();
-
-    list.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
-    return list;
-  }
-
-  List<RendezVousMedical> get pastAppointments {
-    final now = DateTime.now();
-
-    final list = _appointments.where((a) => a.dateHeure.isBefore(now)).toList();
-
-    list.sort((a, b) => b.dateHeure.compareTo(a.dateHeure));
-    return list;
+  RendezVousMedical? getAppointmentById(int id) {
+    try {
+      return _appointments.firstWhere((a) => a.id == id);
+    } catch (_) {
+      return null;
+    }
   }
 
   void clearError() {
+    _error = '';
+    notifyListeners();
+  }
+
+  void clearAppointments() {
+    _appointments.clear();
     _error = '';
     notifyListeners();
   }

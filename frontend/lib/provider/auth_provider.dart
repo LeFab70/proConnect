@@ -11,6 +11,7 @@ class AuthProvider with ChangeNotifier {
   String? _token;
   String? _email;
   String? _firstName;
+  String? _lastName;
   String? _role;
   int? _userId;
   String? _errorMessage;
@@ -23,7 +24,18 @@ class AuthProvider with ChangeNotifier {
 
   String? get token => _token;
   String? get email => _email;
+
   String? get firstName => _firstName;
+  String? get lastName => _lastName;
+
+  String? get prenom => _firstName;
+  String? get nom => _lastName;
+
+  String get fullName {
+    final value = '${_firstName ?? ''} ${_lastName ?? ''}'.trim();
+    return value.isNotEmpty ? value : (_email ?? '');
+  }
+
   String? get role => _role;
   int? get currentUserLocalId => _userId;
   String? get errorMessage => _errorMessage;
@@ -62,15 +74,26 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      _token = result["token"];
+      _token = result["token"]?.toString();
       _email = email.trim().toLowerCase();
-      _firstName = result["firstName"] ?? email.split('@')[0];
-      _role = result["role"]?.toString().trim().toUpperCase();
-      _userId = result["userId"];
-      _profilePicture = result["profilePicture"];
-      _nbDemandes = result["nbDemandes"] ?? 0;
 
-      if (_token == null || _role == null || _role!.isEmpty) {
+      _firstName =
+          result["firstName"]?.toString() ??
+          result["prenom"]?.toString() ??
+          email.split('@')[0];
+
+      _lastName =
+          result["lastName"]?.toString() ?? result["nom"]?.toString() ?? "";
+
+      _role = result["role"]?.toString().trim().toUpperCase();
+      _userId = _parseInt(result["userId"]);
+      _profilePicture = result["profilePicture"]?.toString();
+      _nbDemandes = _parseInt(result["nbDemandes"]);
+
+      if (_token == null ||
+          _token!.isEmpty ||
+          _role == null ||
+          _role!.isEmpty) {
         _errorMessage = "Réponse serveur invalide";
         _isAuthenticated = false;
         return false;
@@ -82,6 +105,7 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString("token", _token!);
       await prefs.setString("email", _email!);
       await prefs.setString("firstName", _firstName ?? "");
+      await prefs.setString("lastName", _lastName ?? "");
       await prefs.setString("role", _role!);
       if (_userId != null) await prefs.setInt("userId", _userId!);
       await prefs.setString("profilePicture", _profilePicture ?? "");
@@ -131,15 +155,28 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      _token = result["token"] as String?;
+      _token = result["token"]?.toString();
       _email = email.trim().toLowerCase();
-      _firstName = result["firstName"]?.toString() ?? firstName.trim();
-      _role = result["role"]?.toString().trim().toUpperCase() ?? normalizedRole;
-      _userId = result["userId"] as int?;
-      _profilePicture = result["profilePicture"]?.toString();
-      _nbDemandes = result["nbDemandes"] as int? ?? 0;
 
-      if (_token == null || _role == null || _role!.isEmpty) {
+      _firstName =
+          result["firstName"]?.toString() ??
+          result["prenom"]?.toString() ??
+          firstName.trim();
+
+      _lastName =
+          result["lastName"]?.toString() ??
+          result["nom"]?.toString() ??
+          lastName.trim();
+
+      _role = result["role"]?.toString().trim().toUpperCase() ?? normalizedRole;
+      _userId = _parseInt(result["userId"]);
+      _profilePicture = result["profilePicture"]?.toString();
+      _nbDemandes = _parseInt(result["nbDemandes"]);
+
+      if (_token == null ||
+          _token!.isEmpty ||
+          _role == null ||
+          _role!.isEmpty) {
         _errorMessage = "Réponse serveur invalide";
         _isAuthenticated = false;
         return false;
@@ -151,6 +188,7 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString("token", _token!);
       await prefs.setString("email", _email!);
       await prefs.setString("firstName", _firstName ?? "");
+      await prefs.setString("lastName", _lastName ?? "");
       await prefs.setString("role", _role!);
       if (_userId != null) await prefs.setInt("userId", _userId!);
       await prefs.setString("profilePicture", _profilePicture ?? "");
@@ -174,6 +212,7 @@ class AuthProvider with ChangeNotifier {
     final email = prefs.getString("email");
     final role = prefs.getString("role");
     final firstName = prefs.getString("firstName");
+    final lastName = prefs.getString("lastName");
     final profilePicture = prefs.getString("profilePicture");
     final isAuth = prefs.getBool("isAuth") ?? false;
     final userId = prefs.getInt("userId");
@@ -191,6 +230,7 @@ class AuthProvider with ChangeNotifier {
     _role = role.trim().toUpperCase();
     _userId = userId;
     _firstName = firstName;
+    _lastName = lastName;
     _profilePicture = (profilePicture == null || profilePicture.isEmpty)
         ? null
         : profilePicture;
@@ -209,12 +249,21 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateUserInfo({String? newName, String? newEmail}) async {
+  Future<void> updateUserInfo({
+    String? newName,
+    String? newEmail,
+    String? newLastName,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
 
     if (newName != null && newName.trim().isNotEmpty) {
       _firstName = newName.trim();
       await prefs.setString("firstName", _firstName!);
+    }
+
+    if (newLastName != null && newLastName.trim().isNotEmpty) {
+      _lastName = newLastName.trim();
+      await prefs.setString("lastName", _lastName!);
     }
 
     if (newEmail != null && newEmail.trim().isNotEmpty) {
@@ -259,6 +308,7 @@ class AuthProvider with ChangeNotifier {
     _role = null;
     _userId = null;
     _firstName = null;
+    _lastName = null;
     _errorMessage = null;
     _profilePicture = null;
     _nbDemandes = 0;
@@ -273,11 +323,18 @@ class AuthProvider with ChangeNotifier {
     _email = null;
     _role = null;
     _firstName = null;
+    _lastName = null;
     _userId = null;
     _errorMessage = null;
     _profilePicture = null;
     _nbDemandes = 0;
 
     notifyListeners();
+  }
+
+  int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    return int.tryParse(value.toString()) ?? 0;
   }
 }

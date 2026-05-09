@@ -60,7 +60,9 @@ class RappelProvider with ChangeNotifier {
     final desiredIds = active.map((r) => notifIdFor(r)).toSet();
 
     // Cancel notifications that are no longer active/present.
-    final toCancel = _scheduledAt.keys.where((id) => !desiredIds.contains(id)).toList();
+    final toCancel = _scheduledAt.keys
+        .where((id) => !desiredIds.contains(id))
+        .toList();
     for (final id in toCancel) {
       await NotificationService.cancelNotification(id);
       _scheduledAt.remove(id);
@@ -98,12 +100,21 @@ class RappelProvider with ChangeNotifier {
   }
 
   Future<bool> addRappel(Rappel rappel, AuthProvider auth) async {
-    final existeDeja = _rappels.any(
-      (r) =>
-          r.medicamentId == rappel.medicamentId &&
+    final existeDeja = _rappels.any((r) {
+      if (rappel.rendezVousMedicalId != null) {
+        return r.rendezVousMedicalId == rappel.rendezVousMedicalId;
+      }
+
+      if (rappel.medicamentId != null) {
+        return r.medicamentId == rappel.medicamentId &&
+            r.heureDebut == rappel.heureDebut &&
+            r.dateHeurePrise == rappel.dateHeurePrise;
+      }
+
+      return r.type == rappel.type &&
           r.heureDebut == rappel.heureDebut &&
-          r.dateHeurePrise == rappel.dateHeurePrise,
-    );
+          r.dateHeurePrise == rappel.dateHeurePrise;
+    });
 
     if (existeDeja) return false;
 
@@ -122,7 +133,6 @@ class RappelProvider with ChangeNotifier {
         notifyListeners();
 
         await _syncNotifications();
-        await fetchRappels(auth);
 
         return true;
       }
@@ -155,8 +165,7 @@ class RappelProvider with ChangeNotifier {
           _sort();
           notifyListeners();
         }
-
-        await fetchRappels(auth);
+        await _syncNotifications();
 
         return true;
       }
@@ -281,5 +290,32 @@ class RappelProvider with ChangeNotifier {
     _rappels.sort(
       (a, b) => a.dateHeureNotification.compareTo(b.dateHeureNotification),
     );
+  }
+
+  Future<bool> addRappelLocalOnly(Rappel rappel) async {
+    final existeDeja = _rappels.any((r) {
+      if (rappel.rendezVousMedicalId != null) {
+        return r.rendezVousMedicalId == rappel.rendezVousMedicalId;
+      }
+
+      if (rappel.medicamentId != null) {
+        return r.medicamentId == rappel.medicamentId &&
+            r.heureDebut == rappel.heureDebut &&
+            r.dateHeurePrise == rappel.dateHeurePrise;
+      }
+
+      return r.type == rappel.type &&
+          r.heureDebut == rappel.heureDebut &&
+          r.dateHeurePrise == rappel.dateHeurePrise;
+    });
+
+    if (existeDeja) return false;
+
+    _rappels.add(rappel);
+    _sort();
+    await _syncNotifications();
+    notifyListeners();
+
+    return true;
   }
 }

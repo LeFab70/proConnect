@@ -1,4 +1,5 @@
 ﻿import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/tr_text.dart';
@@ -22,13 +23,15 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  Timer? _partageRefreshTimer;
   // Fabrice | 2026-05-05T04:56:37Z | Précharge médicaments, rappels, partages, RDV et suggestions IA après connexion.
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+
       final auth = context.read<AuthProvider>();
       if (auth.token == null) return;
 
@@ -42,7 +45,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ]);
 
       if (!mounted) return;
+
+      final partageProvider = context.read<PartageProvider>();
+
+      final nbDemandes = auth.isAine
+          ? partageProvider.countReponsesPourAine(auth)
+          : partageProvider.countDemandesPourProche(auth);
+
+      auth.setNbDemandes(nbDemandes);
+
       await context.read<ActivityProvider>().fetchAIActivities(auth);
+
+      _startPartageAutoRefresh();
     });
   }
 
@@ -58,7 +72,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final bool isProcheSansAine = auth.isAidant && aines.selectedAine == null;
 
-    final nbDemandes = partage.countDemandesPourProche(auth);
+    final nbDemandes = auth.isAine
+        ? partage.countReponsesPourAine(auth)
+        : partage.countDemandesPourProche(auth);
 
     final int aineIdActif =
         aines.selectedAine?.id ?? auth.currentUserLocalId ?? 0;
@@ -582,16 +598,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Stack(
             children: [
               IconButton(
-                icon: Icon(
-                  Icons.notifications,
-                  color: auth.isAidant ? Colors.white : Colors.white38,
-                ),
-                onPressed: auth.isAidant
-                    ? () => Navigator.pushNamed(context, '/demandeRecue')
-                    : null,
+                icon: Icon(Icons.notifications, color: Colors.white),
+                onPressed: () {
+                  if (auth.isAine) {
+                    Navigator.pushNamed(context, '/reponsesPartage');
+                  } else {
+                    Navigator.pushNamed(context, '/demandeRecue');
+                  }
+                },
               ),
 
-              if (auth.isAidant && nbDemandes > 0)
+              if (nbDemandes > 0)
                 Positioned(
                   right: 8,
                   top: 8,
@@ -722,7 +739,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _medicationTile(BuildContext context, dynamic med) {
-   // final isTaken = med.isTaken;
+    // final isTaken = med.isTaken;
     final isActive = med.isActive;
 
     return Opacity(
@@ -878,5 +895,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ? const Icon(Icons.person, color: Colors.white, size: 24)
           : null,
     );
+  }
+
+  void _startPartageAutoRefresh() {
+    _partageRefreshTimer?.cancel();
+
+    _partageRefreshTimer = Timer.periodic(const Duration(seconds: 15), (
+      _,
+    ) async {
+      if (!mounted) return;
+
+      final auth = context.read<AuthProvider>();
+      if (auth.token == null) return;
+
+      final partageProvider = context.read<PartageProvider>();
+
+      await partageProvider.fetchPartages(auth);
+
+      if (!mounted) return;
+
+      final nbDemandes = auth.isAine
+          ? partageProvider.countReponsesPourAine(auth)
+          : partageProvider.countDemandesPourProche(auth);
+      auth.setNbDemandes(nbDemandes);
+    });
+  }
+
+  @override
+  void dispose() {
+    _partageRefreshTimer?.cancel();
+    super.dispose();
   }
 }

@@ -1,7 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
+import '../../models/appointment.dart';
+import '../../provider/appointment_provider.dart';
 import '../../models/rappel.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/rappel_provider.dart';
@@ -23,9 +24,17 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final auth = context.read<AuthProvider>();
-      context.read<RappelProvider>().fetchRappels(auth);
+      final provider = context.read<RappelProvider>();
+
+      if (provider.rappels.isEmpty) {
+        await provider.fetchRappels(auth);
+      } else {
+        debugPrint(
+          "FETCH RAPPELS ignoré : rappels locaux déjà présents (${provider.rappels.length})",
+        );
+      }
     });
   }
 
@@ -387,6 +396,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
           );
         }
       },
+
       onLongPress: () {
         setState(() {
           if (isSelected) {
@@ -396,21 +406,26 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
           }
         });
       },
+
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(16),
+
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.white.withValues(alpha: 0.16)
               : Colors.white.withValues(alpha: 0.08),
+
           borderRadius: BorderRadius.circular(24),
+
           border: Border.all(
             color: isSelected
                 ? Colors.white.withValues(alpha: 0.55)
                 : Colors.white.withValues(alpha: 0.11),
             width: 1.5,
           ),
+
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF000428).withValues(alpha: 0.3),
@@ -419,17 +434,21 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
             ),
           ],
         ),
+
         child: Row(
           children: [
             // Icône statut
             Container(
               width: 48,
               height: 48,
+
               decoration: BoxDecoration(
                 color: isActif
                     ? const Color(0xFF10B981).withValues(alpha: 0.15)
                     : Colors.white.withValues(alpha: 0.05),
+
                 shape: BoxShape.circle,
+
                 border: Border.all(
                   color: isActif
                       ? const Color(0xFF10B981).withValues(alpha: 0.35)
@@ -437,13 +456,16 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                   width: 1,
                 ),
               ),
+
               child: Icon(
                 isActif
                     ? Icons.notifications_active_rounded
                     : Icons.notifications_off_outlined,
+
                 color: isActif
                     ? const Color(0xFF34D399)
                     : Colors.white.withValues(alpha: 0.25),
+
                 size: 22,
               ),
             ),
@@ -455,35 +477,62 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Consumer<MedicationProvider>(
-                    builder: (context, medicationProvider, _) {
-                      final med = rappel.medicamentId == null
-                          ? null
-                          : medicationProvider.getMedicationById(
-                              rappel.medicamentId.toString(),
-                            );
-
-                      final title = med == null
-                          ? rappel.type
-                          : 'Médicament : ${med.name}';
-
-                      return Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: isActif
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.35),
-                          decoration: isActif
+                  Consumer2<MedicationProvider, AppointmentProvider>(
+                    builder:
+                        (context, medicationProvider, appointmentProvider, _) {
+                          final med = rappel.medicamentId == null
                               ? null
-                              : TextDecoration.lineThrough,
-                          decorationColor: Colors.white.withValues(alpha: 0.2),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    },
+                              : medicationProvider.getMedicationById(
+                                  rappel.medicamentId.toString(),
+                                );
+
+                          RendezVousMedical? rdv;
+
+                          if (rappel.rendezVousMedicalId != null) {
+                            for (final a in appointmentProvider.appointments) {
+                              if (a.id == rappel.rendezVousMedicalId) {
+                                rdv = a;
+                                break;
+                              }
+                            }
+                          }
+
+                          String title;
+
+                          if (med != null) {
+                            title = 'Médicament : ${med.name}';
+                          } else if (rdv != null) {
+                            title = 'Rendez-vous : ${rdv.docteur}';
+                          } else if (rappel.type == 'RendezVousMedical') {
+                            title = 'Rendez-vous médical';
+                          } else {
+                            title = rappel.type;
+                          }
+
+                          return Text(
+                            title,
+
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+
+                              color: isActif
+                                  ? Colors.white
+                                  : Colors.white.withValues(alpha: 0.35),
+
+                              decoration: isActif
+                                  ? null
+                                  : TextDecoration.lineThrough,
+
+                              decorationColor: Colors.white.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          );
+                        },
                   ),
 
                   const SizedBox(height: 6),
@@ -494,9 +543,11 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                       _buildTimePill(
                         Icons.notifications_rounded,
                         _formatDateTime(rappel.dateHeureNotification),
+
                         isActif
                             ? const Color(0xFF7DC4FF)
                             : Colors.white.withValues(alpha: 0.2),
+
                         isActif,
                       ),
 
@@ -505,9 +556,11 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                       _buildTimePill(
                         Icons.medication_rounded,
                         _formatTime(rappel.dateHeurePrise),
+
                         isActif
                             ? const Color(0xFF34D399)
                             : Colors.white.withValues(alpha: 0.2),
+
                         isActif,
                       ),
                     ],
@@ -516,25 +569,55 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
               ),
             ),
 
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
 
-            // Checkbox sélection
+            // Toggle actif/inactif
+            Switch(
+              value: isActif,
+
+              activeThumbColor: Colors.white,
+              activeTrackColor: const Color(0xFF10B981),
+
+              inactiveThumbColor: Colors.white.withValues(alpha: 0.4),
+
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
+
+              onChanged: (value) async {
+                final auth = context.read<AuthProvider>();
+
+                await context.read<RappelProvider>().toggleRappel(
+                  rappel.id,
+                  value,
+                  auth,
+                );
+              },
+            ),
+
+            const SizedBox(width: 6),
+
+            // Sélection
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
+
               height: 28,
               width: 28,
+
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF4A9FE8)
                     : Colors.transparent,
+
                 shape: BoxShape.circle,
+
                 border: Border.all(
                   color: isSelected
                       ? const Color(0xFF4A9FE8)
                       : Colors.white.withValues(alpha: 0.22),
+
                   width: 1.5,
                 ),
               ),
+
               child: isSelected
                   ? const Icon(
                       Icons.check_rounded,

@@ -34,6 +34,10 @@ class AineProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setSelectedAine(Aine aine) async {
+    await selectAine(aine);
+  }
+
   Future<void> clearSelectedAine() async {
     _selectedAine = null;
 
@@ -67,8 +71,9 @@ class AineProvider with ChangeNotifier {
       if (auth.token == null) return;
 
       // Fabrice | 2026-05-05T06:00:00Z | Côté backend : /api/aines/mine renvoie les aînés liés au proche aidant connecté.
-      _aines =
-          auth.isAidant ? await _service.getAinesMine(auth.token!) : await _service.getAines(auth.token!);
+      _aines = auth.isAidant
+          ? await _service.getAinesMine(auth.token!)
+          : await _service.getAines(auth.token!);
 
       await restoreSelectedAine();
       _error = '';

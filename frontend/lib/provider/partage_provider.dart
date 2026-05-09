@@ -9,13 +9,17 @@ class PartageProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String _error = '';
-  final List<PartageSuivi> _partages = [];
 
-  PartageSuivi _partageFromApi(Map<String, dynamic> m) => PartageSuivi.fromJson(m);
+  final List<PartageSuivi> _partages = [];
+  final Set<int> _notificationsMasquees = {};
 
   bool get isLoading => _isLoading;
   String get error => _error;
   List<PartageSuivi> get partages => List.unmodifiable(_partages);
+
+  PartageSuivi _partageFromApi(Map<String, dynamic> m) {
+    return PartageSuivi.fromJson(m);
+  }
 
   Future<bool> aineAjouteProche({
     required int aineId,
@@ -23,6 +27,12 @@ class PartageProvider extends ChangeNotifier {
     required String relation,
     required AuthProvider auth,
     String? procheEmail,
+    String? procheNom,
+    String? prochePrenom,
+    String? procheTelephone,
+    String? aineNom,
+    String? ainePrenom,
+    String? aineEmail,
   }) async {
     _setLoading(true);
     _error = '';
@@ -32,41 +42,51 @@ class PartageProvider extends ChangeNotifier {
 
       final existeDeja = _partages.any((p) {
         final sameAine = p.aineId == aineId;
-
         final sameProcheId = procheId != 0 && p.procheAidantId == procheId;
 
-        final sameEmail =
-            normalizedEmail != null &&
+        final sameEmail = normalizedEmail != null &&
             normalizedEmail.isNotEmpty &&
             p.procheEmail?.toLowerCase().trim() == normalizedEmail;
 
-        return sameAine && (sameProcheId || sameEmail);
+        return sameAine &&
+            (sameProcheId || sameEmail) &&
+            p.statut != StatutPartage.refuse;
       });
 
       if (existeDeja) {
         _error = 'Ce proche a déjà une invitation ou un lien avec cet aîné';
+        notifyListeners();
+        return false;
+      }
+
+      if (auth.token == null) {
+        _error = 'Session invalide';
+        notifyListeners();
         return false;
       }
 
       final partage = PartageSuivi(
         id: DateTime.now().millisecondsSinceEpoch,
         autorisation: Autorisation.complete,
-        relation: relation,
+        relation: relation.trim().isNotEmpty
+            ? relation.trim()
+            : 'Proche aidant',
         aineId: aineId,
         procheAidantId: procheId,
         procheEmail: normalizedEmail,
+        procheNom: procheNom,
+        prochePrenom: prochePrenom,
+        procheTelephone: procheTelephone,
+        aineNom: aineNom,
+        ainePrenom: ainePrenom,
+        aineEmail: aineEmail,
         statut: StatutPartage.enAttente,
       );
 
-      if (auth.token == null) {
-        _error = 'Session invalide';
-        return false;
-      }
-
       final ok = await _api.upsertPartage(partage, auth.token!);
+
       if (!ok) {
-        _error =
-            'Création du partage refusée (données invalides ou API indisponible)';
+        _error = 'Création du partage refusée';
         notifyListeners();
         return false;
       }
@@ -75,6 +95,7 @@ class PartageProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = 'Erreur lors du partage : $e';
+      notifyListeners();
       return false;
     } finally {
       _setLoading(false);
@@ -86,9 +107,13 @@ class PartageProvider extends ChangeNotifier {
     _error = '';
 
     try {
-      if (auth.token == null) return;
+      if (auth.token == null) {
+        _error = 'Session invalide';
+        return;
+      }
 
       final raw = await _api.getPartagesSuivi(auth.token!);
+
       _partages
         ..clear()
         ..addAll(
@@ -98,6 +123,122 @@ class PartageProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _error = 'Impossible de charger les partages : $e';
+      notifyListeners();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  List<PartageSuivi> getDemandesPourProche(AuthProvider auth) {
+    if (auth.isAine) return [];
+
+    final procheId = auth.currentUserLocalId ?? 0;
+    final email = auth.email?.toLowerCase().trim();
+
+    return _partages.where((p) {
+      final idMatch = procheId != 0 && p.procheAidantId == procheId;
+
+      final emailMatch = email != null &&
+          email.isNotEmpty &&
+          p.procheEmail?.toLowerCase().trim() == email;
+
+      return (idMatch || emailMatch) && p.statut == StatutPartage.enAttente;
+    }).toList();
+  }
+
+  int countDemandesPourProche(AuthProvider auth) {
+    return getDemandesPourProche(auth).length;
+  }
+
+  Future<bool> accepterDemande(int partageId, AuthProvider auth) async {
+    _setLoading(true);
+    _error = '';
+
+    try {
+      if (auth.token == null) {
+        _error = 'Session invalide';
+        notifyListeners();
+        return false;
+      }
+
+      final index = _partages.indexWhere((p) => p.id == partageId);
+
+      if (index == -1) {
+        _error = 'Demande introuvable';
+        notifyListeners();
+        return false;
+      }
+
+      final ancienPartage = _partages[index];
+
+      final ok = await _api.acceptPartage(partageId, auth.token!);
+
+      if (!ok) {
+        _error = 'Impossible d’accepter la demande';
+        notifyListeners();
+        return false;
+      }
+
+      _partages[index] = ancienPartage.copyWith(
+        statut: StatutPartage.actif,
+        procheAidantId: auth.currentUserLocalId ?? ancienPartage.procheAidantId,
+        procheEmail: auth.email ?? ancienPartage.procheEmail,
+        procheNom: auth.nom ?? ancienPartage.procheNom,
+        prochePrenom: auth.prenom ?? ancienPartage.prochePrenom,
+      );
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Erreur lors de l’acceptation : $e';
+      notifyListeners();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> refuserDemande(int partageId, AuthProvider auth) async {
+    _setLoading(true);
+    _error = '';
+
+    try {
+      if (auth.token == null) {
+        _error = 'Session invalide';
+        notifyListeners();
+        return false;
+      }
+
+      final index = _partages.indexWhere((p) => p.id == partageId);
+
+      if (index == -1) {
+        _error = 'Demande introuvable';
+        notifyListeners();
+        return false;
+      }
+
+      final ancienPartage = _partages[index];
+
+      final ok = await _api.rejectPartage(partageId, auth.token!);
+
+      if (!ok) {
+        _error = 'Impossible de refuser la demande';
+        notifyListeners();
+        return false;
+      }
+
+      _partages[index] = ancienPartage.copyWith(
+        statut: StatutPartage.refuse,
+        procheNom: auth.nom ?? ancienPartage.procheNom,
+        prochePrenom: auth.prenom ?? ancienPartage.prochePrenom,
+      );
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Erreur lors du refus : $e';
+      notifyListeners();
+      return false;
     } finally {
       _setLoading(false);
     }
@@ -126,37 +267,26 @@ class PartageProvider extends ChangeNotifier {
     return _partages.where((p) => p.procheAidantId == procheId).toList();
   }
 
-  List<PartageSuivi> getDemandesParEmail(String email) {
-    final normalizedEmail = email.toLowerCase().trim();
+  List<PartageSuivi> getReponsesPourAine(AuthProvider auth) {
+    final aineId = auth.currentUserLocalId ?? 0;
 
-    return _partages
-        .where(
-          (p) =>
-              p.procheEmail?.toLowerCase().trim() == normalizedEmail &&
-              p.statut == StatutPartage.enAttente,
-        )
-        .toList();
-  }
-
-  List<PartageSuivi> getDemandesPourProche(AuthProvider auth) {
-    final procheId = auth.currentUserLocalId ?? 0;
-    final email = auth.email?.toLowerCase().trim();
+    if (!auth.isAine || aineId == 0) return [];
 
     return _partages.where((p) {
-      final idMatch = procheId != 0 && p.procheAidantId == procheId;
-
-      final emailMatch =
-          email != null &&
-          email.isNotEmpty &&
-          p.procheEmail?.toLowerCase().trim() == email;
-
-      return (idMatch || emailMatch) && p.statut == StatutPartage.enAttente;
+      return p.aineId == aineId &&
+          !_notificationsMasquees.contains(p.id) &&
+          (p.statut == StatutPartage.actif ||
+              p.statut == StatutPartage.refuse);
     }).toList();
   }
 
-  int countDemandesPourProche(AuthProvider auth) {
-    if (auth.isAine) return 0;
-    return getDemandesPourProche(auth).length;
+  int countReponsesPourAine(AuthProvider auth) {
+    return getReponsesPourAine(auth).length;
+  }
+
+  void masquerNotification(int partageId) {
+    _notificationsMasquees.add(partageId);
+    notifyListeners();
   }
 
   PartageSuivi? getById(int id) {
@@ -164,79 +294,6 @@ class PartageProvider extends ChangeNotifier {
       return _partages.firstWhere((p) => p.id == id);
     } catch (_) {
       return null;
-    }
-  }
-
-  Future<bool> accepterDemande(int partageId, AuthProvider auth) async {
-    _setLoading(true);
-    _error = '';
-
-    try {
-      if (auth.token == null) {
-        _error = 'Session invalide';
-        return false;
-      }
-
-      final ok = await _api.acceptPartage(partageId, auth.token!);
-      if (!ok) {
-        _error = 'Impossible d’accepter la demande (API)';
-        return false;
-      }
-
-      final index = _partages.indexWhere((p) => p.id == partageId);
-
-      if (index == -1) {
-        _error = 'Demande introuvable';
-        return false;
-      }
-
-      final partage = _partages[index];
-
-      _partages[index] = partage.copyWith(
-        statut: StatutPartage.actif,
-        procheAidantId: auth.currentUserLocalId ?? partage.procheAidantId,
-        procheEmail: null,
-      );
-
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = 'Erreur lors de l’acceptation : $e';
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  Future<bool> refuserDemande(int partageId) async {
-    _setLoading(true);
-    _error = '';
-
-    try {
-      // Refus côté API si possible (sinon on garde la suppression locale)
-      // Ici on a un endpoint /reject
-      // Si pas de token (hors-ligne), on retombe sur le comportement local
-      // (pour ne pas bloquer l'UI).
-      // Note: l’écran ne passe pas AuthProvider ici.
-
-      final index = _partages.indexWhere((p) => p.id == partageId);
-
-      if (index == -1) {
-        _error = 'Demande introuvable';
-        return false;
-      }
-
-      _partages[index] = _partages[index].copyWith(
-        statut: StatutPartage.refuse,
-      );
-
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = 'Erreur lors du refus : $e';
-      return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
@@ -250,11 +307,13 @@ class PartageProvider extends ChangeNotifier {
       }
 
       _partages.removeWhere((p) => p.id == partageId);
+      _notificationsMasquees.remove(partageId);
 
       notifyListeners();
       return true;
     } catch (e) {
       _error = 'Erreur lors de la suppression : $e';
+      notifyListeners();
       return false;
     } finally {
       _setLoading(false);
@@ -279,6 +338,7 @@ class PartageProvider extends ChangeNotifier {
 
   void clearPartages() {
     _partages.clear();
+    _notificationsMasquees.clear();
     notifyListeners();
   }
 

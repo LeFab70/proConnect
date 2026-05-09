@@ -1,12 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 import '../../widgets/appointments/add_appointment_form.dart';
 import '../../models/appointment.dart';
-import '../../models/rappel.dart';
-import '../../provider/auth_provider.dart';
-import '../../provider/rappel_provider.dart';
 import '../../widgets/tr_text.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
@@ -18,12 +14,6 @@ class AddAppointmentScreen extends StatefulWidget {
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   bool _ajouterAuxRappels = true;
-
-  String _formatHeure(DateTime date) {
-    final h = date.hour.toString().padLeft(2, '0');
-    final m = date.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +31,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         ),
         child: Stack(
           children: [
-            // Orb haut-droit
             Positioned(
               top: -60,
               right: -80,
@@ -59,25 +48,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 ),
               ),
             ),
-            // Orb bas-gauche
-            Positioned(
-              bottom: 80,
-              left: -60,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.04),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
             SafeArea(
               child: Column(
                 children: [
@@ -106,8 +76,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
-  // ─── HEADER ────────────────────────────────────────────────────────────────
-
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
@@ -133,7 +101,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               ),
             ),
           ),
-
           const TrText(
             "Nouveau Rendez-vous",
             style: TextStyle(
@@ -143,14 +110,11 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               letterSpacing: -0.4,
             ),
           ),
-
           const SizedBox(width: 44),
         ],
       ),
     );
   }
-
-  // ─── INTRO CARD ────────────────────────────────────────────────────────────
 
   Widget _buildIntroCard() {
     return Container(
@@ -197,8 +161,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     );
   }
 
-  // ─── TOGGLE RAPPEL ─────────────────────────────────────────────────────────
-
   Widget _buildRappelToggle() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -241,7 +203,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 const SizedBox(height: 2),
                 TrText(
                   _ajouterAuxRappels
-                      ? "Rappel automatique 1h avant"
+                      ? "Un rappel sera créé 1h avant"
                       : "Aucun rappel ne sera créé",
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.4),
@@ -251,23 +213,20 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               ],
             ),
           ),
-          Transform.scale(
-            scale: 0.85,
-            child: Switch(
-              value: _ajouterAuxRappels,
-              activeThumbColor: Colors.white,
-              activeTrackColor: const Color(0xFF10B981),
-              inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
-              inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-              onChanged: (value) => setState(() => _ajouterAuxRappels = value),
-            ),
+          Switch(
+            value: _ajouterAuxRappels,
+            activeThumbColor: Colors.white,
+            activeTrackColor: const Color(0xFF10B981),
+            inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
+            inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+            onChanged: (value) {
+              setState(() => _ajouterAuxRappels = value);
+            },
           ),
         ],
       ),
     );
   }
-
-  // ─── FORM CARD ─────────────────────────────────────────────────────────────
 
   Widget _buildFormCard() {
     return Container(
@@ -275,93 +234,29 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF000428).withValues(alpha: 0.3),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // En-tête de section
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF004E92).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.medical_services_outlined,
-                  color: Color(0xFF7DC4FF),
-                  size: 17,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                "Détails du rendez-vous",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.9),
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
-          ),
+      child: AddAppointmentForm(
+        onSubmit: (dateHeure, lieu, docteur, notes) async {
+          final rdv = RendezVousMedical(
+            id: DateTime.now().microsecondsSinceEpoch,
+            dateHeure: dateHeure,
+            lieu: lieu,
+            docteur: docteur,
+            notes: notes ?? '',
+            aineId: 1,
+          );
 
-          Divider(color: Colors.white.withValues(alpha: 0.08), height: 24),
+          if (!mounted) return;
 
-          // Formulaire injecté
-          AddAppointmentForm(
-            onSubmit: (dateHeure, lieu, docteur, notes) async {
-              final rdvId = DateTime.now().microsecondsSinceEpoch;
-
-              final nouveauRDV = RendezVousMedical(
-                id: rdvId,
-                dateHeure: dateHeure,
-                lieu: lieu,
-                docteur: docteur,
-                notes: notes ?? '',
-                aineId: 1,
-              );
-
-              final navigator = Navigator.of(context);
-
-              if (_ajouterAuxRappels) {
-                final rappel = Rappel(
-                  id: DateTime.now().microsecondsSinceEpoch,
-                  dateDebut: dateHeure,
-                  heureDebut: _formatHeure(dateHeure),
-                  minutesAvantRappel: 60,
-                  dateHeurePrise: dateHeure,
-                  dateHeureNotification: dateHeure.subtract(
-                    const Duration(minutes: 60),
-                  ),
-                  type: 'RendezVousMedical',
-                  actif: true,
-                  rendezVousMedicalId: rdvId,
-                  groupeId: 'rdv_$rdvId',
-                );
-
-                final auth = context.read<AuthProvider>();
-                await context.read<RappelProvider>().addRappel(rappel, auth);
-              }
-
-              if (!mounted) return;
-              navigator.pop(nouveauRDV);
-            },
-          ),
-        ],
+          Navigator.pop(context, {
+            'appointment': rdv,
+            'addToReminder': _ajouterAuxRappels,
+          });
+        },
       ),
     );
   }

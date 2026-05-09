@@ -20,6 +20,7 @@ import '../screens/settings/notifications_screen.dart';
 import '../screens/settings/help_support_screen.dart';
 import '../screens/settings/change_password_screen.dart';
 import '../screens/partage/partage_screen.dart';
+import '../screens/partage/reponses_partage_screen.dart';
 import '../screens/user/profile_screen.dart';
 import '../screens/partage/demandes_recues_screen.dart';
 import '../screens/medications/medication_history_screen.dart';
@@ -68,7 +69,9 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const MedicationListScreen());
 
       case '/medicationHistory':
-        return MaterialPageRoute(builder: (_) => const MedicationHistoryScreen());
+        return MaterialPageRoute(
+          builder: (_) => const MedicationHistoryScreen(),
+        );
 
       case '/rappel':
         return MaterialPageRoute(builder: (_) => const ListRappelScreen());
@@ -109,6 +112,9 @@ class AppRouter {
 
       case '/demandeRecue':
         return MaterialPageRoute(builder: (_) => const DemandesRecuesScreen());
+
+      case '/reponsesPartage':
+        return MaterialPageRoute(builder: (_) => const ReponsesPartageScreen());
 
       // DEFAULT
       default:

@@ -345,7 +345,13 @@ class _PartageScreenState extends State<PartageScreen> {
         // Bouton submit fixe en bas
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: _buildSubmitButton(context, auth, partageProv, dropdownValue),
+          child: _buildSubmitButton(
+            context,
+            auth,
+            partageProv,
+            caregiverProv,
+            dropdownValue,
+          ),
         ),
       ],
     );
@@ -572,6 +578,7 @@ class _PartageScreenState extends State<PartageScreen> {
     BuildContext context,
     AuthProvider auth,
     PartageProvider partageProv,
+    CaregiverProvider caregiverProv,
     int? dropdownValue,
   ) {
     final canSubmit = dropdownValue != null && !partageProv.isLoading;
@@ -607,11 +614,26 @@ class _PartageScreenState extends State<PartageScreen> {
             ? () async {
                 final messenger = ScaffoldMessenger.of(context);
                 final navigator = Navigator.of(context);
+                final proche = caregiverProv.caregivers.firstWhere(
+                  (c) => c.id == _selectedProcheId!,
+                );
+
                 final success = await partageProv.aineAjouteProche(
                   aineId: auth.currentUserLocalId ?? 0,
                   procheId: _selectedProcheId!,
                   relation: _selectedRelation,
                   auth: auth,
+
+                  // Infos du proche
+                  procheEmail: proche.email,
+                  procheNom: proche.nom,
+                  prochePrenom: proche.prenom,
+                  procheTelephone: proche.telephone,
+
+                  // Infos de l’aîné
+                  aineNom: auth.nom,
+                  ainePrenom: auth.prenom,
+                  aineEmail: auth.email,
                 );
 
                 if (!mounted) return;
@@ -711,7 +733,10 @@ class _PartageScreenState extends State<PartageScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF000428).withValues(alpha: 0.3),
