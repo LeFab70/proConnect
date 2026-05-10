@@ -80,29 +80,71 @@ public static class PartagesSuiviEndpoints
     {
         var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
+        var email = user.FindFirstValue(ClaimTypes.Email)?.Trim().ToLowerInvariant();
+        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value.Trim().ToUpperInvariant()).ToArray();
+        if (!roles.Contains("AIDANT")) return Results.Forbid();
 
         var entity = await db.PartagesSuivi.FirstOrDefaultAsync(p => p.Id == id, ct);
         if (entity == null) return Results.NotFound();
 
-        // Associate to current proche aidant
+        if (!string.Equals(entity.Statut, "enAttente", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.Conflict(new { message = "Invitation déjà traitée." });
+        }
+
+        // Invitation must target the current aidant (by id or email) when provided.
+        var emailMatch = !string.IsNullOrWhiteSpace(email) &&
+                         !string.IsNullOrWhiteSpace(entity.ProcheEmail) &&
+                         string.Equals(entity.ProcheEmail.Trim().ToLowerInvariant(), email, StringComparison.OrdinalIgnoreCase);
+        var idMatch = entity.ProcheAidantId != null && entity.ProcheAidantId == userId;
+        var unboundInvite = entity.ProcheAidantId == null && !string.IsNullOrWhiteSpace(entity.ProcheEmail);
+
+        if (!(emailMatch || idMatch || unboundInvite))
+        {
+            return Results.Forbid();
+        }
+
         entity.ProcheAidantId = userId;
         entity.ProcheEmail = null;
         entity.Statut = "actif";
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            return Results.BadRequest(new { message = "Erreur base de données lors de l'acceptation.", detail = ex.InnerException?.Message ?? ex.Message });
+        }
 
         return Results.NoContent();
     }
 
     private static async Task<IResult> Reject(
         long id,
+        ClaimsPrincipal user,
         AppDbContext db,
         CancellationToken ct)
     {
+        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value.Trim().ToUpperInvariant()).ToArray();
+        if (!roles.Contains("AIDANT")) return Results.Forbid();
+
         var entity = await db.PartagesSuivi.FirstOrDefaultAsync(p => p.Id == id, ct);
         if (entity == null) return Results.NotFound();
 
+        if (!string.Equals(entity.Statut, "enAttente", StringComparison.OrdinalIgnoreCase))
+        {
+            return Results.Conflict(new { message = "Invitation déjà traitée." });
+        }
+
         entity.Statut = "refuse";
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            return Results.BadRequest(new { message = "Erreur base de données lors du refus.", detail = ex.InnerException?.Message ?? ex.Message });
+        }
 
         return Results.NoContent();
     }
