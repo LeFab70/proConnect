@@ -44,7 +44,8 @@ class PartageProvider extends ChangeNotifier {
         final sameAine = p.aineId == aineId;
         final sameProcheId = procheId != 0 && p.procheAidantId == procheId;
 
-        final sameEmail = normalizedEmail != null &&
+        final sameEmail =
+            normalizedEmail != null &&
             normalizedEmail.isNotEmpty &&
             p.procheEmail?.toLowerCase().trim() == normalizedEmail;
 
@@ -116,9 +117,7 @@ class PartageProvider extends ChangeNotifier {
 
       _partages
         ..clear()
-        ..addAll(
-          raw.map((e) => _partageFromApi(e as Map<String, dynamic>)),
-        );
+        ..addAll(raw.map((e) => _partageFromApi(e as Map<String, dynamic>)));
 
       notifyListeners();
     } catch (e) {
@@ -138,7 +137,8 @@ class PartageProvider extends ChangeNotifier {
     return _partages.where((p) {
       final idMatch = procheId != 0 && p.procheAidantId == procheId;
 
-      final emailMatch = email != null &&
+      final emailMatch =
+          email != null &&
           email.isNotEmpty &&
           p.procheEmail?.toLowerCase().trim() == email;
 
@@ -171,10 +171,14 @@ class PartageProvider extends ChangeNotifier {
 
       final ancienPartage = _partages[index];
 
+      print("ACCEPTATION DEMANDE ID = $partageId");
+
       final ok = await _api.acceptPartage(partageId, auth.token!);
 
+      print("RESULT ACCEPT = $ok");
+
       if (!ok) {
-        _error = 'Impossible d’accepter la demande';
+        _error = 'Le serveur a refusé la demande';
         notifyListeners();
         return false;
       }
@@ -188,8 +192,13 @@ class PartageProvider extends ChangeNotifier {
       );
 
       notifyListeners();
+
+      await fetchPartages(auth);
+
       return true;
     } catch (e) {
+      print("ERREUR ACCEPT = $e");
+
       _error = 'Erreur lors de l’acceptation : $e';
       notifyListeners();
       return false;
@@ -275,8 +284,7 @@ class PartageProvider extends ChangeNotifier {
     return _partages.where((p) {
       return p.aineId == aineId &&
           !_notificationsMasquees.contains(p.id) &&
-          (p.statut == StatutPartage.actif ||
-              p.statut == StatutPartage.refuse);
+          (p.statut == StatutPartage.actif || p.statut == StatutPartage.refuse);
     }).toList();
   }
 

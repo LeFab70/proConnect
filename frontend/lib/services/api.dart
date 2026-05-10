@@ -26,10 +26,7 @@ class Api {
       final response = await http.post(
         Uri.parse("$baseUrl/api/auth/login"),
         headers: headers(),
-        body: jsonEncode({
-          "email": email.trim(),
-          "password": password,
-        }),
+        body: jsonEncode({"email": email.trim(), "password": password}),
       );
 
       if (response.statusCode == 401) {
@@ -37,7 +34,10 @@ class Api {
       }
 
       if (response.statusCode != 200) {
-        return {"success": false, "message": "Erreur serveur (${response.statusCode})"};
+        return {
+          "success": false,
+          "message": "Erreur serveur (${response.statusCode})",
+        };
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -175,11 +175,17 @@ class Api {
 
       if (response.statusCode == 400) {
         final err = _parseRegisterError(response.body);
-        return {"success": false, "message": err ?? "Impossible de créer le compte"};
+        return {
+          "success": false,
+          "message": err ?? "Impossible de créer le compte",
+        };
       }
 
       if (response.statusCode != 200) {
-        return {"success": false, "message": "Erreur serveur (${response.statusCode})"};
+        return {
+          "success": false,
+          "message": "Erreur serveur (${response.statusCode})",
+        };
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -370,8 +376,10 @@ class Api {
           "autorisation": _partageAutorisationApi(partage.autorisation),
           "relation": partage.relation,
           "aineId": partage.aineId,
-          if (partage.procheAidantId > 0) "procheAidantId": partage.procheAidantId,
-          if (partage.procheEmail != null && partage.procheEmail!.trim().isNotEmpty)
+          if (partage.procheAidantId > 0)
+            "procheAidantId": partage.procheAidantId,
+          if (partage.procheEmail != null &&
+              partage.procheEmail!.trim().isNotEmpty)
             "procheEmail": partage.procheEmail!.trim().toLowerCase(),
         }),
       );
@@ -387,8 +395,13 @@ class Api {
         Uri.parse("$baseUrl/api/partages-suivi/$partageId/accept"),
         headers: authHeaders(token),
       );
+
+      print("STATUS ACCEPT = ${response.statusCode}");
+      print("BODY ACCEPT = ${response.body}");
+
       return response.statusCode == 200 || response.statusCode == 204;
-    } catch (_) {
+    } catch (e) {
+      print("ERROR ACCEPT = $e");
       return false;
     }
   }
