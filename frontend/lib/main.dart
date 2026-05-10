@@ -15,6 +15,7 @@ import 'provider/appointment_provider.dart';
 import 'provider/partage_provider.dart';
 import 'navigation/app_router.dart';
 import 'services/notification_service.dart';
+import 'services/local_alarm_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,7 @@ Future<void> main() async {
   debugPrint("TOKEN CHARGÉ = ${dotenv.env['PREDICT_HQ_TOKEN']}");
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
-
+  await LocalAlarmService.init();
   runApp(
     MultiProvider(
       providers: [

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../widgets/appointments/add_appointment_form.dart';
 import '../../models/appointment.dart';
 import '../../widgets/tr_text.dart';
+import '../../services/local_alarm_service.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -203,8 +204,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 const SizedBox(height: 2),
                 TrText(
                   _ajouterAuxRappels
-                      ? "Un rappel sera créé 1h avant"
-                      : "Aucun rappel ne sera créé",
+                      ? "Une alarme locale sera déclenchée à l'heure du rendez-vous"
+                      : "Aucune alarme ne sera créée",
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.4),
                     fontSize: 12,
@@ -249,6 +250,15 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             notes: notes ?? '',
             aineId: 1,
           );
+
+          if (_ajouterAuxRappels) {
+            await LocalAlarmService.scheduleAlarm(
+              id: rdv.id,
+              title: 'Rendez-vous médical',
+              body: 'Rendez-vous avec Dr $docteur à $lieu',
+              dateTime: rdv.dateHeure,
+            );
+          }
 
           if (!mounted) return;
 

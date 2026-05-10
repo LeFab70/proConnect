@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/rappel.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/rappel_provider.dart';
+import '../../services/local_alarm_service.dart';
 
 class AddRappelScreen extends StatefulWidget {
   final Rappel? rappel;
@@ -109,6 +110,7 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
 
   Future<void> _saveRappel() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _isLoading = true);
 
     final provider = context.read<RappelProvider>();
@@ -122,6 +124,7 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
       _heureDebut.hour,
       _heureDebut.minute,
     );
+
     final dateHeureNotification = dateHeurePrise.subtract(
       Duration(minutes: minutes),
     );
@@ -145,9 +148,21 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         : await provider.addRappel(rappel, auth);
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (success) {
+      await LocalAlarmService.cancelAlarm(rappel.id);
+
+      if (rappel.actif) {
+        await LocalAlarmService.scheduleAlarm(
+          id: rappel.id,
+          title: 'Rappel ProConnectNB',
+          body: rappel.type,
+          dateTime: rappel.dateHeureNotification,
+        );
+      }
+
+      setState(() => _isLoading = false);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -167,8 +182,11 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
           margin: const EdgeInsets.all(24),
         ),
       );
+
       Navigator.pop(context);
     } else {
+      setState(() => _isLoading = false);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
@@ -186,14 +204,15 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
   String _formatTime(TimeOfDay time) {
     final h = time.hour.toString().padLeft(2, '0');
     final m = time.minute.toString().padLeft(2, '0');
+
     return '$h:$m:00';
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
   @override
@@ -349,7 +368,10 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF000428).withValues(alpha: 0.3),
@@ -430,7 +452,11 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
           color: Colors.white.withValues(alpha: 0.4),
           fontSize: 13,
         ),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.35), size: 19),
+        prefixIcon: Icon(
+          icon,
+          color: Colors.white.withValues(alpha: 0.35),
+          size: 19,
+        ),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.07),
         contentPadding: const EdgeInsets.symmetric(
@@ -485,7 +511,10 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
         child: Row(
           children: [
