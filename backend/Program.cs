@@ -63,10 +63,16 @@ builder.Services.AddHttpClient(nameof(FcmPushNotificationService));
 // EF Core: migrations + runtime (services EF)
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var cs = Environment.GetEnvironmentVariable("DefaultConnection");
+    // Azure/CI may provide either naming convention.
+    var cs = Environment.GetEnvironmentVariable("DefaultConnection")
+             ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
     if (!string.IsNullOrWhiteSpace(cs))
     {
         options.UseNpgsql(cs);
+    }
+    else
+    {
+        throw new InvalidOperationException("Missing env var: DefaultConnection (or ConnectionStrings__DefaultConnection)");
     }
 });
 
