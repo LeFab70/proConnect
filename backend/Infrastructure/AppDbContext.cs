@@ -15,7 +15,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CalendrierCommunautaire> CalendriersCommunautaires => Set<CalendrierCommunautaire>();
     public DbSet<ActiviteCommunautaire> ActivitesCommunautaires => Set<ActiviteCommunautaire>();
     public DbSet<PartageSuivi> PartagesSuivi => Set<PartageSuivi>();
-    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -137,19 +136,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.ProcheEmail).HasColumnName("proche_email");
             e.Property(x => x.Statut).HasColumnName("statut");
             e.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc");
-        });
-
-        modelBuilder.Entity<DeviceToken>(e =>
-        {
-            e.ToTable("device_tokens");
-            e.HasKey(x => x.Id);
-            e.Property(x => x.UserId).HasColumnName("user_id");
-            e.Property(x => x.Token).HasColumnName("token");
-            e.Property(x => x.Platform).HasColumnName("platform");
-            e.Property(x => x.IsActive).HasColumnName("is_active");
-            e.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc");
-            e.Property(x => x.LastSeenAtUtc).HasColumnName("last_seen_at_utc");
-            e.HasIndex(x => new { x.UserId, x.Token }).IsUnique();
         });
     }
 }

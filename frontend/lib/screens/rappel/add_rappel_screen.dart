@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -149,9 +149,6 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
 
     if (!mounted) return;
 
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-
     if (success) {
       await LocalAlarmService.cancelAlarm(rappel.id);
 
@@ -166,7 +163,7 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
 
       setState(() => _isLoading = false);
 
-      messenger.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             widget.isEditing
@@ -186,11 +183,11 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         ),
       );
 
-      navigator.pop();
+      Navigator.pop(context);
     } else {
       setState(() => _isLoading = false);
 
-      messenger.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
             'Erreur lors de l\'enregistrement.',

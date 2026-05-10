@@ -71,34 +71,6 @@ Dans l’app Flutter : écran **Connexion** → champ **Email** + champ **Mot de
 - **Comptes « StandardUser »** après inscription : le backend `/api/auth/register` crée toujours un `StandardUser` (pas un enregistrement `Aine` / `ProcheAidant`). Le dérivé `role` côté app suit la même logique que le login (souvent **AIDANT** via `/api/users/{id}`) ; le choix « Aînés » sur l’écran d’inscription n’altère pas encore le type en base.
 - **Création / suppression** d’aînés, proches, RDV, etc. : plusieurs routes sont **`AdminOnly`** sur le backend ; un JWT utilisateur normal peut recevoir 403 même si le front envoie la bonne URL.
 
-## Push multi-device (Aidant notifié à distance) — FCM (Android)
-
-Objectif: lorsqu’un **aîné** envoie un partage, crée/modifie un RDV, ou marque une prise, le **proche aidant** reçoit une notification même si son application est fermée.
-
-### Backend (.NET)
-
-- **Stockage tokens**: table `device_tokens`
-- **Enregistrer token**: `POST /api/push/token` (JWT requis)
-- **Env var**: `FCM__ServerKey` (clé serveur Firebase Cloud Messaging)
-
-Le backend envoie des push (best-effort) sur:
-- création de `PartageSuivi` (si `procheAidantId` présent)
-- création / modification de `RendezVousMedical`
-
-### Frontend (Flutter)
-
-Le repo contient un **stub** `lib/services/push_token_provider.dart` (retourne `null`) pour ne pas casser la build tant que Firebase n’est pas configuré.
-
-Pour activer le push:
-- créer un projet Firebase + ajouter l’app Android (`applicationId`): `com.example.proconnectnb`
-- télécharger `google-services.json` et le placer dans `frontend/android/app/google-services.json`
-- ajouter `firebase_core` + `firebase_messaging` (puis initialiser Firebase dans `main.dart`)
-- intégrer `FirebaseMessaging.instance.getToken()` dans `PushTokenProvider.getDeviceToken()`
-- quand un token est obtenu, l’app l’envoie au backend via `POST /api/push/token`
-
-Notes:
-- Android 13+ nécessite la permission notifications (runtime).
-
 ## Deuxième passe (2026-05-05T04:56:37Z) — médicaments, rappels, partages, IA, écrans
 
 ### lib/services/medication_service.dart *(nouveau)*
