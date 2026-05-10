@@ -71,47 +71,6 @@ namespace backend.Migrations
                     b.ToTable("calendriers_communautaires", (string)null);
                 });
 
-            modelBuilder.Entity("backend.Models.DeviceToken", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at_utc");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<DateTime>("LastSeenAtUtc")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_seen_at_utc");
-
-                    b.Property<string>("Platform")
-                        .HasColumnType("text")
-                        .HasColumnName("platform");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("token");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "Token")
-                        .IsUnique();
-
-                    b.ToTable("device_tokens", (string)null);
-                });
-
             modelBuilder.Entity("backend.Models.Medicament", b =>
                 {
                     b.Property<long>("Id")
