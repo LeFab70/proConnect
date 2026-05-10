@@ -1,6 +1,7 @@
 using backend.Dtos.RendezVous;
 using backend.Infrastructure;
 using backend.Services.Interfaces;
+using System.Security.Claims;
 
 namespace backend.Endpoints;
 
@@ -8,11 +9,14 @@ public static class RendezVousMedicauxEndpoints
 {
     public static void MapRendezVousMedicauxEndpoints(this WebApplication app)
     {
+        // Canonical route used by the Flutter frontend.
         var route = app.MapGroup("/api/rendez-vous-medicaux").WithTags("RendezVousMedicaux").RequireAuthorization();
+        // Alias route (English) to match some frontend wording.
+        var appointments = app.MapGroup("/api/appointments").WithTags("RendezVousMedicaux").RequireAuthorization();
 
-        route.MapGet("/", GetAll)
+        route.MapGet("/", GetMine)
             .Produces<IReadOnlyList<RendezVousMedicalResponseDto>>(StatusCodes.Status200OK)
-            .WithSummary("Récupère tous les rendez-vous médicaux");
+            .WithSummary("Récupère les rendez-vous médicaux visibles pour l'utilisateur connecté");
         route.MapGet("/{id:long}", GetById)
             .Produces<RendezVousMedicalResponseDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
@@ -20,6 +24,7 @@ public static class RendezVousMedicauxEndpoints
 
         route.MapPost("/", Create)
             .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
             .WithSummary("Crée un rendez-vous médical");
 
         route.MapPut("/{id:long}", Update)
@@ -31,11 +36,31 @@ public static class RendezVousMedicauxEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .WithSummary("Supprime un rendez-vous médical");
+
+        // Mirror endpoints on /api/appointments
+        appointments.MapGet("/", GetMine)
+            .Produces<IReadOnlyList<RendezVousMedicalResponseDto>>(StatusCodes.Status200OK);
+        appointments.MapGet("/{id:long}", GetById)
+            .Produces<RendezVousMedicalResponseDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+        appointments.MapPost("/", Create)
+            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest);
+        appointments.MapPut("/{id:long}", Update)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
+        appointments.MapDelete("/{id:long}", Delete)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> GetAll(IRendezVousMedicalService svc)
+    private static async Task<IResult> GetMine(ClaimsPrincipal user, IRendezVousMedicalService svc, CancellationToken ct)
     {
-        var items = await svc.GetAll();
+        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
+        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
+
+        var items = await svc.GetForUser(userId, roles, ct);
         return Results.Ok(items);
     }
 
@@ -45,13 +70,28 @@ public static class RendezVousMedicauxEndpoints
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc)
+    private static async Task<IResult> Create(
+        UpsertRendezVousMedicalRequestDto dto,
+        ClaimsPrincipal user,
+        IRendezVousMedicalService svc,
+        CancellationToken ct)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
 
-        var created = await svc.Create(dto);
-        return Results.Created($"/api/rendez-vous-medicaux/{created.Id}", created);
+        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
+        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
+
+        try
+        {
+            var created = await svc.Create(dto, userId, roles, ct);
+            return Results.Created($"/api/rendez-vous-medicaux/{created.Id}", created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
     }
 
     private static async Task<IResult> Update(long id, UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc)

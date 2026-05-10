@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using backend.Dtos.Adresse;
 
 namespace backend.Dtos.RendezVous;
 
@@ -9,7 +8,9 @@ public class UpsertRendezVousMedicalRequestDto
     public DateTime DateHeure { get; set; }
 
     [Required(ErrorMessage = "Le lieu est obligatoire.")]
-    public required AdresseDto Lieu { get; set; }
+    [MinLength(1, ErrorMessage = "Le lieu ne peut pas être vide.")]
+    [MaxLength(300, ErrorMessage = "Le lieu ne doit pas dépasser 300 caractères.")]
+    public required string Lieu { get; set; }
 
     [Required(ErrorMessage = "Le docteur est obligatoire.")]
     [MinLength(1, ErrorMessage = "Le docteur ne peut pas être vide.")]

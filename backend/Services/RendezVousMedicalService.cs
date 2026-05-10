@@ -1,4 +1,3 @@
-using backend.Dtos.Common;
 using backend.Dtos.RendezVous;
 using backend.Dtos.Adresse;
 using backend.Infrastructure;
@@ -37,6 +36,50 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
             .ToListAsync();
     }
 
+    public async Task<IReadOnlyList<RendezVousMedicalResponseDto>> GetForUser(long userId, string[] roles, CancellationToken ct = default)
+    {
+        var roleSet = new HashSet<string>(roles.Select(r => r.Trim().ToUpperInvariant()));
+        var isAine = roleSet.Contains("AINE");
+
+        IQueryable<RendezVousMedical> q = _db.RendezVousMedicaux.AsNoTracking();
+
+        if (isAine)
+        {
+            q = q.Where(r => r.AineId == userId);
+        }
+        else
+        {
+            // For an aidant, return appointments for aînés they follow (partage actif).
+            var aineIds = await _db.PartagesSuivi.AsNoTracking()
+                .Where(p => p.ProcheAidantId == userId && p.Statut == "actif")
+                .Select(p => p.AineId)
+                .Distinct()
+                .ToListAsync(ct);
+
+            q = q.Where(r => aineIds.Contains(r.AineId));
+        }
+
+        return await q
+            .OrderBy(r => r.DateHeure)
+            .Select(r => new RendezVousMedicalResponseDto
+            {
+                Id = r.Id,
+                DateHeure = r.DateHeure,
+                Lieu = new AdresseDto
+                {
+                    Numero = r.Lieu.Numero,
+                    Rue = r.Lieu.Rue,
+                    Ville = r.Lieu.Ville,
+                    CodePostal = r.Lieu.CodePostal,
+                    Province = r.Lieu.Province
+                },
+                Docteur = r.Docteur,
+                Notes = r.Notes,
+                AineId = r.AineId
+            })
+            .ToListAsync(ct);
+    }
+
     public async Task<RendezVousMedicalResponseDto?> GetById(long id) // Récupère un rendez-vous médical par son ID
     {
         return await _db.RendezVousMedicaux
@@ -61,26 +104,58 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IdResponseDto> Create(UpsertRendezVousMedicalRequestDto dto) // Crée un nouveau rendez-vous médical
+    public async Task<RendezVousMedicalResponseDto> Create(UpsertRendezVousMedicalRequestDto dto, long userId, string[] roles, CancellationToken ct = default) // Crée un nouveau rendez-vous médical
     {
+        var roleSet = new HashSet<string>(roles.Select(r => r.Trim().ToUpperInvariant()));
+        var isAine = roleSet.Contains("AINE");
+
+        if (isAine && dto.AineId != userId)
+            throw new InvalidOperationException("Aîné non autorisé à créer un rendez-vous pour un autre utilisateur.");
+
+        if (!isAine)
+        {
+            var can = await _db.PartagesSuivi.AsNoTracking()
+                .AnyAsync(p => p.ProcheAidantId == userId && p.AineId == dto.AineId && p.Statut == "actif", ct);
+            if (!can)
+                throw new InvalidOperationException("Proche aidant non autorisé pour cet aîné.");
+        }
+
         var entity = new RendezVousMedical
         {
             DateHeure = dto.DateHeure,
             Lieu = new Adresse
             {
-                Numero = dto.Lieu.Numero,
-                Rue = dto.Lieu.Rue,
-                Ville = dto.Lieu.Ville,
-                CodePostal = dto.Lieu.CodePostal,
-                Province = dto.Lieu.Province
+                // The Flutter app currently sends a single text field ("lieu").
+                // Store it in Rue and keep other fields empty.
+                Numero = string.Empty,
+                Rue = dto.Lieu,
+                Ville = string.Empty,
+                CodePostal = string.Empty,
+                Province = string.Empty
             },
             Docteur = dto.Docteur,
             Notes = dto.Notes,
             AineId = dto.AineId
         };
         _db.RendezVousMedicaux.Add(entity);
-        await _db.SaveChangesAsync();
-        return new IdResponseDto { Id = entity.Id };
+        await _db.SaveChangesAsync(ct);
+
+        return new RendezVousMedicalResponseDto
+        {
+            Id = entity.Id,
+            DateHeure = entity.DateHeure,
+            Lieu = new AdresseDto
+            {
+                Numero = entity.Lieu.Numero,
+                Rue = entity.Lieu.Rue,
+                Ville = entity.Lieu.Ville,
+                CodePostal = entity.Lieu.CodePostal,
+                Province = entity.Lieu.Province
+            },
+            Docteur = entity.Docteur,
+            Notes = entity.Notes,
+            AineId = entity.AineId
+        };
     }
 
     public async Task<bool> Update(long id, UpsertRendezVousMedicalRequestDto dto) // Met à jour un rendez-vous médical existant
@@ -91,11 +166,11 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         entity.DateHeure = dto.DateHeure;
         entity.Lieu = new Adresse
         {
-            Numero = dto.Lieu.Numero,
-            Rue = dto.Lieu.Rue,
-            Ville = dto.Lieu.Ville,
-            CodePostal = dto.Lieu.CodePostal,
-            Province = dto.Lieu.Province
+            Numero = string.Empty,
+            Rue = dto.Lieu,
+            Ville = string.Empty,
+            CodePostal = string.Empty,
+            Province = string.Empty
         };
         entity.Docteur = dto.Docteur;
         entity.Notes = dto.Notes;
