@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:async';
 
 import 'provider/auth_provider.dart';
 import 'provider/medication_provider.dart';
@@ -43,8 +44,61 @@ Future<void> main() async {
   );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
+  Timer? _partageRefreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Refresh partages periodically so aidants see new invitations
+    // without having to log out / log back in.
+    _partageRefreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _refreshPartagesIfNeeded();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _partageRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshPartagesIfNeeded();
+    }
+  }
+
+  void _refreshPartagesIfNeeded() {
+    try {
+      final auth = context.read<AuthProvider>();
+      if (!auth.isAuthenticated || auth.token == null || auth.token!.isEmpty) {
+        return;
+      }
+
+      // Only aidants have "demandes reçues" invitations.
+      if (auth.isAine) return;
+
+      final partage = context.read<PartageProvider>();
+      partage.fetchPartages(auth).then((_) {
+        final nb = partage.countDemandesPourProche(auth);
+        auth.setNbDemandes(nb);
+      });
+    } catch (_) {
+      // Ignore refresh failures; UI can still pull-to-refresh / reload later.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

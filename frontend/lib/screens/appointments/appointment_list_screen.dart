@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +41,9 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
   }
 
   Future<void> _goToAddScreen() async {
+    final appointmentProvider = context.read<AppointmentProvider>();
+    final rappelProvider = context.read<RappelProvider>();
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AddAppointmentScreen()),
@@ -54,7 +57,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
 
       if (rdv is RendezVousMedical) {
         // Ajout rendez-vous local
-        await context.read<AppointmentProvider>().addLocalAppointment(rdv);
+        await appointmentProvider.addLocalAppointment(rdv);
 
         // Ajout rappel local si toggle activé
         if (addToReminder) {
@@ -73,7 +76,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
             groupeId: 'rdv_${rdv.id}',
           );
 
-          await context.read<RappelProvider>().addRappelLocalOnly(rappel);
+          await rappelProvider.addRappelLocalOnly(rappel);
         }
       }
     }
