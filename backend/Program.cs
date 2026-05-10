@@ -57,6 +57,8 @@ builder.Services.AddScoped<IRappelService, RappelService>();
 builder.Services.AddScoped<IPartageSuiviService, PartageSuiviService>();
 builder.Services.AddScoped<IAzureBlobService, AzureBlobService>();
 builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
+builder.Services.AddScoped<IPushNotificationService, FcmPushNotificationService>();
+builder.Services.AddHttpClient(nameof(FcmPushNotificationService));
 
 // EF Core: migrations + runtime (services EF)
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -160,6 +162,7 @@ app.MapMedicamentsEndpoints();
 app.MapRendezVousMedicauxEndpoints();
 app.MapRappelsEndpoints();
 app.MapPartagesSuiviEndpoints();
+app.MapPushEndpoints();
 app.MapImagesEndpoints();
 
 app.Run(); // Demarre l'application et ecoute les requetes HTTP entrantes (roulement continu)

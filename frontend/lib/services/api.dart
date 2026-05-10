@@ -20,6 +20,26 @@ class Api {
     };
   }
 
+  Future<bool> upsertPushToken({
+    required String token,
+    required String deviceToken,
+    String platform = "android",
+  }) async {
+    try {
+      final resp = await http.post(
+        Uri.parse("$baseUrl/api/push/token"),
+        headers: authHeaders(token),
+        body: jsonEncode({
+          "token": deviceToken,
+          "platform": platform,
+        }),
+      );
+      return resp.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Fabrice | 2026-05-05T04:47:29Z | Appelle POST /api/auth/login puis déduit rôle et prénom pour AuthProvider.
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {

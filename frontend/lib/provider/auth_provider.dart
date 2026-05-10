@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api.dart';
+import '../services/push_token_provider.dart';
 
 class AuthProvider with ChangeNotifier {
   final Api _api = Api();
+  final PushTokenProvider _pushTokenProvider = PushTokenProvider();
 
   bool _isAuthenticated = false;
   bool _isLoading = false;
@@ -110,6 +112,9 @@ class AuthProvider with ChangeNotifier {
       if (_userId != null) await prefs.setInt("userId", _userId!);
       await prefs.setString("profilePicture", _profilePicture ?? "");
       await prefs.setBool("isAuth", true);
+
+      // Best effort: register device push token if available.
+      await _tryRegisterPushToken();
 
       return true;
     } catch (e) {
@@ -236,8 +241,24 @@ class AuthProvider with ChangeNotifier {
         : profilePicture;
     _isAuthenticated = true;
 
+    // Best effort: register device push token if available.
+    await _tryRegisterPushToken();
+
     notifyListeners();
     return true;
+  }
+
+  Future<void> _tryRegisterPushToken() async {
+    try {
+      if (_token == null || _token!.isEmpty) return;
+      final deviceToken = await _pushTokenProvider.getDeviceToken();
+      if (deviceToken == null || deviceToken.trim().isEmpty) return;
+      await _api.upsertPushToken(
+        token: _token!,
+        deviceToken: deviceToken.trim(),
+        platform: "android",
+      );
+    } catch (_) {}
   }
 
   Future<void> updateProfilePicture(String newUrl) async {

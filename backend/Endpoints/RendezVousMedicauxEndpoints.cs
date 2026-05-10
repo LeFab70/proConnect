@@ -2,6 +2,7 @@ using backend.Dtos.RendezVous;
 using backend.Infrastructure;
 using backend.Services.Interfaces;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Endpoints;
 
@@ -74,6 +75,8 @@ public static class RendezVousMedicauxEndpoints
         UpsertRendezVousMedicalRequestDto dto,
         ClaimsPrincipal user,
         IRendezVousMedicalService svc,
+        AppDbContext db,
+        IPushNotificationService push,
         CancellationToken ct)
     {
         var validation = DtoValidation.Validate(dto);
@@ -86,6 +89,26 @@ public static class RendezVousMedicauxEndpoints
         try
         {
             var created = await svc.Create(dto, userId, roles, ct);
+
+            // Notify all aidants actively following this aîné.
+            var aidantIds = await db.PartagesSuivi.AsNoTracking()
+                .Where(p => p.AineId == created.AineId && p.Statut == "actif" && p.ProcheAidantId != null)
+                .Select(p => p.ProcheAidantId!.Value)
+                .Distinct()
+                .ToListAsync(ct);
+
+            await push.SendToUsersAsync(
+                aidantIds,
+                "Nouveau rendez-vous médical",
+                $"Un rendez-vous a été ajouté avec Dr {created.Docteur}.",
+                data: new Dictionary<string, string>
+                {
+                    ["type"] = "RDV",
+                    ["rendezVousMedicalId"] = created.Id.ToString(),
+                    ["aineId"] = created.AineId.ToString()
+                },
+                ct: ct);
+
             return Results.Created($"/api/rendez-vous-medicaux/{created.Id}", created);
         }
         catch (InvalidOperationException ex)
@@ -94,13 +117,40 @@ public static class RendezVousMedicauxEndpoints
         }
     }
 
-    private static async Task<IResult> Update(long id, UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc)
+    private static async Task<IResult> Update(
+        long id,
+        UpsertRendezVousMedicalRequestDto dto,
+        IRendezVousMedicalService svc,
+        AppDbContext db,
+        IPushNotificationService push,
+        CancellationToken ct)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
 
         var ok = await svc.Update(id, dto);
-        return ok ? Results.NoContent() : Results.NotFound();
+        if (!ok) return Results.NotFound();
+
+        // Notify aidants following this aîné (best-effort).
+        var aidantIds = await db.PartagesSuivi.AsNoTracking()
+            .Where(p => p.AineId == dto.AineId && p.Statut == "actif" && p.ProcheAidantId != null)
+            .Select(p => p.ProcheAidantId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
+
+        await push.SendToUsersAsync(
+            aidantIds,
+            "Rendez-vous modifié",
+            $"Un rendez-vous a été modifié (Dr {dto.Docteur}).",
+            data: new Dictionary<string, string>
+            {
+                ["type"] = "RDV_UPDATED",
+                ["rendezVousMedicalId"] = id.ToString(),
+                ["aineId"] = dto.AineId.ToString()
+            },
+            ct: ct);
+
+        return Results.NoContent();
     }
 
     private static async Task<IResult> Delete(long id, IRendezVousMedicalService svc)

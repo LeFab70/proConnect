@@ -57,7 +57,7 @@ public static class PartagesSuiviEndpoints
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(UpsertPartageSuiviRequestDto dto, IPartageSuiviService svc)
+    private static async Task<IResult> Create(UpsertPartageSuiviRequestDto dto, IPartageSuiviService svc, IPushNotificationService push, CancellationToken ct)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
@@ -69,6 +69,22 @@ public static class PartagesSuiviEndpoints
         }
 
         var created = await svc.Create(dto);
+
+        // Push notify target aidant (multi-device) if we have a concrete user id.
+        if (dto.ProcheAidantId != null && dto.ProcheAidantId > 0)
+        {
+            await push.SendToUserAsync(
+                dto.ProcheAidantId.Value,
+                "Nouvelle demande de partage",
+                "Un aîné vous a envoyé une demande de partage de suivi.",
+                data: new Dictionary<string, string>
+                {
+                    ["type"] = "PARTAGE_SUIVI",
+                    ["partageId"] = created.Id.ToString(),
+                },
+                ct: ct);
+        }
+
         return Results.Created($"/api/partages-suivi/{created.Id}", created);
     }
 
