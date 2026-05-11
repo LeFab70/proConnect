@@ -18,6 +18,24 @@ class AddAppointmentScreen extends StatefulWidget {
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   bool _ajouterAuxRappels = true;
+  int? _selectedAineId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final auth = context.read<AuthProvider>();
+      final aines = context.read<AineProvider>();
+      if (auth.isAidant && aines.aines.isEmpty) {
+        await aines.fetchAines(auth);
+      }
+      if (!mounted) return;
+      if (auth.isAidant) {
+        _selectedAineId = aines.selectedAine?.id;
+      }
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -243,15 +261,79 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           width: 1.5,
         ),
       ),
-      child: AddAppointmentForm(
-        onSubmit: (dateHeure, lieu, docteur, notes) async {
-          final auth = context.read<AuthProvider>();
-          final aines = context.read<AineProvider>();
-          final provider = context.read<AppointmentProvider>();
+      child: Consumer2<AuthProvider, AineProvider>(
+        builder: (context, auth, aines, _) {
+          final availableAines = aines.aines;
+          final isAidant = auth.isAidant;
 
-          final aineId = auth.isAine
-              ? (auth.currentUserLocalId ?? 0)
-              : (aines.selectedAine?.id ?? 0);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isAidant) ...[
+                Text(
+                  "Aîné concerné",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  initialValue: _selectedAineId,
+                  isExpanded: true,
+                  dropdownColor: const Color(0xFF0B1A4A),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.08),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                  ),
+                  items: availableAines
+                      .map(
+                        (a) => DropdownMenuItem<int>(
+                          value: a.id,
+                          child: Text(
+                            "${a.prenom} ${a.nom}",
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    setState(() => _selectedAineId = v);
+                    final found = availableAines
+                        .where((a) => a.id == v)
+                        .toList();
+                    if (found.isNotEmpty) {
+                      // best-effort, avoid async gap warnings in UI handler
+                      aines.selectAine(found.first);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              AddAppointmentForm(
+                onSubmit: (dateHeure, lieu, docteur, notes) async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final navigator = Navigator.of(context);
+                  final provider = context.read<AppointmentProvider>();
+
+                  final aineId = auth.isAine
+                      ? (auth.currentUserLocalId ?? 0)
+                      : (_selectedAineId ?? 0);
 
           if (aineId <= 0) {
             if (!mounted) return;
@@ -274,7 +356,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           final created = await provider.addAppointment(data, auth);
           if (created == null) {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               SnackBar(
                 content: Text(provider.error.isNotEmpty
                     ? provider.error
@@ -296,10 +378,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
           if (!mounted) return;
 
-          Navigator.pop(context, {
+          navigator.pop({
             'appointment': rdv,
             'addToReminder': _ajouterAuxRappels,
           });
+                },
+              ),
+            ],
+          );
         },
       ),
     );
