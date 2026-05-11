@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../widgets/appointments/add_appointment_form.dart';
-import '../../models/appointment.dart';
 import '../../widgets/tr_text.dart';
 import '../../services/local_alarm_service.dart';
 import 'package:provider/provider.dart';
@@ -272,8 +271,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             "aineId": aineId,
           };
 
-          final ok = await provider.addAppointment(data, auth);
-          if (!ok) {
+          final created = await provider.addAppointment(data, auth);
+          if (created == null) {
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -284,18 +283,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             );
             return;
           }
-
-          // Find the created RDV (server ID present)
-          final rdv = provider.appointments
-              .where((a) => a.aineId == aineId)
-              .where((a) => a.docteur == docteur)
-              .where((a) => a.lieu == lieu)
-              .fold<RendezVousMedical?>(null, (prev, cur) {
-            if (prev == null) return cur;
-            return cur.dateHeure.isAfter(prev.dateHeure) ? cur : prev;
-          });
-
-          if (rdv == null) return;
+          final rdv = created;
 
           if (_ajouterAuxRappels) {
             await LocalAlarmService.scheduleAlarm(

@@ -79,22 +79,30 @@ class AppointmentProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> addAppointment(
+  Future<RendezVousMedical?> addAppointment(
     Map<String, dynamic> data,
     AuthProvider auth,
   ) async {
     if (auth.token == null || auth.token!.isEmpty) {
-      return false;
+      _error = "Session invalide";
+      return null;
     }
 
     _setLoading(true);
 
     try {
-      final created = await _service.createAppointment(data, auth.token!);
+      final result = await _service.createAppointment(data, auth.token!);
+      final ok = result["success"] == true;
 
-      if (created != null) {
+      if (ok) {
+        final created = result["appointment"] as RendezVousMedical?;
+        if (created == null) {
+          _error = "Réponse serveur invalide";
+          return null;
+        }
         // Keep local list aligned with server IDs immediately
-        final index = _appointments.indexWhere((a) => a.id == created.id);
+        final index =
+            _appointments.indexWhere((a) => a.id == created.id);
         if (index == -1) {
           _appointments.add(created);
         } else {
@@ -103,14 +111,16 @@ class AppointmentProvider with ChangeNotifier {
         _appointments.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
         _error = '';
         notifyListeners();
-        return true;
+        return created;
       }
 
-      _error = "Échec de création";
-      return false;
+      _error = result["message"]?.toString() ?? "Échec de création";
+      notifyListeners();
+      return null;
     } catch (_) {
       _error = "Erreur lors de la création";
-      return false;
+      notifyListeners();
+      return null;
     } finally {
       _setLoading(false);
     }

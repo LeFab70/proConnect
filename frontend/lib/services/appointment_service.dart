@@ -34,7 +34,7 @@ class AppointmentService {
     }
   }
 
-  Future<RendezVousMedical?> createAppointment(
+  Future<Map<String, dynamic>> createAppointment(
     Map<String, dynamic> data,
     String token,
   ) async {
@@ -48,12 +48,31 @@ class AppointmentService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map<String, dynamic>) {
-          return RendezVousMedical.fromJson(decoded);
+          return {
+            "success": true,
+            "appointment": RendezVousMedical.fromJson(decoded),
+          };
         }
       }
-      return null;
+      // Try to parse backend error message (often { "message": "..." }).
+      String message = "Échec de création";
+      try {
+        final err = jsonDecode(response.body);
+        if (err is Map<String, dynamic>) {
+          message = err["message"]?.toString() ?? message;
+        }
+      } catch (_) {}
+
+      return {
+        "success": false,
+        "message": message,
+        "status": response.statusCode,
+      };
     } catch (e) {
-      return null;
+      return {
+        "success": false,
+        "message": "Erreur de connexion au serveur",
+      };
     }
   }
 
