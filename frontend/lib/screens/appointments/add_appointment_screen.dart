@@ -346,7 +346,8 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           }
 
           final data = <String, dynamic>{
-            "dateHeure": dateHeure.toIso8601String(),
+            // Send UTC so backend (timestamptz) receives a timezone-aware value.
+            "dateHeure": dateHeure.toUtc().toIso8601String(),
             "lieu": lieu,
             "docteur": docteur,
             "notes": notes,

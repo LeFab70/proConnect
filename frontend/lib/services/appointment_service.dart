@@ -10,6 +10,23 @@ class AppointmentService {
 
   // Fabrice | 2026-05-05T04:47:29Z | Endpoints alignés sur MapRendezVousMedicaux (/api/rendez-vous-medicaux).
 
+  /// PostgreSQL/Npgsql attend un instant UTC pour `timestamptz`. Normalise ici pour
+  /// tous les appelants (évite les 500 si une écran oublie `.toUtc()` ou si l'APK est ancien).
+  static Map<String, dynamic> _payloadWithUtcDateHeure(Map<String, dynamic> data) {
+    final copy = Map<String, dynamic>.from(data);
+    final raw = copy['dateHeure'];
+    DateTime? parsed;
+    if (raw is String) {
+      parsed = DateTime.tryParse(raw);
+    } else if (raw is DateTime) {
+      parsed = raw;
+    }
+    if (parsed != null) {
+      copy['dateHeure'] = parsed.toUtc().toIso8601String();
+    }
+    return copy;
+  }
+
   Future<List<RendezVousMedical>> getAppointments(String token) async {
     try {
       final response = await http.get(
@@ -40,13 +57,14 @@ class AppointmentService {
     String token,
   ) async {
     try {
+      final payload = _payloadWithUtcDateHeure(data);
       if (kDebugMode) {
-        debugPrint("RDV CREATE REQUEST: ${jsonEncode(data)}");
+        debugPrint("RDV CREATE REQUEST: ${jsonEncode(payload)}");
       }
       final response = await http.post(
         Uri.parse("${_api.baseUrl}/api/rendez-vous-medicaux"),
         headers: _api.authHeaders(token),
-        body: jsonEncode(data),
+        body: jsonEncode(payload),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -68,11 +86,8 @@ class AppointmentService {
       try {
         final err = jsonDecode(response.body);
         if (err is Map<String, dynamic>) {
-          // Minimal API errors often use {message:"..."}.
-          message = err["message"]?.toString() ?? message;
-
           // ValidationProblemDetails: {title:"...", errors:{Field:["msg"]}}
-          if (message == "Échec de création" && err["errors"] is Map) {
+          if (err["errors"] is Map) {
             final errors = err["errors"] as Map;
             for (final entry in errors.entries) {
               final v = entry.value;
@@ -83,9 +98,17 @@ class AppointmentService {
             }
           }
 
-          // Fallback to title/detail if present.
-          message = err["detail"]?.toString() ?? message;
-          message = err["title"]?.toString() ?? message;
+          final detail = err["detail"]?.toString();
+          final title = err["title"]?.toString();
+          final serverMsg = err["message"]?.toString();
+
+          if (message == "Échec de création") {
+            message = serverMsg ?? detail ?? title ?? message;
+          } else if (detail != null &&
+              detail.isNotEmpty &&
+              !message.contains(detail)) {
+            message = "$message ($detail)";
+          }
         }
       } catch (_) {}
 
@@ -111,10 +134,11 @@ class AppointmentService {
     String token,
   ) async {
     try {
+      final payload = _payloadWithUtcDateHeure(data);
       final response = await http.put(
         Uri.parse("${_api.baseUrl}/api/rendez-vous-medicaux/$id"),
         headers: _api.authHeaders(token),
-        body: jsonEncode(data),
+        body: jsonEncode(payload),
       );
 
       return response.statusCode == 200 || response.statusCode == 204;

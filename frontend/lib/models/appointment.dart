@@ -31,7 +31,7 @@ class RendezVousMedical {
   Map<String, dynamic> toJson() {
     return {
       "id": id,
-      "dateHeure": dateHeure.toIso8601String(),
+      "dateHeure": dateHeure.toUtc().toIso8601String(),
       "lieu": lieu,
       "docteur": docteur,
       "notes": notes,

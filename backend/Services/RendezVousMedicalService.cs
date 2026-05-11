@@ -12,6 +12,17 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
 {
     private readonly AppDbContext _db = db; // Injection de dépendance du contexte de base de données
 
+    private static DateTime NormalizeUtc(DateTime dt)
+    {
+        // Npgsql (timestamptz) expects UTC DateTime. Flutter may send a value without timezone.
+        return dt.Kind switch
+        {
+            DateTimeKind.Utc => dt,
+            DateTimeKind.Local => dt.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc)
+        };
+    }
+
     public async Task<IReadOnlyList<RendezVousMedicalResponseDto>> GetAll() // Récupère tous les rendez-vous médicaux
     {
         return await _db.RendezVousMedicaux
@@ -122,7 +133,7 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
 
         var entity = new RendezVousMedical
         {
-            DateHeure = dto.DateHeure,
+            DateHeure = NormalizeUtc(dto.DateHeure),
             Lieu = new Adresse
             {
                 // The Flutter app currently sends a single text field ("lieu").
@@ -163,7 +174,7 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         var entity = await _db.RendezVousMedicaux.FirstOrDefaultAsync(r => r.Id == id);
         if (entity == null) return false;
 
-        entity.DateHeure = dto.DateHeure;
+        entity.DateHeure = NormalizeUtc(dto.DateHeure);
         entity.Lieu = new Adresse
         {
             Numero = string.Empty,

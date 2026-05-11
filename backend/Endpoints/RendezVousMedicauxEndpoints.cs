@@ -1,6 +1,7 @@
 using backend.Dtos.RendezVous;
 using backend.Infrastructure;
 using backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace backend.Endpoints;
@@ -91,6 +92,23 @@ public static class RendezVousMedicauxEndpoints
         catch (InvalidOperationException ex)
         {
             return Results.BadRequest(new { message = ex.Message });
+        }
+        catch (DbUpdateException ex)
+        {
+            // FK / contraintes / Npgsql : éviter un 500 vide côté client.
+            return Results.Json(
+                new
+                {
+                    message = "Erreur lors de l'enregistrement du rendez-vous.",
+                    detail = ex.InnerException?.Message ?? ex.Message,
+                },
+                statusCode: StatusCodes.Status500InternalServerError);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(
+                new { message = "Erreur serveur lors de la création du rendez-vous.", detail = ex.Message },
+                statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
