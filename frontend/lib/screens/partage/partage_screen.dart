@@ -490,10 +490,16 @@ class _PartageScreenState extends State<PartageScreen> {
   }
 
   Widget _buildRecapCard(List<Caregiver> caregivers, int selectedId) {
+    final auth = context.read<AuthProvider>();
+
     final proche = caregivers.firstWhere((c) => c.id == selectedId);
+
     final initiales =
         "${proche.prenom.isNotEmpty ? proche.prenom[0] : ''}${proche.nom.isNotEmpty ? proche.nom[0] : ''}"
             .toUpperCase();
+
+    final nomAine = "${auth.prenom} ${auth.nom}".trim();
+    final nomProche = "${proche.prenom} ${proche.nom}".trim();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -529,26 +535,41 @@ class _PartageScreenState extends State<PartageScreen> {
               ),
             ),
           ),
+
           const SizedBox(width: 14),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${proche.prenom} ${proche.nom}".trim(),
+                  "Aîné : $nomAine",
+                  style: const TextStyle(
+                    color: Color(0xFF7DC4FF),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  "Proche : $nomProche",
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
                 ),
+
                 const SizedBox(height: 3),
+
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.favorite_border_rounded,
                       size: 12,
-                      color: const Color(0xFF34D399),
+                      color: Color(0xFF34D399),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -564,6 +585,7 @@ class _PartageScreenState extends State<PartageScreen> {
               ],
             ),
           ),
+
           Icon(
             Icons.check_circle_rounded,
             color: const Color(0xFF10B981).withValues(alpha: 0.7),
