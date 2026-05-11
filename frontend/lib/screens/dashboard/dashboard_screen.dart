@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +13,7 @@ import '../../provider/aine_provider.dart';
 import '../../provider/rappel_provider.dart';
 import '../../provider/appointment_provider.dart';
 import '../../provider/partage_provider.dart';
+import '../auth/post_logout_transition_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -516,9 +517,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const Divider(color: Colors.white24, indent: 20, endIndent: 20),
                 _drawerItem(Icons.logout, "Se déconnecter", () async {
                   final navigator = Navigator.of(context);
+                  final raw = auth.firstName?.trim();
+                  final goodbye =
+                      (raw == null || raw.isEmpty) ? null : raw;
                   await auth.logout();
                   if (!mounted) return;
-                  navigator.pushNamedAndRemoveUntil('/login', (_) => false);
+                  navigator.pushAndRemoveUntil(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          PostLogoutTransitionScreen(firstName: goodbye),
+                    ),
+                    (_) => false,
+                  );
                 }, color: Colors.redAccent),
                 const SizedBox(height: 20),
               ],

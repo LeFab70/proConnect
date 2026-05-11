@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../widgets/tr_text.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/settings_provider.dart';
+import '../auth/post_logout_transition_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -565,9 +566,19 @@ class SettingsScreen extends StatelessWidget {
     );
 
     if (confirm == true && context.mounted) {
+      final raw = auth.firstName?.trim();
+      final firstName =
+          (raw == null || raw.isEmpty) ? null : raw;
       await auth.logout();
       if (context.mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) =>
+                PostLogoutTransitionScreen(firstName: firstName),
+          ),
+          (_) => false,
+        );
       }
     }
   }
