@@ -136,6 +136,9 @@ class RappelProvider with ChangeNotifier {
 
         return true;
       }
+
+      // Connecté mais échec API : ne pas simuler un rappel local (id 0) — le lien serveur manquerait.
+      return false;
     }
 
     _rappels.add(rappel);

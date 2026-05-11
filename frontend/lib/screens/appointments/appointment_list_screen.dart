@@ -4,10 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/appointment.dart';
-import '../../models/rappel.dart';
 import '../../provider/appointment_provider.dart';
 import '../../provider/auth_provider.dart';
-import '../../provider/rappel_provider.dart';
 import '../../widgets/tr_text.dart';
 import 'add_appointment_screen.dart';
 import 'edit_appointment_screen.dart';
@@ -34,15 +32,8 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     });
   }
 
-  String _formatHeure(DateTime date) {
-    final h = date.hour.toString().padLeft(2, '0');
-    final m = date.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
   Future<void> _goToAddScreen() async {
     final appointmentProvider = context.read<AppointmentProvider>();
-    final rappelProvider = context.read<RappelProvider>();
 
     final result = await Navigator.push(
       context,
@@ -53,31 +44,11 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
 
     if (result != null && result is Map<String, dynamic>) {
       final rdv = result['appointment'];
-      final addToReminder = result['addToReminder'] == true;
 
       if (rdv is RendezVousMedical) {
-        // Ajout rendez-vous local
+        // Le RDV est déjà dans le provider après POST ; on réaligne au cas où.
         await appointmentProvider.addLocalAppointment(rdv);
-
-        // Ajout rappel local si toggle activé
-        if (addToReminder) {
-          final rappel = Rappel(
-            id: DateTime.now().microsecondsSinceEpoch,
-            dateDebut: rdv.dateHeure,
-            heureDebut: _formatHeure(rdv.dateHeure),
-            minutesAvantRappel: 60,
-            dateHeurePrise: rdv.dateHeure,
-            dateHeureNotification: rdv.dateHeure.subtract(
-              const Duration(minutes: 60),
-            ),
-            type: 'RendezVousMedical',
-            actif: true,
-            rendezVousMedicalId: rdv.id,
-            groupeId: 'rdv_${rdv.id}',
-          );
-
-          await rappelProvider.addRappelLocalOnly(rappel);
-        }
+        // Rappel lié au RDV : créé sur l'API depuis AddAppointmentScreen (addRappel).
       }
     }
   }

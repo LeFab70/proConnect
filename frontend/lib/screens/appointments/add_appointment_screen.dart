@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/appointment_provider.dart';
 import '../../provider/aine_provider.dart';
+import '../../provider/rappel_provider.dart';
+import '../../models/rappel.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -19,6 +21,12 @@ class AddAppointmentScreen extends StatefulWidget {
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   bool _ajouterAuxRappels = true;
   int? _selectedAineId;
+
+  String _formatHeureRappel(DateTime d) {
+    final h = d.hour.toString().padLeft(2, '0');
+    final m = d.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
 
   @override
   void initState() {
@@ -330,6 +338,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   final messenger = ScaffoldMessenger.of(context);
                   final navigator = Navigator.of(context);
                   final provider = context.read<AppointmentProvider>();
+                  final rappelProvider = context.read<RappelProvider>();
 
                   final aineId = auth.isAine
                       ? (auth.currentUserLocalId ?? 0)
@@ -369,6 +378,34 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           final rdv = created;
 
           if (_ajouterAuxRappels) {
+            final rappel = Rappel(
+              id: 0,
+              dateDebut: DateTime(
+                rdv.dateHeure.year,
+                rdv.dateHeure.month,
+                rdv.dateHeure.day,
+              ),
+              heureDebut: _formatHeureRappel(rdv.dateHeure),
+              minutesAvantRappel: 60,
+              dateHeurePrise: rdv.dateHeure,
+              dateHeureNotification: rdv.dateHeure.subtract(
+                const Duration(minutes: 60),
+              ),
+              type: 'RendezVousMedical',
+              actif: true,
+              rendezVousMedicalId: rdv.id,
+              groupeId: 'rdv_${rdv.id}',
+            );
+            final savedReminder = await rappelProvider.addRappel(rappel, auth);
+            if (!savedReminder && mounted) {
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Rendez-vous enregistré, mais le rappel n’a pas pu être enregistré sur le serveur.',
+                  ),
+                ),
+              );
+            }
             await LocalAlarmService.scheduleAlarm(
               id: rdv.id,
               title: 'Rendez-vous médical',
