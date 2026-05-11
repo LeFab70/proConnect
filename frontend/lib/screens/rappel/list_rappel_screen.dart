@@ -28,13 +28,9 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
       final auth = context.read<AuthProvider>();
       final provider = context.read<RappelProvider>();
 
-      if (provider.rappels.isEmpty) {
-        await provider.fetchRappels(auth);
-      } else {
-        debugPrint(
-          "FETCH RAPPELS ignoré : rappels locaux déjà présents (${provider.rappels.length})",
-        );
-      }
+      // Always sync from backend so updates made on another screen/device
+      // are reflected (and notifications get re-scheduled if needed).
+      await provider.fetchRappels(auth);
     });
   }
 

@@ -67,6 +67,9 @@ void callbackDispatcher() {
         // Stable notification id (must fit int32).
         final notifId = (id.toString().hashCode & 0x7fffffff);
 
+        // Ensure updated reminders replace previously scheduled ones.
+        await notifications.cancel(notifId);
+
         final isMed = type.toLowerCase().contains("medicament");
         final title = isMed ? "Rappel médicament" : "Rappel";
         final body = isMed
