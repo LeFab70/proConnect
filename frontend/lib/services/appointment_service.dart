@@ -59,7 +59,24 @@ class AppointmentService {
       try {
         final err = jsonDecode(response.body);
         if (err is Map<String, dynamic>) {
+          // Minimal API errors often use {message:"..."}.
           message = err["message"]?.toString() ?? message;
+
+          // ValidationProblemDetails: {title:"...", errors:{Field:["msg"]}}
+          if (message == "Échec de création" && err["errors"] is Map) {
+            final errors = err["errors"] as Map;
+            for (final entry in errors.entries) {
+              final v = entry.value;
+              if (v is List && v.isNotEmpty) {
+                message = v.first.toString();
+                break;
+              }
+            }
+          }
+
+          // Fallback to title/detail if present.
+          message = err["detail"]?.toString() ?? message;
+          message = err["title"]?.toString() ?? message;
         }
       } catch (_) {}
 
