@@ -133,6 +133,63 @@ class NotificationService {
     }
   }
 
+  /// Notification unique à l’instant [dateTime] (date + heure), sans répétition.
+  /// À utiliser pour les rappels API (`dateHeureNotification`) et toute alerte ponctuelle.
+  static Future<void> scheduleOneShotAt({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime dateTime,
+  }) async {
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) {
+      debugPrint(
+        'Notification ignorée : zonedSchedule non supporté sur cette plateforme.',
+      );
+      return;
+    }
+
+    final scheduledDate = tz.TZDateTime.from(dateTime.toLocal(), tz.local);
+    final now = tz.TZDateTime.now(tz.local);
+
+    if (!scheduledDate.isAfter(now)) {
+      if (kDebugMode) {
+        debugPrint(
+          'Notification one-shot ignorée (heure déjà passée): id=$id at=$dateTime',
+        );
+      }
+      return;
+    }
+
+    try {
+      await _notifications.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        _defaultNotificationDetails,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } on PlatformException catch (e) {
+      if (e.code == 'exact_alarms_not_permitted') {
+        await _notifications.zonedSchedule(
+          id,
+          title,
+          body,
+          scheduledDate,
+          _defaultNotificationDetails,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+        return;
+      }
+      rethrow;
+    }
+  }
+
+  /// Répétition chaque jour à la même heure (cas rare ; préférer [scheduleOneShotAt] pour un RDV / rappel daté).
   static Future<void> scheduleDailyRappel({
     required int id,
     required String title,

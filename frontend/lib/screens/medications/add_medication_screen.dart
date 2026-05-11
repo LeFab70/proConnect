@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +12,6 @@ import '../../provider/auth_provider.dart';
 import '../../provider/medication_provider.dart';
 import '../../provider/rappel_provider.dart';
 import '../../services/medication_service.dart';
-import '../../services/notification_service.dart';
 
 class AddMedicationScreen extends StatefulWidget {
   final String? id;
@@ -300,22 +299,8 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       await rappelProvider.addRappel(rappel, auth);
     }
 
+    // Recharge les rappels et planifie les notifications via RappelProvider._syncNotifications (one-shot).
     await rappelProvider.fetchRappels(auth);
-
-    for (final r in rappelProvider.rappels.where(
-      (x) => x.medicamentId == medId,
-    )) {
-      try {
-        await NotificationService.scheduleDailyRappel(
-          id: r.id,
-          title: 'Rappel médicament',
-          body: 'Il est temps de prendre $name',
-          dateTime: r.dateHeureNotification,
-        );
-      } catch (e) {
-        debugPrint('Erreur notification médicament: $e');
-      }
-    }
   }
 
   Future<void> _saveMedication() async {

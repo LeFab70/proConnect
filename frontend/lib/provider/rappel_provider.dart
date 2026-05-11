@@ -88,7 +88,7 @@ class RappelProvider with ChangeNotifier {
           ? 'Il est temps de prendre votre médicament.'
           : 'Vous avez un rappel prévu.';
 
-      await NotificationService.scheduleDailyRappel(
+      await NotificationService.scheduleOneShotAt(
         id: notifId,
         title: title,
         body: body,
