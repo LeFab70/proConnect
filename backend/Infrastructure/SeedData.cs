@@ -121,20 +121,30 @@ public static class SeedData
         var a = aines;
         if (a.Count >= 7)
         {
+            PartageSuivi Link(string autorisation, string relation, long aineId, long procheAidantId) => new()
+            {
+                Autorisation = autorisation,
+                Relation = relation,
+                AineId = aineId,
+                ProcheAidantId = procheAidantId,
+                Statut = "actif",
+                CreatedAtUtc = DateTime.UtcNow
+            };
+
             db.PartagesSuivi.AddRange(
-                new PartageSuivi { Autorisation = "Ecriture", Relation = "Dev", AineId = a[0].Id, ProcheAidantId = paFabrice.Id },
-                new PartageSuivi { Autorisation = "Lecture", Relation = "Dev", AineId = a[1].Id, ProcheAidantId = paFabrice.Id },
-                new PartageSuivi { Autorisation = "Lecture", Relation = "Dev", AineId = a[2].Id, ProcheAidantId = paFabrice.Id },
+                Link("Ecriture", "Dev", a[0].Id, paFabrice.Id),
+                Link("Lecture", "Dev", a[1].Id, paFabrice.Id),
+                Link("Lecture", "Dev", a[2].Id, paFabrice.Id),
 
-                new PartageSuivi { Autorisation = "Lecture", Relation = "Dev", AineId = a[2].Id, ProcheAidantId = paKayleb.Id },
-                new PartageSuivi { Autorisation = "Ecriture", Relation = "Dev", AineId = a[3].Id, ProcheAidantId = paKayleb.Id },
-                new PartageSuivi { Autorisation = "Lecture", Relation = "Dev", AineId = a[4].Id, ProcheAidantId = paKayleb.Id },
+                Link("Lecture", "Dev", a[2].Id, paKayleb.Id),
+                Link("Ecriture", "Dev", a[3].Id, paKayleb.Id),
+                Link("Lecture", "Dev", a[4].Id, paKayleb.Id),
 
-                new PartageSuivi { Autorisation = "Lecture", Relation = "Dev", AineId = a[4].Id, ProcheAidantId = paPerez.Id },
-                new PartageSuivi { Autorisation = "Lecture", Relation = "Dev", AineId = a[5].Id, ProcheAidantId = paPerez.Id },
+                Link("Lecture", "Dev", a[4].Id, paPerez.Id),
+                Link("Lecture", "Dev", a[5].Id, paPerez.Id),
 
-                new PartageSuivi { Autorisation = "Ecriture", Relation = "Dev", AineId = a[6].Id, ProcheAidantId = paGrace.Id },
-                new PartageSuivi { Autorisation = "Lecture", Relation = "Dev", AineId = a[0].Id, ProcheAidantId = paGrace.Id }
+                Link("Ecriture", "Dev", a[6].Id, paGrace.Id),
+                Link("Lecture", "Dev", a[0].Id, paGrace.Id)
             );
         }
 

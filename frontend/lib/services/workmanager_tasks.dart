@@ -92,6 +92,14 @@ void callbackDispatcher() {
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
       }
+
+      // Re-schedule the next tick in 5 minutes (OneTimeWorkRequest loop).
+      // This is the recommended workaround when you need < 15min cadence.
+      await Workmanager().registerOneOffTask(
+        'alert_tick',
+        'alert_tick',
+        initialDelay: const Duration(minutes: 5),
+      );
     } catch (_) {
       // Never fail the task for runtime exceptions.
     }

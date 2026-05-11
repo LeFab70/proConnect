@@ -34,11 +34,12 @@ Future<void> main() async {
   await Workmanager().initialize(
     callbackDispatcher,
   );
-  // Keep periodic tasks minimal; Android enforces a 15min minimum.
-  await Workmanager().registerPeriodicTask(
-    'sync_rappels',
-    'sync_rappels',
-    frequency: const Duration(minutes: 15),
+  // OneTimeWorkRequest loop hack: chain a 5-min one-off task.
+  // Android WorkManager periodic tasks have a 15min minimum.
+  await Workmanager().registerOneOffTask(
+    'alert_tick',
+    'alert_tick',
+    initialDelay: const Duration(minutes: 5),
   );
 
   runApp(
