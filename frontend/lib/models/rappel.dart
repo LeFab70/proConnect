@@ -38,12 +38,12 @@ class Rappel {
       dateHeureNotification: _parseDate(json['dateHeureNotification']),
       type: json['type']?.toString() ?? '',
       actif: json['actif'] == true,
-      medicamentId: json['medicamentId'] == null
-          ? null
-          : _parseInt(json['medicamentId']),
-      rendezVousMedicalId: json['rendezVousMedicalId'] == null
-          ? null
-          : _parseInt(json['rendezVousMedicalId']),
+      medicamentId: _parseNullableId(
+        json['medicamentId'] ?? json['MedicamentId'],
+      ),
+      rendezVousMedicalId: _parseNullableId(
+        json['rendezVousMedicalId'] ?? json['RendezVousMedicalId'],
+      ),
       groupeId: json['groupeId']?.toString(),
     );
   }
@@ -96,7 +96,14 @@ class Rappel {
   static int _parseInt(dynamic value) {
     if (value == null) return 0;
     if (value is int) return value;
+    if (value is num) return value.round();
     return int.tryParse(value.toString()) ?? 0;
+  }
+
+  static int? _parseNullableId(dynamic value) {
+    if (value == null) return null;
+    final n = _parseInt(value);
+    return n == 0 ? null : n;
   }
 
   static DateTime _parseDate(dynamic value) {

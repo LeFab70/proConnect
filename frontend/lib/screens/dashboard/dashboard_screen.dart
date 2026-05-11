@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../widgets/tr_text.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/medication.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/medication_provider.dart';
 import '../../provider/activity_provider.dart';
@@ -939,15 +940,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (scopeAineId != null && scopeAineId > 0) {
         if (x.medicamentId != null) {
-          var ok = false;
+          Medication? found;
           for (final om in meds.medications) {
             if (om.id == x.medicamentId.toString() ||
                 int.tryParse(om.id) == x.medicamentId) {
-              ok = om.aineId == scopeAineId;
+              found = om;
               break;
             }
           }
-          if (!ok) continue;
+          if (found != null &&
+              found.aineId != 0 &&
+              found.aineId != scopeAineId) {
+            continue;
+          }
         } else if (x.rendezVousMedicalId != null) {
           final rdv = appts.getAppointmentById(x.rendezVousMedicalId!);
           if (rdv == null || rdv.aineId != scopeAineId) continue;

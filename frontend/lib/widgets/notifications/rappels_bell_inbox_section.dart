@@ -42,10 +42,11 @@ class _RappelsBellInboxSectionState extends State<RappelsBellInboxSection> {
 
   Medication? _medFor(Rappel r, MedicationProvider medProv) {
     if (r.medicamentId == null) return null;
+    final target = r.medicamentId!;
     for (final m in medProv.medications) {
-      if (m.id == r.medicamentId.toString()) return m;
+      if (m.id == target.toString()) return m;
       final parsed = int.tryParse(m.id);
-      if (parsed != null && parsed == r.medicamentId) return m;
+      if (parsed != null && parsed == target) return m;
     }
     return null;
   }
@@ -58,7 +59,12 @@ class _RappelsBellInboxSectionState extends State<RappelsBellInboxSection> {
   ) {
     if (r.medicamentId != null) {
       final m = _medFor(r, medProv);
-      return m != null && m.aineId == aineId;
+      if (m == null) {
+        // Ne pas exclure : liste méds pas chargée / id différent du backend, etc.
+        return true;
+      }
+      // aineId absent côté API (0) : on affiche quand même le rappel pour l'aîné filtré.
+      return m.aineId == 0 || m.aineId == aineId;
     }
     if (r.rendezVousMedicalId != null) {
       final rdv = apptProv.getAppointmentById(r.rendezVousMedicalId!);
@@ -94,7 +100,7 @@ class _RappelsBellInboxSectionState extends State<RappelsBellInboxSection> {
   }
 
   String _titleLine(Rappel r, MedicationProvider medProv, AppointmentProvider apptProv) {
-    if (r.type.toLowerCase().contains('medicament') && r.medicamentId != null) {
+    if (r.medicamentId != null) {
       final m = _medFor(r, medProv);
       final name = m?.name.trim().isNotEmpty == true ? m!.name : 'Médicament';
       final dose = m?.dosage.trim().isNotEmpty == true ? ' — ${m!.dosage}' : '';
