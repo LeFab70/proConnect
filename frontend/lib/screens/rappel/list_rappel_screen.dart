@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/appointment.dart';
@@ -537,30 +537,25 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
 
                   const SizedBox(height: 6),
 
-                  // Notification + Prise
-                  Row(
+                  // Notification + Prise (use Wrap to avoid RenderFlex overflow on small widths)
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
                       _buildTimePill(
                         Icons.notifications_rounded,
                         _formatDateTime(rappel.dateHeureNotification),
-
                         isActif
                             ? const Color(0xFF7DC4FF)
                             : Colors.white.withValues(alpha: 0.2),
-
                         isActif,
                       ),
-
-                      const SizedBox(width: 6),
-
                       _buildTimePill(
                         Icons.medication_rounded,
                         _formatTime(rappel.dateHeurePrise),
-
                         isActif
                             ? const Color(0xFF34D399)
                             : Colors.white.withValues(alpha: 0.2),
-
                         isActif,
                       ),
                     ],

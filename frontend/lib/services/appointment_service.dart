@@ -34,7 +34,7 @@ class AppointmentService {
     }
   }
 
-  Future<bool> createAppointment(
+  Future<RendezVousMedical?> createAppointment(
     Map<String, dynamic> data,
     String token,
   ) async {
@@ -45,9 +45,15 @@ class AppointmentService {
         body: jsonEncode(data),
       );
 
-      return response.statusCode == 200 || response.statusCode == 201;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return RendezVousMedical.fromJson(decoded);
+        }
+      }
+      return null;
     } catch (e) {
-      return false;
+      return null;
     }
   }
 

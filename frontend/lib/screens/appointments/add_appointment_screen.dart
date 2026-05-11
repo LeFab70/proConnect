@@ -1,10 +1,14 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../widgets/appointments/add_appointment_form.dart';
 import '../../models/appointment.dart';
 import '../../widgets/tr_text.dart';
 import '../../services/local_alarm_service.dart';
+import 'package:provider/provider.dart';
+import '../../provider/auth_provider.dart';
+import '../../provider/appointment_provider.dart';
+import '../../provider/aine_provider.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -242,14 +246,56 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       ),
       child: AddAppointmentForm(
         onSubmit: (dateHeure, lieu, docteur, notes) async {
-          final rdv = RendezVousMedical(
-            id: DateTime.now().microsecondsSinceEpoch,
-            dateHeure: dateHeure,
-            lieu: lieu,
-            docteur: docteur,
-            notes: notes ?? '',
-            aineId: 1,
-          );
+          final auth = context.read<AuthProvider>();
+          final aines = context.read<AineProvider>();
+          final provider = context.read<AppointmentProvider>();
+
+          final aineId = auth.isAine
+              ? (auth.currentUserLocalId ?? 0)
+              : (aines.selectedAine?.id ?? 0);
+
+          if (aineId <= 0) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Veuillez sélectionner un aîné."),
+              ),
+            );
+            return;
+          }
+
+          final data = <String, dynamic>{
+            "dateHeure": dateHeure.toIso8601String(),
+            "lieu": lieu,
+            "docteur": docteur,
+            "notes": notes,
+            "aineId": aineId,
+          };
+
+          final ok = await provider.addAppointment(data, auth);
+          if (!ok) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(provider.error.isNotEmpty
+                    ? provider.error
+                    : "Échec de création du rendez-vous"),
+              ),
+            );
+            return;
+          }
+
+          // Find the created RDV (server ID present)
+          final rdv = provider.appointments
+              .where((a) => a.aineId == aineId)
+              .where((a) => a.docteur == docteur)
+              .where((a) => a.lieu == lieu)
+              .fold<RendezVousMedical?>(null, (prev, cur) {
+            if (prev == null) return cur;
+            return cur.dateHeure.isAfter(prev.dateHeure) ? cur : prev;
+          });
+
+          if (rdv == null) return;
 
           if (_ajouterAuxRappels) {
             await LocalAlarmService.scheduleAlarm(

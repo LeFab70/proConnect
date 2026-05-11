@@ -90,11 +90,19 @@ class AppointmentProvider with ChangeNotifier {
     _setLoading(true);
 
     try {
-      final success = await _service.createAppointment(data, auth.token!);
+      final created = await _service.createAppointment(data, auth.token!);
 
-      if (success) {
-        await fetchAppointments(auth);
+      if (created != null) {
+        // Keep local list aligned with server IDs immediately
+        final index = _appointments.indexWhere((a) => a.id == created.id);
+        if (index == -1) {
+          _appointments.add(created);
+        } else {
+          _appointments[index] = created;
+        }
+        _appointments.sort((a, b) => a.dateHeure.compareTo(b.dateHeure));
         _error = '';
+        notifyListeners();
         return true;
       }
 
