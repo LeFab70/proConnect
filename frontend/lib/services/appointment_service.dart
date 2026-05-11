@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/appointment.dart';
 import 'api.dart';
+import 'package:flutter/foundation.dart';
 
 class AppointmentService {
   final Api _api = Api();
@@ -39,6 +40,9 @@ class AppointmentService {
     String token,
   ) async {
     try {
+      if (kDebugMode) {
+        debugPrint("RDV CREATE REQUEST: ${jsonEncode(data)}");
+      }
       final response = await http.post(
         Uri.parse("${_api.baseUrl}/api/rendez-vous-medicaux"),
         headers: _api.authHeaders(token),
@@ -53,6 +57,11 @@ class AppointmentService {
             "appointment": RendezVousMedical.fromJson(decoded),
           };
         }
+      }
+
+      if (kDebugMode) {
+        debugPrint("RDV CREATE STATUS: ${response.statusCode}");
+        debugPrint("RDV CREATE BODY: ${response.body}");
       }
       // Try to parse backend error message (often { "message": "..." }).
       String message = "Échec de création";
@@ -86,6 +95,9 @@ class AppointmentService {
         "status": response.statusCode,
       };
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint("RDV CREATE EXCEPTION: $e");
+      }
       return {
         "success": false,
         "message": "Erreur de connexion au serveur",
