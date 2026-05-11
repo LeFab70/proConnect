@@ -43,19 +43,27 @@ class _DemandesRecuesScreenState extends State<DemandesRecuesScreen> {
   }
 
   String _getNomAine(dynamic demande, AineProvider aineProv) {
-    final nomDepuisPartage = demande.aineNomComplet.toString().trim();
+    
+    final prenom = (demande.ainePrenom ?? '').toString().trim();
+    final nom = (demande.aineNom ?? '').toString().trim();
 
-    if (nomDepuisPartage.isNotEmpty && nomDepuisPartage != "Aîné inconnu") {
-      return nomDepuisPartage;
+    final nomComplet = '$prenom $nom'.trim();
+
+    if (nomComplet.isNotEmpty) {
+      return nomComplet;
     }
 
     try {
       final aine = aineProv.aines.firstWhere((a) => a.id == demande.aineId);
-      final nom = "${aine.prenom} ${aine.nom}".trim();
-      return nom.isNotEmpty ? nom : "Aîné inconnu";
-    } catch (_) {
-      return "Aîné inconnu";
-    }
+
+      final nomDepuisListe = '${aine.prenom} ${aine.nom}'.trim();
+
+      if (nomDepuisListe.isNotEmpty) {
+        return nomDepuisListe;
+      }
+    } catch (_) {}
+
+    return 'Aîné inconnu';
   }
 
   String _getInitiales(String nom) {
@@ -153,22 +161,22 @@ class _DemandesRecuesScreenState extends State<DemandesRecuesScreen> {
                           SliverPadding(
                             padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
                             sliver: SliverList(
-                              delegate: SliverChildBuilderDelegate(
-                                (ctx, index) {
-                                  final demande = demandes[index];
-                                  final nomAine = _getNomAine(demande, aineProv);
-                                  final initiales = _getInitiales(nomAine);
-                                  return _buildDemandeCard(
-                                    context: context,
-                                    demande: demande,
-                                    nomAine: nomAine,
-                                    initiales: initiales,
-                                    partageProv: partageProv,
-                                    auth: auth,
-                                  );
-                                },
-                                childCount: demandes.length,
-                              ),
+                              delegate: SliverChildBuilderDelegate((
+                                ctx,
+                                index,
+                              ) {
+                                final demande = demandes[index];
+                                final nomAine = _getNomAine(demande, aineProv);
+                                final initiales = _getInitiales(nomAine);
+                                return _buildDemandeCard(
+                                  context: context,
+                                  demande: demande,
+                                  nomAine: nomAine,
+                                  initiales: initiales,
+                                  partageProv: partageProv,
+                                  auth: auth,
+                                );
+                              }, childCount: demandes.length),
                             ),
                           ),
                       ],
