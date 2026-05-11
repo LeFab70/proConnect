@@ -81,12 +81,14 @@ class RappelProvider with ChangeNotifier {
 
       if (_scheduledAt.containsKey(notifId)) continue;
 
+      String hhmm(DateTime d) =>
+          '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
       final title = r.type.toLowerCase().contains('medicament')
           ? 'Rappel médicament'
-          : 'Rappel';
+          : 'Rappel rendez-vous';
       final body = r.type.toLowerCase().contains('medicament')
-          ? 'Il est temps de prendre votre médicament.'
-          : 'Vous avez un rappel prévu.';
+          ? 'Prise prévue à ${hhmm(r.dateHeurePrise)} — rappel à ${hhmm(r.dateHeureNotification)}'
+          : 'Rappel à ${hhmm(r.dateHeureNotification)} (RDV ${hhmm(r.dateHeurePrise)})';
 
       await NotificationService.scheduleOneShotAt(
         id: notifId,

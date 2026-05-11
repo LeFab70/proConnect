@@ -6,6 +6,7 @@ import '../../provider/auth_provider.dart';
 import '../../provider/partage_provider.dart';
 import '../../models/partage_suivi.dart';
 import '../../widgets/tr_text.dart';
+import '../../widgets/notifications/rappels_bell_inbox_section.dart';
 
 class ReponsesPartageScreen extends StatelessWidget {
   const ReponsesPartageScreen({super.key});
@@ -78,17 +79,27 @@ class ReponsesPartageScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _buildHeader(context, reponses.length),
-                  if (reponses.isNotEmpty)
-                    _buildSummaryRow(acceptees.length, refusees.length),
                   Expanded(
-                    child: reponses.isEmpty
-                        ? _buildEmptyState()
-                        : _buildList(
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+                      children: [
+                        RappelsBellInboxSection(
+                          filterAineId: auth.currentUserLocalId,
+                        ),
+                        if (reponses.isNotEmpty) ...[
+                          _buildSummaryRow(acceptees.length, refusees.length),
+                          const SizedBox(height: 12),
+                          ..._buildPartageListChildren(
                             context,
                             acceptees,
                             refusees,
                             caregiverProv,
                           ),
+                        ] else
+                          _buildPartageEmptyBelowRappels(),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -223,103 +234,78 @@ class ReponsesPartageScreen extends StatelessWidget {
     );
   }
 
-  // ─── EMPTY STATE ───────────────────────────────────────────────────────────
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.07),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha:0.1),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              Icons.share_outlined,
-              size: 48,
-              color: Colors.white.withValues(alpha:0.3),
-            ),
-          ),
-          const SizedBox(height: 20),
-          TrText(
-            "Aucune réponse pour le moment",
-            style: TextStyle(
-              color: Colors.white.withValues(alpha:0.5),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Les réponses à vos partages apparaîtront ici",
-            style: TextStyle(
-              color: Colors.white.withValues(alpha:0.3),
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ─── LIST ──────────────────────────────────────────────────────────────────
 
-  Widget _buildList(
+  List<Widget> _buildPartageListChildren(
     BuildContext context,
     List acceptees,
     List refusees,
     CaregiverProvider caregiverProv,
   ) {
-    return ListView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-      children: [
-        if (acceptees.isNotEmpty) ...[
-          _buildSectionLabel(
-            "Acceptées",
-            Icons.check_circle_outline_rounded,
-            const Color(0xFF10B981),
+    return [
+      if (acceptees.isNotEmpty) ...[
+        _buildSectionLabel(
+          "Acceptées",
+          Icons.check_circle_outline_rounded,
+          const Color(0xFF10B981),
+        ),
+        const SizedBox(height: 10),
+        ...acceptees.map(
+          (p) => Dismissible(
+            key: ValueKey("reponse_${p.id}"),
+            direction: DismissDirection.endToStart,
+            background: _buildDeleteBackground(),
+            onDismissed: (_) {
+              context.read<PartageProvider>().masquerNotification(p.id);
+            },
+            child: _buildReponseCard(p, true, caregiverProv),
           ),
-          const SizedBox(height: 10),
-          ...acceptees.map(
-            (p) => Dismissible(
-              key: ValueKey("reponse_${p.id}"),
-              direction: DismissDirection.endToStart,
-              background: _buildDeleteBackground(),
-              onDismissed: (_) {
-                context.read<PartageProvider>().masquerNotification(p.id);
-              },
-              child: _buildReponseCard(p, true, caregiverProv),
-            ),
-          ),
-        ],
-        if (refusees.isNotEmpty) ...[
-          if (acceptees.isNotEmpty) const SizedBox(height: 8),
-          _buildSectionLabel(
-            "Refusées",
-            Icons.cancel_outlined,
-            const Color(0xFFEF4444),
-          ),
-          const SizedBox(height: 10),
-          ...refusees.map(
-            (p) => Dismissible(
-              key: ValueKey("reponse_${p.id}"),
-              direction: DismissDirection.endToStart,
-              background: _buildDeleteBackground(),
-              onDismissed: (_) {
-                context.read<PartageProvider>().masquerNotification(p.id);
-              },
-              child: _buildReponseCard(p, false, caregiverProv),
-            ),
-          ),
-        ],
+        ),
       ],
+      if (refusees.isNotEmpty) ...[
+        if (acceptees.isNotEmpty) const SizedBox(height: 8),
+        _buildSectionLabel(
+          "Refusées",
+          Icons.cancel_outlined,
+          const Color(0xFFEF4444),
+        ),
+        const SizedBox(height: 10),
+        ...refusees.map(
+          (p) => Dismissible(
+            key: ValueKey("reponse_${p.id}"),
+            direction: DismissDirection.endToStart,
+            background: _buildDeleteBackground(),
+            onDismissed: (_) {
+              context.read<PartageProvider>().masquerNotification(p.id);
+            },
+            child: _buildReponseCard(p, false, caregiverProv),
+          ),
+        ),
+      ],
+    ];
+  }
+
+  Widget _buildPartageEmptyBelowRappels() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 24),
+      child: Column(
+        children: [
+          Icon(
+            Icons.share_outlined,
+            size: 40,
+            color: Colors.white.withValues(alpha: 0.25),
+          ),
+          const SizedBox(height: 12),
+          TrText(
+            "Aucune réponse de partage pour le moment",
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.45),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -37,26 +38,44 @@ class LocalAlarmService {
   }) async {
     if (dateTime.isBefore(DateTime.now())) return;
 
-    await _notifications.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(dateTime, tz.local),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'proconnectnb_alarm_channel',
-          'Alarmes ProConnectNB',
-          channelDescription: 'Alarmes pour rendez-vous et rappels',
-          importance: Importance.max,
-          priority: Priority.high,
-          playSound: true,
-          enableVibration: true,
-        ),
+    final when = tz.TZDateTime.from(dateTime.toLocal(), tz.local);
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'proconnectnb_alarm_channel',
+        'Alarmes ProConnectNB',
+        channelDescription: 'Alarmes pour rendez-vous et rappels',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
+
+    try {
+      await _notifications.zonedSchedule(
+        id,
+        title,
+        body,
+        when,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } on PlatformException catch (e) {
+      if (e.code == 'exact_alarms_not_permitted') {
+        await _notifications.zonedSchedule(
+          id,
+          title,
+          body,
+          when,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+    }
   }
 
   static Future<void> cancelAlarm(int id) async {

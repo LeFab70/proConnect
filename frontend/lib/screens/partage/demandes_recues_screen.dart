@@ -6,6 +6,7 @@ import '../../provider/partage_provider.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/aine_provider.dart';
 import '../../widgets/tr_text.dart';
+import '../../widgets/notifications/rappels_bell_inbox_section.dart';
 
 class DemandesRecuesScreen extends StatefulWidget {
   const DemandesRecuesScreen({super.key});
@@ -132,15 +133,46 @@ class _DemandesRecuesScreenState extends State<DemandesRecuesScreen> {
                 children: [
                   _buildHeader(context, demandes.length),
                   Expanded(
-                    child: demandes.isEmpty
-                        ? _buildEmptyState()
-                        : _buildList(
-                            context,
-                            demandes,
-                            partageProv,
-                            auth,
-                            aineProv,
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: RappelsBellInboxSection(
+                              filterAineId: aineProv.selectedAine?.id,
+                            ),
                           ),
+                        ),
+                        if (demandes.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(child: _buildEmptyState()),
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (ctx, index) {
+                                  final demande = demandes[index];
+                                  final nomAine = _getNomAine(demande, aineProv);
+                                  final initiales = _getInitiales(nomAine);
+                                  return _buildDemandeCard(
+                                    context: context,
+                                    demande: demande,
+                                    nomAine: nomAine,
+                                    initiales: initiales,
+                                    partageProv: partageProv,
+                                    auth: auth,
+                                  );
+                                },
+                                childCount: demandes.length,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -213,34 +245,6 @@ class _DemandesRecuesScreenState extends State<DemandesRecuesScreen> {
           fontWeight: FontWeight.w500,
         ),
       ),
-    );
-  }
-
-  Widget _buildList(
-    BuildContext context,
-    List demandes,
-    PartageProvider partageProv,
-    AuthProvider auth,
-    AineProvider aineProv,
-  ) {
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
-      itemCount: demandes.length,
-      itemBuilder: (ctx, index) {
-        final demande = demandes[index];
-        final nomAine = _getNomAine(demande, aineProv);
-        final initiales = _getInitiales(nomAine);
-
-        return _buildDemandeCard(
-          context: context,
-          demande: demande,
-          nomAine: nomAine,
-          initiales: initiales,
-          partageProv: partageProv,
-          auth: auth,
-        );
-      },
     );
   }
 

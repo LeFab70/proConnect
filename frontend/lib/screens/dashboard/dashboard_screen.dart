@@ -70,12 +70,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final caregivers = context.watch<CaregiverProvider>();
     final aines = context.watch<AineProvider>();
     final rappelProvider = context.watch<RappelProvider>();
+    final appointments = context.watch<AppointmentProvider>();
 
     final bool isProcheSansAine = auth.isAidant && aines.selectedAine == null;
 
     final nbDemandes = auth.isAine
         ? partage.countReponsesPourAine(auth)
         : partage.countDemandesPourProche(auth);
+
+    final incomingRappels = _countUpcomingBellRappels(
+      rappelProvider,
+      auth,
+      meds,
+      appointments,
+      aines,
+    );
+    final bellBadgeCount = nbDemandes + incomingRappels;
 
     final int aineIdActif =
         aines.selectedAine?.id ?? auth.currentUserLocalId ?? 0;
@@ -131,7 +141,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildTopHeader(auth, nbDemandes, aines),
+              _buildTopHeader(auth, bellBadgeCount, aines),
               const SizedBox(height: 12),
               _buildDatePill(),
               const SizedBox(height: 18),
@@ -559,9 +569,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  /// [bellBadgeCount] = partages + rappels actifs dans les 48 h (filtrés par aîné).
   Widget _buildTopHeader(
     AuthProvider auth,
-    int nbDemandes,
+    int bellBadgeCount,
     AineProvider aines,
   ) {
     final selectedAine = aines.selectedAine;
@@ -618,7 +629,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
               ),
 
-              if (nbDemandes > 0)
+              if (bellBadgeCount > 0)
                 Positioned(
                   right: 8,
                   top: 8,
@@ -629,7 +640,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      nbDemandes.toString(),
+                      bellBadgeCount > 99 ? '99+' : bellBadgeCount.toString(),
                       style: const TextStyle(color: Colors.white, fontSize: 9),
                     ),
                   ),
@@ -907,6 +918,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  int _countUpcomingBellRappels(
+    RappelProvider rappelProvider,
+    AuthProvider auth,
+    MedicationProvider meds,
+    AppointmentProvider appts,
+    AineProvider aines,
+  ) {
+    final now = DateTime.now();
+    final horizon = now.add(const Duration(hours: 48));
+    final scopeAineId = auth.isAine
+        ? auth.currentUserLocalId
+        : aines.selectedAine?.id;
+
+    var n = 0;
+    for (final x in rappelProvider.rappels) {
+      if (!x.actif) continue;
+      if (!x.dateHeureNotification.isAfter(now)) continue;
+      if (!x.dateHeureNotification.isBefore(horizon)) continue;
+
+      if (scopeAineId != null && scopeAineId > 0) {
+        if (x.medicamentId != null) {
+          var ok = false;
+          for (final om in meds.medications) {
+            if (om.id == x.medicamentId.toString() ||
+                int.tryParse(om.id) == x.medicamentId) {
+              ok = om.aineId == scopeAineId;
+              break;
+            }
+          }
+          if (!ok) continue;
+        } else if (x.rendezVousMedicalId != null) {
+          final rdv = appts.getAppointmentById(x.rendezVousMedicalId!);
+          if (rdv == null || rdv.aineId != scopeAineId) continue;
+        }
+      }
+      n++;
+    }
+    return n;
+  }
+
   void _startPartageAutoRefresh() {
     _partageRefreshTimer?.cancel();
 
@@ -921,6 +972,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final partageProvider = context.read<PartageProvider>();
 
       await partageProvider.fetchPartages(auth);
+      await context.read<RappelProvider>().fetchRappels(auth);
 
       if (!mounted) return;
 
