@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../provider/auth_provider.dart';
 import '../../widgets/tr_text.dart';
+import 'post_login_transition_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -43,11 +44,14 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
 
     if (success) {
-      if (auth.isAine) {
-        Navigator.pushReplacementNamed(context, '/dashboardAine');
-      } else {
-        Navigator.pushReplacementNamed(context, '/dashboardAidant');
-      }
+      final target =
+          auth.isAine ? '/dashboardAine' : '/dashboardAidant';
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => PostLoginTransitionScreen(targetRoute: target),
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
