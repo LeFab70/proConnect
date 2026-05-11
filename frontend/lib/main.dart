@@ -16,6 +16,8 @@ import 'provider/partage_provider.dart';
 import 'navigation/app_router.dart';
 import 'services/notification_service.dart';
 import 'services/local_alarm_service.dart';
+import 'services/workmanager_tasks.dart';
+import 'package:workmanager/workmanager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +29,18 @@ Future<void> main() async {
   final settingsProvider = SettingsProvider();
   await settingsProvider.loadSettings();
   await LocalAlarmService.init();
+
+  // Background scheduler (Android). Tasks are defined in workmanager_tasks.dart.
+  await Workmanager().initialize(
+    callbackDispatcher,
+  );
+  // Keep periodic tasks minimal; Android enforces a 15min minimum.
+  await Workmanager().registerPeriodicTask(
+    'sync_rappels',
+    'sync_rappels',
+    frequency: const Duration(minutes: 15),
+  );
+
   runApp(
     MultiProvider(
       providers: [

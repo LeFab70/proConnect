@@ -46,7 +46,8 @@ public class AineService(AppDbContext db) : IAineService
     {
         var aines = await _db.PartagesSuivi
             .AsNoTracking()
-            .Where(p => p.ProcheAidantId == procheAidantId)
+            // Only show aînés that are effectively linked to the aidant.
+            .Where(p => p.ProcheAidantId == procheAidantId && p.Statut == "actif")
             .Join(_db.Aines.AsNoTracking(),
                 p => p.AineId,
                 a => a.Id,
