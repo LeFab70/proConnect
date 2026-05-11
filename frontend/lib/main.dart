@@ -16,31 +16,17 @@ import 'provider/partage_provider.dart';
 import 'navigation/app_router.dart';
 import 'services/notification_service.dart';
 import 'services/local_alarm_service.dart';
-import 'services/workmanager_tasks.dart';
-import 'package:workmanager/workmanager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: ".env");
-  WidgetsFlutterBinding.ensureInitialized();
+
   await NotificationService.init();
-  debugPrint("TOKEN CHARGÉ = ${dotenv.env['PREDICT_HQ_TOKEN']}");
-  final settingsProvider = SettingsProvider();
-  await settingsProvider.loadSettings();
   await LocalAlarmService.init();
 
-  // Background scheduler (Android). Tasks are defined in workmanager_tasks.dart.
-  await Workmanager().initialize(
-    callbackDispatcher,
-  );
-  // OneTimeWorkRequest loop hack: chain a 5-min one-off task.
-  // Android WorkManager periodic tasks have a 15min minimum.
-  await Workmanager().registerOneOffTask(
-    'alert_tick',
-    'alert_tick',
-    initialDelay: const Duration(minutes: 5),
-  );
+  final settingsProvider = SettingsProvider();
+  await settingsProvider.loadSettings();
 
   runApp(
     MultiProvider(
