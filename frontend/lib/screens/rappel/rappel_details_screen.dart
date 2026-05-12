@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/rappel.dart';
+import '../../provider/auth_provider.dart';
 import '../../provider/rappel_provider.dart';
 import '../../provider/settings_provider.dart';
-import 'add_rappel_screen.dart';
-import '../../widgets/tr_text.dart';
 import '../../widgets/app_background.dart';
+import '../../widgets/tr_text.dart';
+import 'add_rappel_screen.dart';
 
 class RappelDetailScreen extends StatelessWidget {
   final Rappel rappel;
@@ -15,21 +16,42 @@ class RappelDetailScreen extends StatelessWidget {
   const RappelDetailScreen({super.key, required this.rappel});
 
   String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    final local = date.toLocal();
+
+    return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year}';
   }
 
   String _formatDateTime(DateTime date) {
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '${_formatDate(date)} à $hour:$minute';
+    final local = date.toLocal();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+
+    return '${_formatDate(local)} à $hour:$minute';
+  }
+
+  Future<void> _openEdit(BuildContext context, Rappel currentRappel) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => AddRappelScreen(rappel: currentRappel)),
+    );
+
+    if (changed == true && context.mounted) {
+      final auth = context.read<AuthProvider>();
+      await context.read<RappelProvider>().fetchRappels(auth);
+
+      if (context.mounted) {
+        Navigator.pop(context, true);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
-    final settings = context.watch<SettingsProvider>();
 
+    final settings = context.watch<SettingsProvider>();
     final provider = context.watch<RappelProvider>();
+
     final currentRappel = provider.rappels.firstWhere(
       (r) => r.id == rappel.id,
       orElse: () => rappel,
@@ -38,35 +60,33 @@ class RappelDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
       body: AppBackground(
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(context, currentRappel),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-                      child: Column(
-                        children: [
-                          _buildHeroCard(currentRappel),
-                          const SizedBox(height: 16),
-                          _buildTimingCard(currentRappel),
-                          const SizedBox(height: 16),
-                          _buildDetailsCard(currentRappel),
-                          const SizedBox(height: 24),
-                          _buildEditButton(context, currentRappel),
-                        ],
-                      ),
-                    ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context, currentRappel),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                  child: Column(
+                    children: [
+                      _buildHeroCard(currentRappel),
+                      const SizedBox(height: 16),
+                      _buildTimingCard(currentRappel),
+                      const SizedBox(height: 16),
+                      _buildDetailsCard(currentRappel),
+                      const SizedBox(height: 24),
+                      _buildEditButton(context, currentRappel),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
       ),
     );
   }
-
-  // ─── HEADER ────────────────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context, Rappel currentRappel) {
     return Padding(
@@ -75,7 +95,7 @@ class RappelDetailScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Navigator.pop(context, false),
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
@@ -93,7 +113,6 @@ class RappelDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-
           const TrText(
             'Détail du rappel',
             style: TextStyle(
@@ -103,14 +122,8 @@ class RappelDetailScreen extends StatelessWidget {
               letterSpacing: -0.4,
             ),
           ),
-
           GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AddRappelScreen(rappel: currentRappel),
-              ),
-            ),
+            onTap: () => _openEdit(context, currentRappel),
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
@@ -132,8 +145,6 @@ class RappelDetailScreen extends StatelessWidget {
       ),
     );
   }
-
-  // ─── HERO CARD ─────────────────────────────────────────────────────────────
 
   Widget _buildHeroCard(Rappel currentRappel) {
     final isActif = currentRappel.actif;
@@ -196,9 +207,7 @@ class RappelDetailScreen extends StatelessWidget {
               size: 26,
             ),
           ),
-
           const SizedBox(width: 16),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,8 +276,6 @@ class RappelDetailScreen extends StatelessWidget {
     );
   }
 
-  // ─── TIMING CARD ───────────────────────────────────────────────────────────
-
   Widget _buildTimingCard(Rappel currentRappel) {
     return _buildGlassCard(
       sectionIcon: Icons.schedule_rounded,
@@ -296,8 +303,6 @@ class RappelDetailScreen extends StatelessWidget {
       ],
     );
   }
-
-  // ─── DETAILS CARD ──────────────────────────────────────────────────────────
 
   Widget _buildDetailsCard(Rappel currentRappel) {
     return _buildGlassCard(
@@ -345,8 +350,6 @@ class RappelDetailScreen extends StatelessWidget {
     );
   }
 
-  // ─── GLASS CARD ────────────────────────────────────────────────────────────
-
   Widget _buildGlassCard({
     required IconData sectionIcon,
     required String sectionTitle,
@@ -357,7 +360,10 @@ class RappelDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF000428).withValues(alpha: 0.3),
@@ -457,8 +463,6 @@ class RappelDetailScreen extends StatelessWidget {
     );
   }
 
-  // ─── BOUTON ÉDITER ─────────────────────────────────────────────────────────
-
   Widget _buildEditButton(BuildContext context, Rappel currentRappel) {
     return Container(
       width: double.infinity,
@@ -479,12 +483,7 @@ class RappelDetailScreen extends StatelessWidget {
         ],
       ),
       child: ElevatedButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AddRappelScreen(rappel: currentRappel),
-          ),
-        ),
+        onPressed: () => _openEdit(context, currentRappel),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,

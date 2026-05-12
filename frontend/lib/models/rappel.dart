@@ -9,7 +9,6 @@ class Rappel {
   final bool actif;
   final int? medicamentId;
   final int? rendezVousMedicalId;
-
   final String? groupeId;
 
   Rappel({
@@ -54,8 +53,12 @@ class Rappel {
       'dateDebut': _formatDateOnly(dateDebut),
       'heureDebut': heureDebut,
       'minutesAvantRappel': minutesAvantRappel,
-      'dateHeurePrise': dateHeurePrise.toIso8601String(),
-      'dateHeureNotification': dateHeureNotification.toIso8601String(),
+
+      // IMPORTANT :
+      // Pas de toUtc(), sinon l'heure peut revenir 3h avant.
+      'dateHeurePrise': _formatLocalDateTime(dateHeurePrise),
+      'dateHeureNotification': _formatLocalDateTime(dateHeureNotification),
+
       'type': type,
       'actif': actif,
       'medicamentId': medicamentId,
@@ -102,20 +105,40 @@ class Rappel {
 
   static int? _parseNullableId(dynamic value) {
     if (value == null) return null;
+
     final n = _parseInt(value);
+
     return n == 0 ? null : n;
   }
 
   static DateTime _parseDate(dynamic value) {
     try {
       if (value == null) return DateTime.now();
-      return DateTime.parse(value.toString());
+
+      var raw = value.toString().trim();
+
+      // Si backend renvoie seulement une date : 2026-05-12
+      if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(raw)) {
+        return DateTime.parse(raw);
+      }
+
+      // Si backend renvoie 2026-05-12T14:00:00Z,
+      // on enlève le Z pour garder 14:00 local.
+      if (raw.endsWith('Z')) {
+        raw = raw.substring(0, raw.length - 1);
+      }
+
+      // Si backend renvoie offset : +00:00, -03:00, etc.
+      // on enlève l'offset pour éviter la conversion automatique.
+      raw = raw.replaceFirst(RegExp(r'([+-]\d{2}:\d{2})$'), '');
+
+      return DateTime.parse(raw);
     } catch (_) {
       return DateTime.now();
     }
   }
 
-  /// Fabrice | 2026-05-05T04:56:37Z | Exposé pour construire UpsertRappelRequestDto (DateOnly ISO).
+  /// Exposé pour construire UpsertRappelRequestDto en DateOnly ISO.
   static String formatDateOnlyStatic(DateTime date) => _formatDateOnly(date);
 
   static String _formatDateOnly(DateTime date) {
@@ -124,6 +147,19 @@ class Rappel {
     final day = date.day.toString().padLeft(2, '0');
 
     return '$year-$month-$day';
+  }
+
+  static String _formatLocalDateTime(DateTime date) {
+    final local = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      date.hour,
+      date.minute,
+      date.second,
+    );
+
+    return local.toIso8601String();
   }
 
   @override

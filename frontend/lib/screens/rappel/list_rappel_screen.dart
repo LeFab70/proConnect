@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/appointment.dart';
+import '../../models/rappel.dart';
 import '../../provider/appointment_provider.dart';
+import '../../provider/auth_provider.dart';
+import '../../provider/medication_provider.dart';
+import '../../provider/rappel_provider.dart';
 import '../../provider/settings_provider.dart';
 import '../../widgets/app_background.dart';
-import '../../models/rappel.dart';
-import '../../provider/auth_provider.dart';
-import '../../provider/rappel_provider.dart';
-import '../../provider/medication_provider.dart';
 import 'add_rappel_screen.dart';
 import 'rappel_details_screen.dart';
 
@@ -25,29 +26,56 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final auth = context.read<AuthProvider>();
-      final provider = context.read<RappelProvider>();
-
-      // Always sync from backend so updates made on another screen/device
-      // are reflected (and notifications get re-scheduled if needed).
-      await provider.fetchRappels(auth);
+      await _reloadData();
     });
   }
 
-  String _formatDateTime(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '$day/$month à $hour:$minute';
+  Future<void> _reloadData() async {
+    if (!mounted) return;
+
+    final auth = context.read<AuthProvider>();
+
+    await context.read<AppointmentProvider>().fetchAppointments(auth);
+    await context.read<MedicationProvider>().fetchMedications(auth);
+    await context.read<RappelProvider>().fetchRappels(auth);
   }
 
-  String _formatTime(DateTime date) {
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+  DateTime _dateHeureEffective(Rappel rappel) {
+    return rappel.dateHeurePrise.toLocal();
+  }
+
+  String _formatDateTime(DateTime date) {
+    final local = date.toLocal();
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final year = local.year.toString();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year à $hour:$minute';
+  }
+
+  Future<void> _openAddRappel() async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddRappelScreen()),
+    );
+
+    if (changed == true && mounted) {
+      await _reloadData();
+    }
+  }
+
+  Future<void> _openRappelDetail(Rappel rappel) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => RappelDetailScreen(rappel: rappel)),
+    );
+
+    if (changed == true && mounted) {
+      await _reloadData();
+    }
   }
 
   Future<void> _deleteSelected(BuildContext context) async {
@@ -60,29 +88,27 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
 
     setState(() => _selectedIds.clear());
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Rappel(s) supprimé(s).',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFF10B981),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          margin: const EdgeInsets.all(24),
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Rappel(s) supprimé(s).',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
-      );
-    }
+        backgroundColor: const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: const EdgeInsets.all(24),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
-    final settings = context.watch<SettingsProvider>();
 
+    final settings = context.watch<SettingsProvider>();
     final provider = context.watch<RappelProvider>();
     final rappels = provider.rappels;
     final hasSelection = _selectedIds.isNotEmpty;
@@ -90,18 +116,18 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
     return Scaffold(
       backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
       body: AppBackground(
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(context, rappels, hasSelection),
-                  Expanded(
-                    child: rappels.isEmpty
-                        ? _buildEmptyState()
-                        : _buildList(rappels),
-                  ),
-                ],
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context, rappels, hasSelection),
+              Expanded(
+                child: rappels.isEmpty
+                    ? _buildEmptyState()
+                    : _buildList(rappels),
               ),
-            ),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: hasSelection
           ? FloatingActionButton.extended(
@@ -124,10 +150,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
               ),
             )
           : FloatingActionButton.extended(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddRappelScreen()),
-              ),
+              onPressed: _openAddRappel,
               backgroundColor: Colors.white,
               elevation: 12,
               shape: RoundedRectangleBorder(
@@ -171,10 +194,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  width: 1,
-                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
               ),
               child: Icon(
                 hasSelection
@@ -195,7 +215,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
-                  letterSpacing: -0.4,
                 ),
               ),
               if (!hasSelection)
@@ -219,7 +238,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: const Color(0xFFEF4444).withValues(alpha: 0.3),
-                        width: 1,
                       ),
                     ),
                     child: const Icon(
@@ -237,43 +255,13 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.07),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              Icons.alarm_outlined,
-              size: 48,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Aucun rappel disponible',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ajoutez votre premier rappel',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.3),
-              fontSize: 13,
-            ),
-          ),
-        ],
+      child: Text(
+        'Aucun rappel disponible',
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.5),
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -293,7 +281,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
             const Color(0xFF34D399),
           ),
           const SizedBox(height: 10),
-          ...actifs.map((r) => _buildRappelCard(r)),
+          ...actifs.map(_buildRappelCard),
         ],
         if (inactifs.isNotEmpty) ...[
           const SizedBox(height: 8),
@@ -303,7 +291,7 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
             Colors.white.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 10),
-          ...inactifs.map((r) => _buildRappelCard(r)),
+          ...inactifs.map(_buildRappelCard),
         ],
       ],
     );
@@ -320,7 +308,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
             fontSize: 12,
             fontWeight: FontWeight.w700,
             color: color,
-            letterSpacing: 0.4,
           ),
         ),
       ],
@@ -331,257 +318,245 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
     final isSelected = _selectedIds.contains(rappel.id);
     final isActif = rappel.actif;
 
-    return GestureDetector(
-      onTap: () {
-        if (_selectedIds.isNotEmpty) {
-          setState(() {
-            if (isSelected) {
-              _selectedIds.remove(rappel.id);
-            } else {
-              _selectedIds.add(rappel.id);
-            }
-          });
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => RappelDetailScreen(rappel: rappel),
-            ),
+    return Consumer2<MedicationProvider, AppointmentProvider>(
+      builder: (context, medicationProvider, appointmentProvider, _) {
+        final dateEffective = _dateHeureEffective(rappel);
+
+        final med = rappel.medicamentId == null
+            ? null
+            : medicationProvider.getMedicationById(
+                rappel.medicamentId.toString(),
+              );
+
+        RendezVousMedical? rdv;
+        if (rappel.rendezVousMedicalId != null) {
+          rdv = appointmentProvider.getAppointmentById(
+            rappel.rendezVousMedicalId!,
           );
         }
-      },
 
-      onLongPress: () {
-        setState(() {
-          if (isSelected) {
-            _selectedIds.remove(rappel.id);
-          } else {
-            _selectedIds.add(rappel.id);
-          }
-        });
-      },
+        String title;
+        if (med != null) {
+          title = 'Médicament : ${med.name}';
+        } else if (rdv != null) {
+          title = 'Rendez-vous : ${rdv.docteur}';
+        } else {
+          title = rappel.type;
+        }
 
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(16),
-
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withValues(alpha: 0.16)
-              : Colors.white.withValues(alpha: 0.08),
-
-          borderRadius: BorderRadius.circular(24),
-
-          border: Border.all(
-            color: isSelected
-                ? Colors.white.withValues(alpha: 0.55)
-                : Colors.white.withValues(alpha: 0.11),
-            width: 1.5,
+        return Dismissible(
+          key: ValueKey(
+            "rappel_${rappel.id}_${rappel.dateHeurePrise.microsecondsSinceEpoch}_${rappel.dateHeureNotification.microsecondsSinceEpoch}",
           ),
-
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF000428).withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-
-        child: Row(
-          children: [
-            // Icône statut
-            Container(
-              width: 48,
-              height: 48,
-
-              decoration: BoxDecoration(
-                color: isActif
-                    ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.05),
-
-                shape: BoxShape.circle,
-
-                border: Border.all(
-                  color: isActif
-                      ? const Color(0xFF10B981).withValues(alpha: 0.35)
-                      : Colors.white.withValues(alpha: 0.08),
-                  width: 1,
-                ),
-              ),
-
-              child: Icon(
-                isActif
-                    ? Icons.notifications_active_rounded
-                    : Icons.notifications_off_outlined,
-
-                color: isActif
-                    ? const Color(0xFF34D399)
-                    : Colors.white.withValues(alpha: 0.25),
-
-                size: 22,
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            // Infos
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Consumer2<MedicationProvider, AppointmentProvider>(
-                    builder:
-                        (context, medicationProvider, appointmentProvider, _) {
-                          final med = rappel.medicamentId == null
-                              ? null
-                              : medicationProvider.getMedicationById(
-                                  rappel.medicamentId.toString(),
-                                );
-
-                          RendezVousMedical? rdv;
-
-                          if (rappel.rendezVousMedicalId != null) {
-                            for (final a in appointmentProvider.appointments) {
-                              if (a.id == rappel.rendezVousMedicalId) {
-                                rdv = a;
-                                break;
-                              }
-                            }
-                          }
-
-                          String title;
-
-                          if (med != null) {
-                            title = 'Médicament : ${med.name}';
-                          } else if (rdv != null) {
-                            title = 'Rendez-vous : ${rdv.docteur}';
-                          } else if (rappel.type == 'RendezVousMedical') {
-                            title = 'Rendez-vous médical';
-                          } else {
-                            title = rappel.type;
-                          }
-
-                          return Text(
-                            title,
-
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-
-                              color: isActif
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.35),
-
-                              decoration: isActif
-                                  ? null
-                                  : TextDecoration.lineThrough,
-
-                              decorationColor: Colors.white.withValues(
-                                alpha: 0.2,
-                              ),
-                            ),
-
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          );
-                        },
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // Notification + Prise (use Wrap to avoid RenderFlex overflow on small widths)
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      _buildTimePill(
-                        Icons.notifications_rounded,
-                        _formatDateTime(rappel.dateHeureNotification),
-                        isActif
-                            ? const Color(0xFF7DC4FF)
-                            : Colors.white.withValues(alpha: 0.2),
-                        isActif,
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (_) async {
+            return await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text("Supprimer le rappel"),
+                    content: const Text(
+                      "Voulez-vous vraiment supprimer ce rappel ?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text("Annuler"),
                       ),
-                      _buildTimePill(
-                        Icons.medication_rounded,
-                        _formatTime(rappel.dateHeurePrise),
-                        isActif
-                            ? const Color(0xFF34D399)
-                            : Colors.white.withValues(alpha: 0.2),
-                        isActif,
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: const Text(
+                          "Supprimer",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ],
+                  ),
+                ) ??
+                false;
+          },
+          onDismissed: (_) async {
+            final auth = context.read<AuthProvider>();
+            await context.read<RappelProvider>().deleteRappel(rappel.id, auth);
+
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("Rappel supprimé")));
+          },
+          background: Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(right: 24),
+            alignment: Alignment.centerRight,
+            decoration: BoxDecoration(
+              color: Colors.redAccent,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const Icon(Icons.delete_rounded, color: Colors.white),
+          ),
+          child: GestureDetector(
+            onTap: () async {
+              if (_selectedIds.isNotEmpty) {
+                setState(() {
+                  isSelected
+                      ? _selectedIds.remove(rappel.id)
+                      : _selectedIds.add(rappel.id);
+                });
+              } else {
+                await _openRappelDetail(rappel);
+              }
+            },
+            onLongPress: () {
+              setState(() {
+                isSelected
+                    ? _selectedIds.remove(rappel.id)
+                    : _selectedIds.add(rappel.id);
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.16)
+                    : Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.55)
+                      : Colors.white.withValues(alpha: 0.11),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isActif
+                        ? Icons.notifications_active_rounded
+                        : Icons.notifications_off_outlined,
+                    color: isActif
+                        ? const Color(0xFF34D399)
+                        : Colors.white.withValues(alpha: 0.25),
+                    size: 30,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: isActif
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.35),
+                            decoration: isActif
+                                ? null
+                                : TextDecoration.lineThrough,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _buildTimePill(
+                              Icons.calendar_month_rounded,
+                              'Prise : ${_formatDateTime(rappel.dateHeurePrise)}',
+                              isActif
+                                  ? const Color(0xFF34D399)
+                                  : Colors.white.withValues(alpha: 0.2),
+                              isActif,
+                            ),
+                            _buildTimePill(
+                              Icons.notifications_rounded,
+                              'Notif : ${_formatDateTime(rappel.dateHeureNotification)}',
+                              isActif
+                                  ? const Color(0xFF7DC4FF)
+                                  : Colors.white.withValues(alpha: 0.2),
+                              isActif,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: isActif,
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: const Color(0xFF10B981),
+                    inactiveThumbColor: Colors.white.withValues(alpha: 0.4),
+                    inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
+                    onChanged: (value) async {
+                      final now = DateTime.now();
+
+                      if (value && dateEffective.isBefore(now)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Impossible d’activer un rappel dont la date et l’heure sont déjà passées.",
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+
+                      final auth = context.read<AuthProvider>();
+
+                      await context.read<RappelProvider>().toggleRappel(
+                        rappel.id,
+                        value,
+                        auth,
+                      );
+
+                      if (mounted) {
+                        await _reloadData();
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 28,
+                    width: 28,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF4A9FE8)
+                          : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF4A9FE8)
+                            : Colors.white.withValues(alpha: 0.22),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          )
+                        : Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(width: 10),
-
-            // Toggle actif/inactif
-            Switch(
-              value: isActif,
-
-              activeThumbColor: Colors.white,
-              activeTrackColor: const Color(0xFF10B981),
-
-              inactiveThumbColor: Colors.white.withValues(alpha: 0.4),
-
-              inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
-
-              onChanged: (value) async {
-                final auth = context.read<AuthProvider>();
-
-                await context.read<RappelProvider>().toggleRappel(
-                  rappel.id,
-                  value,
-                  auth,
-                );
-              },
-            ),
-
-            const SizedBox(width: 6),
-
-            // Sélection
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-
-              height: 28,
-              width: 28,
-
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF4A9FE8)
-                    : Colors.transparent,
-
-                shape: BoxShape.circle,
-
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF4A9FE8)
-                      : Colors.white.withValues(alpha: 0.22),
-
-                  width: 1.5,
-                ),
-              ),
-
-              child: isSelected
-                  ? const Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    )
-                  : Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 12,
-                      color: Colors.white.withValues(alpha: 0.3),
-                    ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -602,7 +577,6 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
           color: isActif
               ? color.withValues(alpha: 0.3)
               : Colors.white.withValues(alpha: 0.06),
-          width: 1,
         ),
       ),
       child: Row(
@@ -610,12 +584,15 @@ class _ListRappelScreenState extends State<ListRappelScreen> {
         children: [
           Icon(icon, size: 11, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

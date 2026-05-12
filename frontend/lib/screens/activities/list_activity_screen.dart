@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../models/activity.dart';
 import '../../provider/activity_provider.dart';
-import '../../provider/settings_provider.dart';
-import '../../widgets/app_background.dart';
 import '../../provider/auth_provider.dart';
 import '../../services/community_ai_service.dart';
 import '../../services/predicthq_service.dart';

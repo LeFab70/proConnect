@@ -248,12 +248,20 @@ class PartageProvider extends ChangeNotifier {
   }
 
   List<PartageSuivi> getPartagesParAine(int aineId) {
+     for (final p in _partages) {
+      debugPrint("AINE NOM = ${p.aineNom}");
+      debugPrint("AINE PRENOM = ${p.ainePrenom}");
+    }
     return _partages
         .where((p) => p.aineId == aineId && p.statut == StatutPartage.actif)
         .toList();
   }
 
   List<PartageSuivi> getPartagesParProche(int procheId) {
+    for (final p in _partages) {
+      debugPrint("AINE NOM = ${p.aineNom}");
+      debugPrint("AINE PRENOM = ${p.ainePrenom}");
+    }
     return _partages
         .where(
           (p) =>

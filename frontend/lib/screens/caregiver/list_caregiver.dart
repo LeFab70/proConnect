@@ -26,6 +26,7 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
       context.read<CaregiverProvider>().fetchCaregivers(auth);
@@ -87,12 +88,19 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.link_off_rounded, size: 11, color: Colors.white.withValues(alpha: 0.35)),
+          Icon(
+            Icons.link_off_rounded,
+            size: 11,
+            color: Colors.white.withValues(alpha: 0.35),
+          ),
           const SizedBox(width: 4),
           Text(
             "Non partagé",
@@ -115,13 +123,19 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: TrText(
           "Confirmation",
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         content: TrText(
           count == 1
               ? "Supprimer ce proche ?"
               : "Supprimer les $count proches sélectionnés ?",
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), height: 1.5),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
@@ -136,11 +150,16 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const TrText(
               "Supprimer",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -148,6 +167,25 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
     );
 
     return result ?? false;
+  }
+
+  Future<void> _deleteCaregiverWithPartages({
+    required Caregiver caregiver,
+    required CaregiverProvider caregiverProvider,
+    required PartageProvider partageProv,
+    required AuthProvider auth,
+    required int currentId,
+  }) async {
+    final partagesToDelete = partageProv.partages
+        .where((p) => p.aineId == currentId && p.procheAidantId == caregiver.id)
+        .map((p) => p.id)
+        .toList();
+
+    for (final partageId in partagesToDelete) {
+      await partageProv.supprimerPartage(partageId, auth);
+    }
+
+    await caregiverProvider.deleteCaregiver(caregiver.id, auth);
   }
 
   @override
@@ -160,56 +198,51 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
     final auth = context.watch<AuthProvider>();
     final currentId = auth.currentUserLocalId ?? 0;
 
-    // Pour un aîné : seulement les proches ayant un lien (partage) avec lui.
-    // Pour un admin/autre : toute la liste avec statut partage.
-    final listAffichage = caregiverProvider.caregivers
-        .map((caregiver) {
-          PartageSuivi? partage;
-          for (final p in partageProv.partages) {
-            if (p.aineId == currentId && p.procheAidantId == caregiver.id) {
-              partage = p;
-              break;
-            }
-          }
-          return {
-            'caregiver': caregiver,
-            'statut': partage?.statut,
-            'aUnPartage': partage != null,
-          };
-        })
-        .where((item) => !auth.isAine || (item['aUnPartage'] as bool))
-        .toList();
+    final listAffichage = caregiverProvider.caregivers.map((caregiver) {
+      PartageSuivi? partage;
+
+      for (final p in partageProv.partages) {
+        if (p.aineId == currentId && p.procheAidantId == caregiver.id) {
+          partage = p;
+          break;
+        }
+      }
+
+      return {
+        'caregiver': caregiver,
+        'statut': partage?.statut,
+        'aUnPartage': partage != null,
+      };
+    }).toList();
 
     return Scaffold(
       backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
       body: AppBackground(
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(context, caregiverProvider, partageProv, auth, currentId),
-                  Expanded(
-                    child: _buildBody(caregiverProvider, listAffichage, partageProv, auth, currentId),
-                  ),
-                ],
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(
+                context,
+                caregiverProvider,
+                partageProv,
+                auth,
+                currentId,
               ),
-            ),
+              Expanded(
+                child: _buildBody(
+                  caregiverProvider,
+                  listAffichage,
+                  partageProv,
+                  auth,
+                  currentId,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-
-      // Aîné → "Partager mon suivi" (invitation via partage, pas création de compte)
-      // Autre → "Ajouter un proche" (création de compte, opération admin)
       floatingActionButton: auth.isAine
           ? FloatingActionButton.extended(
-              onPressed: () => Navigator.pushNamed(context, '/partageAine'),
-              backgroundColor: Colors.white,
-              elevation: 12,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              icon: const Icon(Icons.share_rounded, color: Color(0xFF004E92)),
-              label: const Text(
-                "Partager mon suivi",
-                style: TextStyle(color: Color(0xFF004E92), fontWeight: FontWeight.w800),
-              ),
-            )
-          : FloatingActionButton.extended(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -218,13 +251,22 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
               },
               backgroundColor: Colors.white,
               elevation: 12,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              icon: const Icon(Icons.person_add_alt_1_rounded, color: Color(0xFF004E92)),
-              label: const Text(
-                "Ajouter un proche",
-                style: TextStyle(color: Color(0xFF004E92), fontWeight: FontWeight.w800),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-            ),
+              icon: const Icon(
+                Icons.person_add_alt_1_rounded,
+                color: Color(0xFF004E92),
+              ),
+              label: const Text(
+                "Ajouter un nouveau proche",
+                style: TextStyle(
+                  color: Color(0xFF004E92),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            )
+          : null,
     );
   }
 
@@ -242,7 +284,6 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Bouton retour / annuler
           GestureDetector(
             onTap: () {
               if (hasSelection) {
@@ -256,17 +297,20 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1,
+                ),
               ),
               child: Icon(
-                hasSelection ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded,
+                hasSelection
+                    ? Icons.close_rounded
+                    : Icons.arrow_back_ios_new_rounded,
                 size: 18,
                 color: Colors.white,
               ),
             ),
           ),
-
-          // Titre
           Column(
             children: [
               Text(
@@ -291,27 +335,36 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                 ),
             ],
           ),
-
-          // Bouton supprimer si sélection, sinon vide
           hasSelection
               ? GestureDetector(
                   onTap: () async {
-                    final confirmed = await _confirmDelete(context, _selectedCaregiverIds.length);
+                    final confirmed = await _confirmDelete(
+                      context,
+                      _selectedCaregiverIds.length,
+                    );
                     if (!confirmed) return;
 
                     final ids = List<int>.from(_selectedCaregiverIds);
+
                     for (final caregiverId in ids) {
-                      final partagesToDelete = partageProv.partages
-                          .where((p) => p.aineId == currentId && p.procheAidantId == caregiverId)
-                          .map((p) => p.id)
-                          .toList();
-                      for (final partageId in partagesToDelete) {
-                        await partageProv.supprimerPartage(partageId, auth);
-                      }
-                      await caregiverProvider.deleteCaregiver(caregiverId, auth);
+                      final caregiver = caregiverProvider.caregivers
+                          .where((c) => c.id == caregiverId)
+                          .firstOrNull;
+
+                      if (caregiver == null) continue;
+
+                      await _deleteCaregiverWithPartages(
+                        caregiver: caregiver,
+                        caregiverProvider: caregiverProvider,
+                        partageProv: partageProv,
+                        auth: auth,
+                        currentId: currentId,
+                      );
                     }
 
-                    if (mounted) setState(() => _selectedCaregiverIds.clear());
+                    if (mounted) {
+                      setState(() => _selectedCaregiverIds.clear());
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.all(11),
@@ -362,7 +415,10 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.07),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
               ),
               child: Icon(
                 Icons.people_outline_rounded,
@@ -403,9 +459,61 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
         final aUnPartage = item['aUnPartage'] as bool;
         final isSelected = _selectedCaregiverIds.contains(caregiver.id);
 
-        return GestureDetector(
-          onTap: () {
-            if (_selectedCaregiverIds.isNotEmpty) {
+        return Dismissible(
+          key: ValueKey("caregiver_${caregiver.id}"),
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (_) async {
+            return await _confirmDelete(context, 1);
+          },
+          onDismissed: (_) async {
+            await _deleteCaregiverWithPartages(
+              caregiver: caregiver,
+              caregiverProvider: caregiverProvider,
+              partageProv: partageProv,
+              auth: auth,
+              currentId: currentId,
+            );
+
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("Proche supprimé")));
+          },
+          background: Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(right: 24),
+            alignment: Alignment.centerRight,
+            decoration: BoxDecoration(
+              color: Colors.redAccent,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const Icon(
+              Icons.delete_rounded,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+          child: GestureDetector(
+            onTap: () {
+              if (_selectedCaregiverIds.isNotEmpty) {
+                setState(() {
+                  if (isSelected) {
+                    _selectedCaregiverIds.remove(caregiver.id);
+                  } else {
+                    _selectedCaregiverIds.add(caregiver.id);
+                  }
+                });
+              } else {
+                Navigator.push(
+                  ctx,
+                  MaterialPageRoute(
+                    builder: (_) => CaregiverDetailScreen(caregiver: caregiver),
+                  ),
+                );
+              }
+            },
+            onLongPress: () {
               setState(() {
                 if (isSelected) {
                   _selectedCaregiverIds.remove(caregiver.id);
@@ -413,143 +521,125 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
                   _selectedCaregiverIds.add(caregiver.id);
                 }
               });
-            } else {
-              Navigator.push(
-                ctx,
-                MaterialPageRoute(
-                  builder: (_) => CaregiverDetailScreen(caregiver: caregiver),
-                ),
-              );
-            }
-          },
-          onLongPress: () {
-            setState(() {
-              if (isSelected) {
-                _selectedCaregiverIds.remove(caregiver.id);
-              } else {
-                _selectedCaregiverIds.add(caregiver.id);
-              }
-            });
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Colors.white.withValues(alpha: 0.16)
-                  : Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.white.withValues(alpha: 0.55)
-                    : Colors.white.withValues(alpha: 0.11),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF000428).withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                    ? Colors.white.withValues(alpha: 0.16)
+                    : Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.55)
+                      : Colors.white.withValues(alpha: 0.11),
+                  width: 1.5,
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Avatar initiales
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF004E92).withValues(alpha: 0.45),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color(0xFF4A9FE8).withValues(alpha: 0.35),
-                      width: 1,
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF000428).withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
-                  child: Center(
-                    child: Text(
-                      "${caregiver.prenom.isNotEmpty ? caregiver.prenom[0] : ''}${caregiver.nom.isNotEmpty ? caregiver.nom[0] : ''}".toUpperCase(),
-                      style: const TextStyle(
-                        color: Color(0xFF7DC4FF),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF004E92).withValues(alpha: 0.45),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF4A9FE8).withValues(alpha: 0.35),
+                        width: 1,
                       ),
                     ),
-                  ),
-                ),
-
-                const SizedBox(width: 14),
-
-                // Infos
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${caregiver.prenom} ${caregiver.nom}",
+                    child: Center(
+                      child: Text(
+                        "${caregiver.prenom.isNotEmpty ? caregiver.prenom[0] : ''}${caregiver.nom.isNotEmpty ? caregiver.nom[0] : ''}"
+                            .toUpperCase(),
                         style: const TextStyle(
-                          fontSize: 16,
+                          color: Color(0xFF7DC4FF),
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.phone_rounded,
-                            size: 13,
-                            color: Colors.white.withValues(alpha: 0.4),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            caregiver.telephone,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.white.withValues(alpha: 0.55),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      aUnPartage && statut != null
-                          ? _buildStatutBadge(statut)
-                          : _buildNoPartageBadge(),
-                    ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Checkbox ou chevron
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  height: 30,
-                  width: 30,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFF4A9FE8)
-                        : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "${caregiver.prenom} ${caregiver.nom}",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.phone_rounded,
+                              size: 13,
+                              color: Colors.white.withValues(alpha: 0.4),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              caregiver.telephone,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.white.withValues(alpha: 0.55),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        aUnPartage && statut != null
+                            ? _buildStatutBadge(statut)
+                            : _buildNoPartageBadge(),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 30,
+                    width: 30,
+                    decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFF4A9FE8)
-                          : Colors.white.withValues(alpha: 0.22),
-                      width: 1.5,
+                          : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF4A9FE8)
+                            : Colors.white.withValues(alpha: 0.22),
+                        width: 1.5,
+                      ),
                     ),
+                    child: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          )
+                        : Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 13,
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
                   ),
-                  child: isSelected
-                      ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
-                      : Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 13,
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

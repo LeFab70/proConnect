@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/appointment.dart';
 import '../../provider/appointment_provider.dart';
+import '../../provider/auth_provider.dart';
 import '../../provider/settings_provider.dart';
 import '../../widgets/tr_text.dart';
 import '../../widgets/app_background.dart';
@@ -114,24 +115,44 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
 
     setState(() => _isLoading = true);
 
-    final updatedAppointment = RendezVousMedical(
-      id: widget.appointment.id,
-      dateHeure: _selectedDateTime,
-      lieu: _lieuController.text.trim(),
-      docteur: _docteurController.text.trim(),
-      notes: _notesController.text.trim(),
-      aineId: widget.appointment.aineId,
-    );
+    final auth = context.read<AuthProvider>();
+    final provider = context.read<AppointmentProvider>();
 
-    await context.read<AppointmentProvider>().updateLocalAppointment(
-      updatedAppointment,
+    final data = {
+      "dateHeure": _selectedDateTime.toIso8601String(),
+      "lieu": _lieuController.text.trim(),
+      "docteur": _docteurController.text.trim(),
+      "notes": _notesController.text.trim(),
+      "aineId": widget.appointment.aineId,
+    };
+
+    final success = await provider.updateAppointment(
+      widget.appointment.id,
+      data,
+      auth,
     );
 
     if (!mounted) return;
 
     setState(() => _isLoading = false);
 
-    Navigator.pop(context, updatedAppointment);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Rendez-vous modifié avec succès")),
+      );
+
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.error.isNotEmpty
+                ? provider.error
+                : "Erreur lors de la modification",
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -142,33 +163,33 @@ class _EditAppointmentScreenState extends State<EditAppointmentScreen> {
     return Scaffold(
       backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
       body: AppBackground(
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(context),
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-                        child: Column(
-                          children: [
-                            _buildInfoCard(),
-                            const SizedBox(height: 16),
-                            _buildDateTimeCard(),
-                            const SizedBox(height: 16),
-                            _buildNotesCard(),
-                            const SizedBox(height: 24),
-                            _buildSubmitButton(),
-                          ],
-                        ),
-                      ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                    child: Column(
+                      children: [
+                        _buildInfoCard(),
+                        const SizedBox(height: 16),
+                        _buildDateTimeCard(),
+                        const SizedBox(height: 16),
+                        _buildNotesCard(),
+                        const SizedBox(height: 24),
+                        _buildSubmitButton(),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
       ),
     );
   }

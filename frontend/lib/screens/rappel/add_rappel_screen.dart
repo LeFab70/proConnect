@@ -40,26 +40,30 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
   @override
   void initState() {
     super.initState();
+
     final rappel = widget.rappel;
-    _dateDebut = rappel?.dateDebut ?? DateTime.now();
 
     if (rappel != null) {
-      final parts = rappel.heureDebut.split(':');
-      _heureDebut = TimeOfDay(
-        hour: int.tryParse(parts[0]) ?? TimeOfDay.now().hour,
-        minute: parts.length > 1
-            ? int.tryParse(parts[1]) ?? TimeOfDay.now().minute
-            : TimeOfDay.now().minute,
-      );
-    } else {
-      _heureDebut = TimeOfDay.now();
-    }
+      final prise = rappel.dateHeurePrise.toLocal();
 
-    _minutesAvantRappel = rappel?.minutesAvantRappel ?? 15;
-    _type = rappel?.type ?? 'medicament';
-    _actif = rappel?.actif ?? true;
-    _medicamentId = rappel?.medicamentId;
-    _rendezVousMedicalId = rappel?.rendezVousMedicalId;
+      _dateDebut = DateTime(prise.year, prise.month, prise.day);
+      _heureDebut = TimeOfDay(hour: prise.hour, minute: prise.minute);
+      _minutesAvantRappel = rappel.minutesAvantRappel;
+      _type = rappel.type;
+      _actif = rappel.actif;
+      _medicamentId = rappel.medicamentId;
+      _rendezVousMedicalId = rappel.rendezVousMedicalId;
+    } else {
+      final now = DateTime.now();
+
+      _dateDebut = DateTime(now.year, now.month, now.day);
+      _heureDebut = TimeOfDay(hour: now.hour, minute: now.minute);
+      _minutesAvantRappel = 15;
+      _type = 'medicament';
+      _actif = true;
+      _medicamentId = null;
+      _rendezVousMedicalId = null;
+    }
 
     _typeController.text = _type;
     _minutesController.text = _minutesAvantRappel.toString();
@@ -89,7 +93,10 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         child: child!,
       ),
     );
-    if (picked != null) setState(() => _dateDebut = picked);
+
+    if (picked != null) {
+      setState(() => _dateDebut = picked);
+    }
   }
 
   Future<void> _pickTime() async {
@@ -107,7 +114,10 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         child: child!,
       ),
     );
-    if (picked != null) setState(() => _heureDebut = picked);
+
+    if (picked != null) {
+      setState(() => _heureDebut = picked);
+    }
   }
 
   Future<void> _saveRappel() async {
@@ -133,7 +143,7 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
 
     final rappel = Rappel(
       id: widget.rappel?.id ?? DateTime.now().microsecondsSinceEpoch,
-      dateDebut: _dateDebut,
+      dateDebut: DateTime(_dateDebut.year, _dateDebut.month, _dateDebut.day),
       heureDebut: _formatTime(_heureDebut),
       minutesAvantRappel: minutes,
       dateHeurePrise: dateHeurePrise,
@@ -152,18 +162,32 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
     if (!mounted) return;
 
     if (success) {
-      await LocalAlarmService.cancelAlarm(rappel.id);
-
-      if (rappel.actif) {
-        await LocalAlarmService.scheduleAlarm(
-          id: rappel.id,
-          title: 'Rappel ProConnectNB',
-          body: rappel.type,
-          dateTime: rappel.dateHeureNotification,
-        );
+      try {
+        if (widget.isEditing && widget.rappel != null) {
+          await LocalAlarmService.cancelAlarm(widget.rappel!.id);
+        }
+      } catch (e) {
+        debugPrint("Erreur annulation alarme locale: $e");
       }
 
+      if (rappel.actif &&
+          rappel.dateHeureNotification.isAfter(DateTime.now())) {
+        try {
+          await LocalAlarmService.scheduleAlarm(
+            id: rappel.id,
+            title: "Rappel",
+            body: rappel.type,
+            dateTime: rappel.dateHeureNotification,
+          );
+        } catch (e) {
+          debugPrint("Erreur programmation alarme locale: $e");
+        }
+      }
+
+      await provider.fetchRappels(auth);
+
       if (!mounted) return;
+
       setState(() => _isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -186,7 +210,7 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         ),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } else {
       setState(() => _isLoading = false);
 
@@ -226,38 +250,36 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
     return Scaffold(
       backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
       body: AppBackground(
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      child: ListView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-                        children: [
-                          _buildTypeCard(),
-                          const SizedBox(height: 16),
-                          _buildDateTimeCard(),
-                          const SizedBox(height: 16),
-                          _buildMinutesCard(),
-                          const SizedBox(height: 16),
-                          _buildActiveToggle(),
-                          const SizedBox(height: 24),
-                          _buildSubmitButton(),
-                        ],
-                      ),
-                    ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                    children: [
+                      _buildTypeCard(),
+                      const SizedBox(height: 16),
+                      _buildDateTimeCard(),
+                      const SizedBox(height: 16),
+                      _buildMinutesCard(),
+                      const SizedBox(height: 16),
+                      _buildActiveToggle(),
+                      const SizedBox(height: 24),
+                      _buildSubmitButton(),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
       ),
     );
   }
-
-  // ─── HEADER ────────────────────────────────────────────────────────────────
 
   Widget _buildHeader() {
     return Padding(
@@ -266,7 +288,7 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Navigator.pop(context, false),
             child: Container(
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
@@ -284,7 +306,6 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
               ),
             ),
           ),
-
           Column(
             children: [
               Text(
@@ -307,14 +328,11 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
                 ),
             ],
           ),
-
           const SizedBox(width: 44),
         ],
       ),
     );
   }
-
-  // ─── GLASS CARD ────────────────────────────────────────────────────────────
 
   Widget _buildGlassCard({
     required IconData sectionIcon,
@@ -377,8 +395,6 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
       ),
     );
   }
-
-  // ─── CHAMP TEXTE ───────────────────────────────────────────────────────────
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -453,8 +469,6 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
     );
   }
 
-  // ─── PICKER TILE ───────────────────────────────────────────────────────────
-
   Widget _buildPickerTile({
     required IconData icon,
     required String label,
@@ -512,8 +526,6 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
       ),
     );
   }
-
-  // ─── CARDS ─────────────────────────────────────────────────────────────────
 
   Widget _buildTypeCard() {
     return _buildGlassCard(
@@ -588,15 +600,18 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
           },
         ),
         const SizedBox(height: 12),
-        // Suggestions rapides
         Row(
           children: [5, 10, 15, 30].map((min) {
             final isSelected = _minutesController.text == min.toString();
+
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: GestureDetector(
-                onTap: () =>
-                    setState(() => _minutesController.text = min.toString()),
+                onTap: _isLoading
+                    ? null
+                    : () => setState(
+                        () => _minutesController.text = min.toString(),
+                      ),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
@@ -633,8 +648,6 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
       ],
     );
   }
-
-  // ─── TOGGLE ACTIF ──────────────────────────────────────────────────────────
 
   Widget _buildActiveToggle() {
     return Container(
@@ -703,8 +716,6 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
       ),
     );
   }
-
-  // ─── BOUTON SUBMIT ─────────────────────────────────────────────────────────
 
   Widget _buildSubmitButton() {
     return Container(

@@ -101,8 +101,7 @@ class AppointmentProvider with ChangeNotifier {
           return null;
         }
         // Keep local list aligned with server IDs immediately
-        final index =
-            _appointments.indexWhere((a) => a.id == created.id);
+        final index = _appointments.indexWhere((a) => a.id == created.id);
         if (index == -1) {
           _appointments.add(created);
         } else {

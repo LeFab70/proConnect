@@ -33,16 +33,21 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final auth = context.read<AuthProvider>();
       final aines = context.read<AineProvider>();
+
       if (auth.isAidant && aines.aines.isEmpty) {
         await aines.fetchAines(auth);
       }
+
       if (!mounted) return;
+
       if (auth.isAidant) {
         _selectedAineId = aines.selectedAine?.id;
       }
+
       setState(() {});
     });
   }
@@ -55,28 +60,28 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return Scaffold(
       backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
       body: AppBackground(
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(context),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-                      child: Column(
-                        children: [
-                          _buildIntroCard(),
-                          const SizedBox(height: 16),
-                          _buildRappelToggle(),
-                          const SizedBox(height: 16),
-                          _buildFormCard(),
-                        ],
-                      ),
-                    ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                  child: Column(
+                    children: [
+                      _buildIntroCard(),
+                      const SizedBox(height: 16),
+                      _buildRappelToggle(),
+                      const SizedBox(height: 16),
+                      _buildFormCard(),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -296,105 +301,136 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       .toList(),
                   onChanged: (v) {
                     setState(() => _selectedAineId = v);
+
                     final found = availableAines
                         .where((a) => a.id == v)
                         .toList();
+
                     if (found.isNotEmpty) {
-                      // best-effort, avoid async gap warnings in UI handler
                       aines.selectAine(found.first);
                     }
                   },
                 ),
                 const SizedBox(height: 16),
               ],
-
               AddAppointmentForm(
                 onSubmit: (dateHeure, lieu, docteur, notes) async {
                   final messenger = ScaffoldMessenger.of(context);
                   final navigator = Navigator.of(context);
-                  final provider = context.read<AppointmentProvider>();
+
+                  final appointmentProvider = context
+                      .read<AppointmentProvider>();
                   final rappelProvider = context.read<RappelProvider>();
 
                   final aineId = auth.isAine
                       ? (auth.currentUserLocalId ?? 0)
                       : (_selectedAineId ?? 0);
 
-          if (aineId <= 0) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Veuillez sélectionner un aîné."),
-              ),
-            );
-            return;
-          }
+                  if (aineId <= 0) {
+                    if (!mounted) return;
 
-          final data = <String, dynamic>{
-            // Send UTC so backend (timestamptz) receives a timezone-aware value.
-            "dateHeure": dateHeure.toUtc().toIso8601String(),
-            "lieu": lieu,
-            "docteur": docteur,
-            "notes": notes,
-            "aineId": aineId,
-          };
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text("Veuillez sélectionner un aîné."),
+                      ),
+                    );
+                    return;
+                  }
 
-          final created = await provider.addAppointment(data, auth);
-          if (created == null) {
-            if (!mounted) return;
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(provider.error.isNotEmpty
-                    ? provider.error
-                    : "Échec de création du rendez-vous"),
-              ),
-            );
-            return;
-          }
-          final rdv = created;
+                  final data = <String, dynamic>{
+                    "dateHeure": dateHeure.toIso8601String(),
+                    "lieu": lieu,
+                    "docteur": docteur,
+                    "notes": notes,
+                    "aineId": aineId,
+                  };
 
-          if (_ajouterAuxRappels) {
-            final rappel = Rappel(
-              id: 0,
-              dateDebut: DateTime(
-                rdv.dateHeure.year,
-                rdv.dateHeure.month,
-                rdv.dateHeure.day,
-              ),
-              heureDebut: _formatHeureRappel(rdv.dateHeure),
-              minutesAvantRappel: 60,
-              dateHeurePrise: rdv.dateHeure,
-              dateHeureNotification: rdv.dateHeure.subtract(
-                const Duration(minutes: 60),
-              ),
-              type: 'RendezVousMedical',
-              actif: true,
-              rendezVousMedicalId: rdv.id,
-              groupeId: 'rdv_${rdv.id}',
-            );
-            final savedReminder = await rappelProvider.addRappel(rappel, auth);
-            if (!savedReminder && mounted) {
-              messenger.showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Rendez-vous enregistré, mais le rappel n’a pas pu être enregistré sur le serveur.',
-                  ),
-                ),
-              );
-            }
-            await LocalAlarmService.scheduleAlarm(
-              id: rdv.id,
-              title: 'Rendez-vous médical',
-              body: 'Rendez-vous avec Dr $docteur à $lieu',
-              dateTime: rdv.dateHeure,
-            );
-          }
+                  final created = await appointmentProvider.addAppointment(
+                    data,
+                    auth,
+                  );
 
-          if (!mounted) return;
+                  if (created == null) {
+                    if (!mounted) return;
 
-          navigator.pop({
-            'appointment': rdv,
-            'addToReminder': _ajouterAuxRappels,
-          });
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          appointmentProvider.error.isNotEmpty
+                              ? appointmentProvider.error
+                              : "Échec de création du rendez-vous",
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final rdv = created;
+                  final now = DateTime.now();
+                  final isPasse = rdv.dateHeure.isBefore(now);
+
+                  if (_ajouterAuxRappels) {
+                    final rappel = Rappel(
+                      id: 0,
+                      dateDebut: DateTime(
+                        rdv.dateHeure.year,
+                        rdv.dateHeure.month,
+                        rdv.dateHeure.day,
+                      ),
+                      heureDebut: _formatHeureRappel(rdv.dateHeure),
+                      minutesAvantRappel: 60,
+                      dateHeurePrise: rdv.dateHeure,
+                      dateHeureNotification: rdv.dateHeure.subtract(
+                        const Duration(minutes: 60),
+                      ),
+                      type: 'RendezVousMedical',
+                      actif: !isPasse,
+                      rendezVousMedicalId: rdv.id,
+                      groupeId: 'rdv_${rdv.id}',
+                    );
+
+                    final savedReminder = await rappelProvider.addRappel(
+                      rappel,
+                      auth,
+                    );
+
+                    if (!savedReminder && mounted) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Rendez-vous enregistré, mais le rappel n’a pas pu être enregistré sur le serveur.",
+                          ),
+                        ),
+                      );
+                    }
+
+                    if (!isPasse) {
+                      try {
+                        await LocalAlarmService.scheduleAlarm(
+                          id: rdv.id,
+                          title: 'Rendez-vous médical',
+                          body: 'Rendez-vous avec Dr $docteur à $lieu',
+                          dateTime: rdv.dateHeure,
+                        );
+                      } catch (e) {
+                        debugPrint("Erreur alarme locale rendez-vous: $e");
+                      }
+                    }
+                  }
+
+                  if (!mounted) return;
+
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isPasse
+                            ? "Rendez-vous ajouté. Le rappel est désactivé car la date est déjà passée."
+                            : "Rendez-vous ajouté avec succès.",
+                      ),
+                    ),
+                  );
+
+                  navigator.pop();
                 },
               ),
             ],

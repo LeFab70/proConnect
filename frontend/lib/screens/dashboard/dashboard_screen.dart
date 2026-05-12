@@ -522,8 +522,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _drawerItem(Icons.logout, "Se déconnecter", () async {
                   final navigator = Navigator.of(context);
                   final raw = auth.firstName?.trim();
-                  final goodbye =
-                      (raw == null || raw.isEmpty) ? null : raw;
+                  final goodbye = (raw == null || raw.isEmpty) ? null : raw;
                   context.read<MedicationProvider>().reset();
                   context.read<RappelProvider>().clear();
                   context.read<AppointmentProvider>().clearAppointments();
@@ -887,11 +886,93 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  String _formatHeure(DateTime date) {
+    final local = date.toLocal();
+    final h = local.hour.toString().padLeft(2, '0');
+    final m = local.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  DateTime _dateHeureEffectiveRappel(dynamic r) {
+    if (r.dateHeureNotification != null) {
+      return r.dateHeureNotification.toLocal();
+    }
+
+    if (r.dateHeurePrise != null) {
+      return r.dateHeurePrise.toLocal();
+    }
+
+    return DateTime.now();
+  }
+
   Widget _rappelTile(dynamic r) {
-    return ListTile(
-      leading: const Icon(Icons.notifications_active_outlined),
-      title: Text(r.type),
-      subtitle: Text(r.description ?? ""),
+    final meds = context.read<MedicationProvider>();
+    final appointments = context.read<AppointmentProvider>();
+
+    String titre = r.type;
+    String sousTitre = r.description ?? "";
+
+    final heureAjustee = _dateHeureEffectiveRappel(r);
+
+    if (r.medicamentId != null) {
+      try {
+        final med = meds.medications.firstWhere(
+          (m) =>
+              m.id == r.medicamentId.toString() ||
+              int.tryParse(m.id) == r.medicamentId,
+        );
+
+        titre = "Médicament • ${med.name}";
+        sousTitre =
+            "${med.dosage} • Notification à ${_formatHeure(heureAjustee)}";
+      } catch (_) {
+        sousTitre = "Notification à ${_formatHeure(heureAjustee)}";
+      }
+    } else if (r.rendezVousMedicalId != null) {
+      try {
+        final rdv = appointments.getAppointmentById(r.rendezVousMedicalId!);
+
+        if (rdv != null) {
+          titre = "Rendez-vous • Dr ${rdv.docteur}";
+          sousTitre = rdv.lieu;
+
+          if (rdv.notes.isNotEmpty) {
+            sousTitre += " • ${rdv.notes}";
+          }
+
+          sousTitre += " • Notification à ${_formatHeure(heureAjustee)}";
+        }
+      } catch (_) {
+        sousTitre = "Notification à ${_formatHeure(heureAjustee)}";
+      }
+    } else {
+      sousTitre = "Notification à ${_formatHeure(heureAjustee)}";
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1EFEA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: const Icon(
+          Icons.notifications_active_outlined,
+          color: Color(0xFF5D95D6),
+        ),
+        title: Text(
+          titre,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+        ),
+        subtitle: Text(sousTitre, style: const TextStyle(fontSize: 11)),
+        trailing: Text(
+          _formatHeure(heureAjustee),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF5D95D6),
+          ),
+        ),
+      ),
     );
   }
 

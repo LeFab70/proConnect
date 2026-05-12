@@ -10,6 +10,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/add_user_screen.dart';
 import '../screens/auth/edit_profile_screen.dart';
 import '../screens/auth/welcome_screen.dart';
+import '../screens/caregiver/add_caregiver_screen.dart';
 import '../screens/caregiver/list_caregiver.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/medications/medication_list_screen.dart';
@@ -75,6 +76,9 @@ class AppRouter {
 
       case '/rappel':
         return MaterialPageRoute(builder: (_) => const ListRappelScreen());
+
+      case '/addCaregiver':
+        return MaterialPageRoute(builder: (_) => const AddCaregiverScreen());
 
       case '/caregiver':
         return MaterialPageRoute(builder: (_) => const ListCaregiverScreen());

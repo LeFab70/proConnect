@@ -31,7 +31,11 @@ class RendezVousMedical {
   Map<String, dynamic> toJson() {
     return {
       "id": id,
-      "dateHeure": dateHeure.toUtc().toIso8601String(),
+
+      // IMPORTANT :
+      // Ne pas utiliser toUtc(), sinon l'heure choisie revient décalée.
+      "dateHeure": _formatLocalDateTime(dateHeure),
+
       "lieu": lieu,
       "docteur": docteur,
       "notes": notes,
@@ -66,10 +70,36 @@ class RendezVousMedical {
   static DateTime _parseDate(dynamic value) {
     try {
       if (value == null) return DateTime.now();
-      return DateTime.parse(value.toString());
+
+      var raw = value.toString().trim();
+
+      // Si le backend renvoie "2026-05-12T14:00:00Z",
+      // on enlève le Z pour garder 14:00 en heure locale.
+      if (raw.endsWith('Z')) {
+        raw = raw.substring(0, raw.length - 1);
+      }
+
+      // Si le backend renvoie un offset comme -03:00 ou +00:00,
+      // on enlève l'offset pour garder l'heure choisie.
+      raw = raw.replaceFirst(RegExp(r'([+-]\d{2}:\d{2})$'), '');
+
+      return DateTime.parse(raw);
     } catch (_) {
       return DateTime.now();
     }
+  }
+
+  static String _formatLocalDateTime(DateTime date) {
+    final local = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      date.hour,
+      date.minute,
+      date.second,
+    );
+
+    return local.toIso8601String();
   }
 
   static String _parseLieu(dynamic value) {
