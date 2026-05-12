@@ -1,4 +1,6 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../provider/auth_provider.dart';
 import '../../widgets/tr_text.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -43,21 +45,37 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    // Remplacez par votre appel API réel
-    await Future.delayed(const Duration(seconds: 1));
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.updatePassword(
+      _currentCtrl.text,
+      _newCtrl.text,
+    );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const TrText('Mot de passe modifié avec succès.'),
-        backgroundColor: const Color(0xFF405667),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-    Navigator.pop(context);
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const TrText('Mot de passe modifié avec succès.'),
+          backgroundColor: const Color(0xFF405667),
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const TrText('Mot de passe actuel incorrect.'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 
   @override

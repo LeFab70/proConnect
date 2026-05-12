@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -18,8 +18,13 @@ class PartageScreen extends StatefulWidget {
 }
 
 class _PartageScreenState extends State<PartageScreen> {
+  // Mode : 0 = proche existant, 1 = inviter par courriel
+  int _mode = 0;
+
   int? _selectedProcheId;
   String _selectedRelation = "Fils / Fille";
+  final _emailCtrl = TextEditingController();
+  final _emailFormKey = GlobalKey<FormState>();
 
   final List<String> _relations = [
     "Fils / Fille",
@@ -52,13 +57,18 @@ class _PartageScreenState extends State<PartageScreen> {
   }
 
   @override
+  void dispose() {
+    _emailCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
     final auth = context.watch<AuthProvider>();
     final caregiverProv = context.watch<CaregiverProvider>();
     final partageProv = context.watch<PartageProvider>();
-
     final isAineConnecte = auth.isAine;
     final caregivers = caregiverProv.caregivers;
 
@@ -78,7 +88,6 @@ class _PartageScreenState extends State<PartageScreen> {
         ),
         child: Stack(
           children: [
-            // Orb haut-droit
             Positioned(
               top: -80,
               right: -80,
@@ -96,7 +105,6 @@ class _PartageScreenState extends State<PartageScreen> {
                 ),
               ),
             ),
-            // Orb bas-gauche
             Positioned(
               bottom: 100,
               left: -60,
@@ -114,7 +122,6 @@ class _PartageScreenState extends State<PartageScreen> {
                 ),
               ),
             ),
-
             SafeArea(
               child: Column(
                 children: [
@@ -164,7 +171,6 @@ class _PartageScreenState extends State<PartageScreen> {
               ),
             ),
           ),
-
           const Text(
             "Partager mon suivi",
             style: TextStyle(
@@ -174,7 +180,6 @@ class _PartageScreenState extends State<PartageScreen> {
               letterSpacing: -0.4,
             ),
           ),
-
           const SizedBox(width: 44),
         ],
       ),
@@ -190,7 +195,6 @@ class _PartageScreenState extends State<PartageScreen> {
     int? dropdownValue,
     bool isAineConnecte,
   ) {
-    // Pas aîné
     if (!isAineConnecte) {
       return Center(
         child: Padding(
@@ -215,9 +219,9 @@ class _PartageScreenState extends State<PartageScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text(
+              const Text(
                 "Accès restreint",
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -238,53 +242,6 @@ class _PartageScreenState extends State<PartageScreen> {
       );
     }
 
-    // Chargement
-    if (caregiverProv.isLoading) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: Colors.white.withValues(alpha: 0.6),
-          strokeWidth: 2,
-        ),
-      );
-    }
-
-    // Aucun proche
-    if (caregivers.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.07),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.people_outline_rounded,
-                size: 40,
-                color: Colors.white.withValues(alpha: 0.3),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "Aucun proche disponible",
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Contenu principal
     return Column(
       children: [
         Expanded(
@@ -294,27 +251,65 @@ class _PartageScreenState extends State<PartageScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Card dropdown proche
-                _buildGlassCard(
-                  sectionIcon: Icons.person_add_alt_1_rounded,
-                  sectionTitle: "Proche aidant",
-                  children: [
-                    Text(
-                      "Sélectionnez le proche avec qui partager votre suivi",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.45),
-                        height: 1.4,
+                // ── Toggle mode ──────────────────────────────
+                _buildModeToggle(),
+                const SizedBox(height: 16),
+
+                // ── Sélection du proche ───────────────────────
+                if (_mode == 0)
+                  _buildGlassCard(
+                    sectionIcon: Icons.people_alt_rounded,
+                    sectionTitle: "Proche existant",
+                    children: [
+                      Text(
+                        "Sélectionnez un proche qui a déjà un compte",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.45),
+                          height: 1.4,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDropdown(caregivers, dropdownValue),
-                  ],
-                ),
+                      const SizedBox(height: 16),
+                      caregiverProv.isLoading
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : caregivers.isEmpty
+                          ? Text(
+                              "Aucun proche disponible dans votre liste.",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.white.withValues(alpha: 0.4),
+                                fontStyle: FontStyle.italic,
+                              ),
+                            )
+                          : _buildDropdown(caregivers, dropdownValue),
+                    ],
+                  )
+                else
+                  _buildGlassCard(
+                    sectionIcon: Icons.mail_outline_rounded,
+                    sectionTitle: "Inviter par courriel",
+                    children: [
+                      Text(
+                        "Entrez le courriel de la personne à inviter. Elle recevra la demande lors de sa prochaine connexion.",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.45),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildEmailField(),
+                    ],
+                  ),
 
                 const SizedBox(height: 16),
 
-                // Card relation
+                // ── Relation ──────────────────────────────────
                 _buildGlassCard(
                   sectionIcon: Icons.favorite_border_rounded,
                   sectionTitle: "Votre relation",
@@ -334,15 +329,16 @@ class _PartageScreenState extends State<PartageScreen> {
 
                 const SizedBox(height: 16),
 
-                // Récap si proche sélectionné
-                if (dropdownValue != null)
-                  _buildRecapCard(caregivers, dropdownValue),
+                // ── Récap ─────────────────────────────────────
+                if (_mode == 0 && dropdownValue != null)
+                  _buildRecapCard(caregivers, dropdownValue, auth)
+                else if (_mode == 1 && _emailCtrl.text.trim().isNotEmpty)
+                  _buildEmailRecapCard(auth),
               ],
             ),
           ),
         ),
 
-        // Bouton submit fixe en bas
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: _buildSubmitButton(
@@ -354,6 +350,128 @@ class _PartageScreenState extends State<PartageScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildModeToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          _modeTab(0, Icons.people_alt_rounded, "Proche existant"),
+          _modeTab(1, Icons.mail_outline_rounded, "Par courriel"),
+        ],
+      ),
+    );
+  }
+
+  Widget _modeTab(int index, IconData icon, String label) {
+    final isSelected = _mode == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          _mode = index;
+          _selectedProcheId = null;
+          _emailCtrl.clear();
+        }),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFF004E92).withValues(alpha: 0.7)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(13),
+            border: isSelected
+                ? Border.all(
+                    color: const Color(0xFF4A9FE8).withValues(alpha: 0.5),
+                    width: 1,
+                  )
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isSelected
+                    ? const Color(0xFF7DC4FF)
+                    : Colors.white.withValues(alpha: 0.35),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.45),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmailField() {
+    return Form(
+      key: _emailFormKey,
+      child: TextFormField(
+        controller: _emailCtrl,
+        keyboardType: TextInputType.emailAddress,
+        onChanged: (_) => setState(() {}),
+        style: const TextStyle(color: Colors.white, fontSize: 15),
+        decoration: InputDecoration(
+          hintText: "exemple@courriel.com",
+          hintStyle: TextStyle(
+            color: Colors.white.withValues(alpha: 0.3),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            Icons.alternate_email_rounded,
+            color: Colors.white.withValues(alpha: 0.4),
+            size: 20,
+          ),
+          filled: true,
+          fillColor: Colors.white.withValues(alpha: 0.07),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(
+              color: Color(0xFF4A9FE8),
+              width: 1.5,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+        ),
+        validator: (v) {
+          if (v == null || v.trim().isEmpty) return 'Courriel requis';
+          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
+            return 'Courriel invalide';
+          }
+          return null;
+        },
+      ),
     );
   }
 
@@ -395,7 +513,6 @@ class _PartageScreenState extends State<PartageScreen> {
             final initiales =
                 "${c.prenom.isNotEmpty ? c.prenom[0] : ''}${c.nom.isNotEmpty ? c.nom[0] : ''}"
                     .toUpperCase();
-
             return DropdownMenuItem<int>(
               value: c.id,
               child: Row(
@@ -475,7 +592,8 @@ class _PartageScreenState extends State<PartageScreen> {
                   rel,
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight:
+                        isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
                         ? Colors.white
                         : Colors.white.withValues(alpha: 0.45),
@@ -489,18 +607,42 @@ class _PartageScreenState extends State<PartageScreen> {
     );
   }
 
-  Widget _buildRecapCard(List<Caregiver> caregivers, int selectedId) {
-    final auth = context.read<AuthProvider>();
-
+  Widget _buildRecapCard(
+    List<Caregiver> caregivers,
+    int selectedId,
+    AuthProvider auth,
+  ) {
     final proche = caregivers.firstWhere((c) => c.id == selectedId);
-
     final initiales =
         "${proche.prenom.isNotEmpty ? proche.prenom[0] : ''}${proche.nom.isNotEmpty ? proche.nom[0] : ''}"
             .toUpperCase();
-
-    final nomAine = "${auth.prenom} ${auth.nom}".trim();
+    final nomAine = "${auth.prenom ?? ''} ${auth.nom ?? ''}".trim();
     final nomProche = "${proche.prenom} ${proche.nom}".trim();
 
+    return _recapContainer(
+      initiales: initiales,
+      nomAine: nomAine,
+      nomProche: nomProche,
+    );
+  }
+
+  Widget _buildEmailRecapCard(AuthProvider auth) {
+    final email = _emailCtrl.text.trim();
+    final nomAine = "${auth.prenom ?? ''} ${auth.nom ?? ''}".trim();
+    return _recapContainer(
+      initiales: email.isNotEmpty ? email[0].toUpperCase() : '?',
+      nomAine: nomAine,
+      nomProche: email,
+      isEmail: true,
+    );
+  }
+
+  Widget _recapContainer({
+    required String initiales,
+    required String nomAine,
+    required String nomProche,
+    bool isEmail = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -535,9 +677,7 @@ class _PartageScreenState extends State<PartageScreen> {
               ),
             ),
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -550,20 +690,16 @@ class _PartageScreenState extends State<PartageScreen> {
                     fontSize: 13,
                   ),
                 ),
-
                 const SizedBox(height: 6),
-
                 Text(
-                  "Proche : $nomProche",
+                  isEmail ? "Invitation → $nomProche" : "Proche : $nomProche",
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
                 ),
-
                 const SizedBox(height: 3),
-
                 Row(
                   children: [
                     const Icon(
@@ -585,7 +721,6 @@ class _PartageScreenState extends State<PartageScreen> {
               ],
             ),
           ),
-
           Icon(
             Icons.check_circle_rounded,
             color: const Color(0xFF10B981).withValues(alpha: 0.7),
@@ -603,7 +738,87 @@ class _PartageScreenState extends State<PartageScreen> {
     CaregiverProvider caregiverProv,
     int? dropdownValue,
   ) {
-    final canSubmit = dropdownValue != null && !partageProv.isLoading;
+    final emailValid = _mode == 1 &&
+        _emailCtrl.text.trim().isNotEmpty &&
+        RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(_emailCtrl.text.trim());
+
+    final canSubmit = !partageProv.isLoading &&
+        (_mode == 0 ? dropdownValue != null : emailValid);
+
+    Future<void> onPressed() async {
+      final messenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
+
+      bool success;
+
+      if (_mode == 0) {
+        final proche = caregiverProv.caregivers.firstWhere(
+          (c) => c.id == _selectedProcheId!,
+        );
+        success = await partageProv.aineAjouteProche(
+          aineId: auth.currentUserLocalId ?? 0,
+          procheId: _selectedProcheId!,
+          relation: _selectedRelation,
+          auth: auth,
+          procheEmail: proche.email,
+          procheNom: proche.nom,
+          prochePrenom: proche.prenom,
+          procheTelephone: proche.telephone,
+          aineNom: auth.nom,
+          ainePrenom: auth.prenom,
+          aineEmail: auth.email,
+        );
+      } else {
+        success = await partageProv.aineAjouteProche(
+          aineId: auth.currentUserLocalId ?? 0,
+          procheId: 0,
+          procheEmail: _emailCtrl.text.trim().toLowerCase(),
+          relation: _selectedRelation,
+          auth: auth,
+          aineNom: auth.nom,
+          ainePrenom: auth.prenom,
+          aineEmail: auth.email,
+        );
+      }
+
+      if (!context.mounted) return;
+
+      if (success) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: const TrText(
+              "Invitation envoyée !",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            margin: const EdgeInsets.all(24),
+          ),
+        );
+        navigator.pop();
+      } else if (partageProv.error.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              partageProv.error,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            margin: const EdgeInsets.all(24),
+          ),
+        );
+      }
+    }
 
     return Container(
       width: double.infinity,
@@ -629,76 +844,13 @@ class _PartageScreenState extends State<PartageScreen> {
             : null,
         border: canSubmit
             ? null
-            : Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+            : Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
       ),
       child: ElevatedButton(
-        onPressed: canSubmit
-            ? () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final navigator = Navigator.of(context);
-                final proche = caregiverProv.caregivers.firstWhere(
-                  (c) => c.id == _selectedProcheId!,
-                );
-
-                final success = await partageProv.aineAjouteProche(
-                  aineId: auth.currentUserLocalId ?? 0,
-                  procheId: _selectedProcheId!,
-                  relation: _selectedRelation,
-                  auth: auth,
-
-                  // Infos du proche
-                  procheEmail: proche.email,
-                  procheNom: proche.nom,
-                  prochePrenom: proche.prenom,
-                  procheTelephone: proche.telephone,
-
-                  // Infos de l’aîné
-                  aineNom: auth.nom,
-                  ainePrenom: auth.prenom,
-                  aineEmail: auth.email,
-                );
-
-                if (!mounted) return;
-                if (success) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: const TrText(
-                        "Suivi partagé avec succès !",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      backgroundColor: const Color(0xFF10B981),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      margin: const EdgeInsets.all(24),
-                    ),
-                  );
-                  navigator.pop();
-                } else if (partageProv.error.isNotEmpty) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        partageProv.error,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      backgroundColor: const Color(0xFFEF4444),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      margin: const EdgeInsets.all(24),
-                    ),
-                  );
-                }
-              }
-            : null,
+        onPressed: canSubmit ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -721,7 +873,9 @@ class _PartageScreenState extends State<PartageScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.share_rounded,
+                    _mode == 1
+                        ? Icons.send_rounded
+                        : Icons.share_rounded,
                     color: canSubmit
                         ? Colors.white
                         : Colors.white.withValues(alpha: 0.25),
@@ -729,7 +883,9 @@ class _PartageScreenState extends State<PartageScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    "Partager mon suivi",
+                    _mode == 1
+                        ? "Envoyer l'invitation"
+                        : "Partager mon suivi",
                     style: TextStyle(
                       color: canSubmit
                           ? Colors.white

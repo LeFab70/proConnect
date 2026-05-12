@@ -62,7 +62,8 @@ class MedicationProvider with ChangeNotifier {
   }
 
   double get adherenceRate {
-    final validMeds = medications.where((m) => !m.isDeleted).toList();
+    final validMeds =
+        medications.where((m) => m.isActive && !m.isDeleted).toList();
 
     if (validMeds.isEmpty) return 0.0;
 
@@ -325,27 +326,19 @@ class MedicationProvider with ChangeNotifier {
         /// ACTIVATION
         if (value) {
           _statusLocal[id] = 'enAttente';
-
           _takenLocal[id] = false;
-
           _missedAtLocal[id] = null;
-
           _lastTakenAtLocal[id] = null;
-
           _startMedicationMonitoring(id, updated.name);
         }
-        /// DÉSACTIVATION
+        /// DÉSACTIVATION — on efface les overrides locaux pour laisser
+        /// l'UI afficher l'état réel (isActive = false) sans statut parasite.
         else {
           _cancelMonitoring(id);
-
-          _statusLocal[id] = 'enAttente';
-
-          _takenLocal[id] = false;
-
-          _missedAtLocal[id] = null;
-
-          _lastTakenAtLocal[id] = null;
-
+          _statusLocal.remove(id);
+          _takenLocal.remove(id);
+          _missedAtLocal.remove(id);
+          _lastTakenAtLocal.remove(id);
           await NotificationService.cancelMedicationNotifications(id);
         }
 
@@ -366,26 +359,18 @@ class MedicationProvider with ChangeNotifier {
     /// ACTIVATION
     if (value) {
       _statusLocal[id] = 'enAttente';
-
       _takenLocal[id] = false;
-
       _missedAtLocal[id] = null;
-
       _lastTakenAtLocal[id] = null;
-
       _startMedicationMonitoring(id, _medications[index].name);
     }
-    /// DÉSACTIVATION
+    /// DÉSACTIVATION — même logique : effacer les overrides
     else {
       _cancelMonitoring(id);
-
-      _statusLocal[id] = 'enAttente';
-
-      _takenLocal[id] = false;
-
-      _missedAtLocal[id] = null;
-
-      _lastTakenAtLocal[id] = null;
+      _statusLocal.remove(id);
+      _takenLocal.remove(id);
+      _missedAtLocal.remove(id);
+      _lastTakenAtLocal.remove(id);
     }
 
     notifyListeners();
