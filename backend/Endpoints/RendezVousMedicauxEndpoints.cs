@@ -112,18 +112,26 @@ public static class RendezVousMedicauxEndpoints
         }
     }
 
-    private static async Task<IResult> Update(long id, UpsertRendezVousMedicalRequestDto dto, IRendezVousMedicalService svc)
+    private static async Task<IResult> Update(long id, UpsertRendezVousMedicalRequestDto dto, ClaimsPrincipal user, IRendezVousMedicalService svc, CancellationToken ct)
     {
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
 
-        var ok = await svc.Update(id, dto);
+        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
+        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
+
+        var ok = await svc.Update(id, dto, userId, roles, ct);
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(long id, IRendezVousMedicalService svc)
+    private static async Task<IResult> Delete(long id, ClaimsPrincipal user, IRendezVousMedicalService svc, CancellationToken ct)
     {
-        var ok = await svc.Delete(id);
+        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
+        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
+
+        var ok = await svc.Delete(id, userId, roles, ct);
         return ok ? Results.NoContent() : Results.NotFound();
     }
 }

@@ -12,6 +12,7 @@ class AuthProvider with ChangeNotifier {
   String? _email;
   String? _firstName;
   String? _lastName;
+  String? _telephone;
   String? _role;
   int? _userId;
   String? _errorMessage;
@@ -30,6 +31,7 @@ class AuthProvider with ChangeNotifier {
 
   String? get prenom => _firstName;
   String? get nom => _lastName;
+  String? get telephone => _telephone;
 
   String get fullName {
     final value = '${_firstName ?? ''} ${_lastName ?? ''}'.trim();
@@ -88,7 +90,7 @@ class AuthProvider with ChangeNotifier {
       _role = result["role"]?.toString().trim().toUpperCase();
       _userId = _parseInt(result["userId"]);
       _profilePicture = result["profilePicture"]?.toString();
-      _nbDemandes = _parseInt(result["nbDemandes"]);
+      _nbDemandes = 0;
 
       if (_token == null ||
           _token!.isEmpty ||
@@ -171,7 +173,7 @@ class AuthProvider with ChangeNotifier {
       _role = result["role"]?.toString().trim().toUpperCase() ?? normalizedRole;
       _userId = _parseInt(result["userId"]);
       _profilePicture = result["profilePicture"]?.toString();
-      _nbDemandes = _parseInt(result["nbDemandes"]);
+      _nbDemandes = 0;
 
       if (_token == null ||
           _token!.isEmpty ||
@@ -213,6 +215,7 @@ class AuthProvider with ChangeNotifier {
     final role = prefs.getString("role");
     final firstName = prefs.getString("firstName");
     final lastName = prefs.getString("lastName");
+    final telephone = prefs.getString("telephone");
     final profilePicture = prefs.getString("profilePicture");
     final isAuth = prefs.getBool("isAuth") ?? false;
     final userId = prefs.getInt("userId");
@@ -231,6 +234,7 @@ class AuthProvider with ChangeNotifier {
     _userId = userId;
     _firstName = firstName;
     _lastName = lastName;
+    _telephone = (telephone == null || telephone.isEmpty) ? null : telephone;
     _profilePicture = (profilePicture == null || profilePicture.isEmpty)
         ? null
         : profilePicture;
@@ -253,6 +257,7 @@ class AuthProvider with ChangeNotifier {
     String? newName,
     String? newEmail,
     String? newLastName,
+    String? newTelephone,
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -271,14 +276,45 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString("email", _email!);
     }
 
+    if (newTelephone != null && newTelephone.trim().isNotEmpty) {
+      _telephone = newTelephone.trim();
+      await prefs.setString("telephone", _telephone!);
+    }
+
     notifyListeners();
   }
 
-  Future<bool> updatePassword(String newPassword) async {
+  Future<bool> updateProfile({
+    required String prenom,
+    required String nom,
+    required String telephone,
+  }) async {
+    if (_token == null) return false;
+    final ok = await _api.updateProfile(
+      prenom: prenom,
+      nom: nom,
+      telephone: telephone,
+      token: _token!,
+    );
+    if (ok) {
+      await updateUserInfo(
+        newName: prenom,
+        newLastName: nom,
+        newTelephone: telephone,
+      );
+    }
+    return ok;
+  }
+
+  Future<bool> updatePassword(String currentPassword, String newPassword) async {
+    if (_token == null) return false;
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
-      return true;
-    } catch (e) {
+      return await _api.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        token: _token!,
+      );
+    } catch (_) {
       return false;
     }
   }
@@ -309,6 +345,7 @@ class AuthProvider with ChangeNotifier {
     _userId = null;
     _firstName = null;
     _lastName = null;
+    _telephone = null;
     _errorMessage = null;
     _profilePicture = null;
     _nbDemandes = 0;
@@ -324,6 +361,7 @@ class AuthProvider with ChangeNotifier {
     _role = null;
     _firstName = null;
     _lastName = null;
+    _telephone = null;
     _userId = null;
     _errorMessage = null;
     _profilePicture = null;

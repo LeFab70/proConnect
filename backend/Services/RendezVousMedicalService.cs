@@ -169,10 +169,12 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         };
     }
 
-    public async Task<bool> Update(long id, UpsertRendezVousMedicalRequestDto dto) // Met à jour un rendez-vous médical existant
+    public async Task<bool> Update(long id, UpsertRendezVousMedicalRequestDto dto, long userId, string[] roles, CancellationToken ct = default)
     {
-        var entity = await _db.RendezVousMedicaux.FirstOrDefaultAsync(r => r.Id == id);
+        var entity = await _db.RendezVousMedicaux.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (entity == null) return false;
+
+        if (!await CanAccess(entity.AineId, userId, roles, ct)) return false;
 
         entity.DateHeure = NormalizeUtc(dto.DateHeure);
         entity.Lieu = new Adresse
@@ -185,18 +187,28 @@ public class RendezVousMedicalService(AppDbContext db) : IRendezVousMedicalServi
         };
         entity.Docteur = dto.Docteur;
         entity.Notes = dto.Notes;
-        entity.AineId = dto.AineId;
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return true;
     }
 
-    public async Task<bool> Delete(long id) // Supprime un rendez-vous médical par son ID
+    public async Task<bool> Delete(long id, long userId, string[] roles, CancellationToken ct = default)
     {
-        var entity = await _db.RendezVousMedicaux.FirstOrDefaultAsync(r => r.Id == id);
+        var entity = await _db.RendezVousMedicaux.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (entity == null) return false;
+
+        if (!await CanAccess(entity.AineId, userId, roles, ct)) return false;
+
         _db.RendezVousMedicaux.Remove(entity);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return true;
+    }
+
+    private async Task<bool> CanAccess(long aineId, long userId, string[] roles, CancellationToken ct)
+    {
+        var roleSet = new HashSet<string>(roles.Select(r => r.Trim().ToUpperInvariant()));
+        if (roleSet.Contains("AINE")) return aineId == userId;
+        return await _db.PartagesSuivi.AsNoTracking()
+            .AnyAsync(p => p.ProcheAidantId == userId && p.AineId == aineId && p.Statut == "actif", ct);
     }
 }

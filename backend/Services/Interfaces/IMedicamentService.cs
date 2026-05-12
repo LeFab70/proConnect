@@ -7,6 +7,7 @@ namespace backend.Services.Interfaces;
 public interface IMedicamentService
 {
     Task<IReadOnlyList<MedicamentResponseDto>> GetAll();
+    Task<IReadOnlyList<MedicamentResponseDto>> GetForUser(long userId, string[] roles, CancellationToken ct = default);
     Task<MedicamentResponseDto?> GetById(long id);
     Task<IdResponseDto> Create(UpsertMedicamentRequestDto dto);
     Task<bool> Update(long id, UpsertMedicamentRequestDto dto);

@@ -15,8 +15,7 @@ public static class SeedData
         await db.Database.MigrateAsync(ct);
 
         var seedVar = Environment.GetEnvironmentVariable("SEED_DATA");
-        var seedEnabled = string.IsNullOrWhiteSpace(seedVar) ||
-                          string.Equals(seedVar, "true", StringComparison.OrdinalIgnoreCase) ||
+        var seedEnabled = string.Equals(seedVar, "true", StringComparison.OrdinalIgnoreCase) ||
                           seedVar == "1" ||
                           string.Equals(seedVar, "yes", StringComparison.OrdinalIgnoreCase);
         if (!seedEnabled) return;

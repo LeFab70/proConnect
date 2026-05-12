@@ -171,11 +171,7 @@ class PartageProvider extends ChangeNotifier {
 
       final ancienPartage = _partages[index];
 
-      print("ACCEPTATION DEMANDE ID = $partageId");
-
       final ok = await _api.acceptPartage(partageId, auth.token!);
-
-      print("RESULT ACCEPT = $ok");
 
       if (!ok) {
         _error = 'Le serveur a refusé la demande';
@@ -197,9 +193,7 @@ class PartageProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      print("ERREUR ACCEPT = $e");
-
-      _error = 'Erreur lors de l’acceptation : $e';
+      _error = "Erreur lors de l’acceptation : $e";
       notifyListeners();
       return false;
     } finally {
@@ -311,7 +305,15 @@ class PartageProvider extends ChangeNotifier {
 
     try {
       if (auth.token != null) {
-        await _api.delete('/api/partages-suivi/$partageId', auth.token!);
+        final ok = await _api.delete(
+          '/api/partages-suivi/$partageId',
+          auth.token!,
+        );
+        if (!ok) {
+          _error = 'Impossible de supprimer le partage';
+          notifyListeners();
+          return false;
+        }
       }
 
       _partages.removeWhere((p) => p.id == partageId);

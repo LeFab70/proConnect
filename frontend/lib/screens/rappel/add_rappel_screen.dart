@@ -161,6 +161,7 @@ class _AddRappelScreenState extends State<AddRappelScreen> {
         );
       }
 
+      if (!mounted) return;
       setState(() => _isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:country_picker/country_picker.dart' as cp;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../provider/auth_provider.dart';
 import '../../widgets/tr_text.dart';
@@ -20,7 +21,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
 
-  final _nameController = TextEditingController();
+  final _prenomController = TextEditingController();
+  final _nomController = TextEditingController();
+  final _telephoneController = TextEditingController();
   final _emailController = TextEditingController();
 
   String _selectedCountry = "Canada";
@@ -34,19 +37,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final auth = context.read<AuthProvider>();
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
       setState(() {
-        _nameController.text = auth.firstName ?? "";
+        _prenomController.text = auth.firstName ?? "";
+        _nomController.text = auth.lastName ?? "";
+        _telephoneController.text = auth.telephone ?? "";
         _emailController.text = auth.email ?? "";
+        _securiteActivee = prefs.getBool('security_enabled') ?? false;
+        _methodeSecurite = prefs.getString('security_method') ?? 'aucune';
       });
     });
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _prenomController.dispose();
+    _nomController.dispose();
+    _telephoneController.dispose();
     _emailController.dispose();
     super.dispose();
   }
@@ -157,7 +168,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final pin = pinController.text.trim();
                 final confirm = confirmController.text.trim();
 
@@ -180,7 +191,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   return;
                 }
 
-                // TODO: sauvegarder le PIN de manière sécurisée
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('security_enabled', true);
+                await prefs.setString('security_method', 'pin');
+                await prefs.setString('security_pin', pin);
+                if (!mounted || !ctx.mounted) return;
                 setState(() {
                   _securiteActivee = true;
                   _methodeSecurite = 'pin';
@@ -294,13 +309,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       if (_image != null) await auth.updateProfilePicture(_image!.path);
-      await auth.updateUserInfo(newName: _nameController.text.trim());
+
+      final ok = await auth.updateProfile(
+        prenom: _prenomController.text.trim(),
+        nom: _nomController.text.trim(),
+        telephone: _telephoneController.text.trim(),
+      );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(_snackBar("Profil mis à jour avec succès"));
-      Navigator.pop(context);
+
+      if (ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          _snackBar("Profil mis à jour avec succès"),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          _snackBar("Erreur lors de la mise à jour", isError: true),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -507,7 +534,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          _nameController.text.isNotEmpty ? _nameController.text : "Votre nom",
+          _prenomController.text.isNotEmpty ? "${_prenomController.text} ${_nomController.text}".trim() : "Votre nom",
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -629,12 +656,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       sectionTitle: "Informations personnelles",
       children: [
         _buildField(
-          controller: _nameController,
-          label: "Nom complet",
+          controller: _prenomController,
+          label: "Prénom",
           icon: Icons.person_outline_rounded,
-          hint: "Votre nom",
+          hint: "Votre prénom",
           cap: TextCapitalization.words,
           onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 14),
+        _buildField(
+          controller: _nomController,
+          label: "Nom de famille",
+          icon: Icons.badge_outlined,
+          hint: "Votre nom de famille",
+          cap: TextCapitalization.words,
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 14),
+        _buildField(
+          controller: _telephoneController,
+          label: "Téléphone",
+          icon: Icons.phone_outlined,
+          hint: "506-555-0000",
+          type: TextInputType.phone,
         ),
         const SizedBox(height: 14),
         _buildField(
@@ -643,6 +687,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           icon: Icons.alternate_email_rounded,
           hint: "votre@email.com",
           type: TextInputType.emailAddress,
+          required: false,
           onChanged: (_) => setState(() {}),
         ),
       ],
@@ -726,8 +771,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   activeTrackColor: const Color(0xFF10B981),
                   inactiveThumbColor: Colors.white.withValues(alpha: 0.3),
                   inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-                  onChanged: (val) {
+                  onChanged: (val) async {
                     if (!val) {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('security_enabled', false);
+                      await prefs.setString('security_method', 'aucune');
+                      await prefs.remove('security_pin');
+                      if (!mounted) return;
                       setState(() {
                         _securiteActivee = false;
                         _methodeSecurite = 'aucune';
@@ -773,7 +823,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             label: "Biométrie",
             subtitle: "Empreinte digitale ou Face ID",
             isSelected: _methodeSecurite == 'biometrique',
-            onTap: () {
+            onTap: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('security_enabled', true);
+              await prefs.setString('security_method', 'biometrique');
+              if (!mounted) return;
               setState(() => _methodeSecurite = 'biometrique');
               ScaffoldMessenger.of(context).showSnackBar(
                 _snackBar('Biométrie sélectionnée comme méthode.'),

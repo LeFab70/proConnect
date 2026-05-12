@@ -20,10 +20,24 @@ class Api {
     };
   }
 
+  static const _timeout = Duration(seconds: 15);
+
+  Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) =>
+      http.get(uri, headers: headers).timeout(_timeout);
+
+  Future<http.Response> _post(Uri uri, {Map<String, String>? headers, Object? body}) =>
+      http.post(uri, headers: headers, body: body).timeout(_timeout);
+
+  Future<http.Response> _put(Uri uri, {Map<String, String>? headers, Object? body}) =>
+      http.put(uri, headers: headers, body: body).timeout(_timeout);
+
+  Future<http.Response> _delete(Uri uri, {Map<String, String>? headers}) =>
+      http.delete(uri, headers: headers).timeout(_timeout);
+
   // Fabrice | 2026-05-05T04:47:29Z | Appelle POST /api/auth/login puis déduit rôle et prénom pour AuthProvider.
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl/api/auth/login"),
         headers: headers(),
         body: jsonEncode({"email": email.trim(), "password": password}),
@@ -72,7 +86,7 @@ class Api {
     int? userId;
     String? meEmail;
 
-    final meResp = await http.get(
+    final meResp = await _get(
       Uri.parse("$baseUrl/api/auth/me"),
       headers: authHeaders(token),
     );
@@ -86,7 +100,7 @@ class Api {
         ? meEmail
         : emailLower;
 
-    final ainesResp = await http.get(
+    final ainesResp = await _get(
       Uri.parse("$baseUrl/api/aines"),
       headers: authHeaders(token),
     );
@@ -104,7 +118,7 @@ class Api {
       }
     }
 
-    final paResp = await http.get(
+    final paResp = await _get(
       Uri.parse("$baseUrl/api/proches-aidants"),
       headers: authHeaders(token),
     );
@@ -123,7 +137,7 @@ class Api {
     }
 
     if (userId != null) {
-      final uResp = await http.get(
+      final uResp = await _get(
         Uri.parse("$baseUrl/api/users/$userId"),
         headers: authHeaders(token),
       );
@@ -160,7 +174,7 @@ class Api {
     String? role,
   }) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl/api/auth/register"),
         headers: headers(),
         body: jsonEncode({
@@ -229,7 +243,7 @@ class Api {
   // Fabrice | 2026-05-05T04:47:29Z | Liste les aînés via la route ASP.NET /api/aines.
   Future<List<dynamic>> getAines(String token) async {
     try {
-      final response = await http.get(
+      final response = await _get(
         Uri.parse("$baseUrl/api/aines"),
         headers: authHeaders(token),
       );
@@ -250,7 +264,7 @@ class Api {
     required String token,
   }) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl/api/aines"),
         headers: authHeaders(token),
         body: jsonEncode(data),
@@ -270,7 +284,7 @@ class Api {
 
   Future<List<dynamic>> getCaregivers(String token) async {
     try {
-      final response = await http.get(
+      final response = await _get(
         Uri.parse("$baseUrl/api/proches-aidants"),
         headers: authHeaders(token),
       );
@@ -293,7 +307,7 @@ class Api {
     required String token,
   }) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl/api/proches-aidants"),
         headers: authHeaders(token),
         body: jsonEncode({
@@ -320,7 +334,7 @@ class Api {
     String token,
   ) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl${endpoint.startsWith('/') ? '' : '/'}$endpoint"),
         headers: authHeaders(token),
         body: jsonEncode(body),
@@ -338,7 +352,7 @@ class Api {
     String token,
   ) async {
     try {
-      final response = await http.put(
+      final response = await _put(
         Uri.parse("$baseUrl${endpoint.startsWith('/') ? '' : '/'}$endpoint"),
         headers: authHeaders(token),
         body: jsonEncode(body),
@@ -351,7 +365,7 @@ class Api {
 
   Future<bool> delete(String endpoint, String token) async {
     try {
-      final response = await http.delete(
+      final response = await _delete(
         Uri.parse("$baseUrl${endpoint.startsWith('/') ? '' : '/'}$endpoint"),
         headers: authHeaders(token),
       );
@@ -369,7 +383,7 @@ class Api {
   // Fabrice | 2026-05-05T04:47:29Z | Corps aligné sur UpsertPartageSuiviRequestDto (autorisation Pascal côté API).
   Future<bool> upsertPartage(PartageSuivi partage, String token) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl/api/partages-suivi"),
         headers: authHeaders(token),
         body: jsonEncode({
@@ -391,24 +405,20 @@ class Api {
 
   Future<bool> acceptPartage(int partageId, String token) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl/api/partages-suivi/$partageId/accept"),
         headers: authHeaders(token),
       );
 
-      print("STATUS ACCEPT = ${response.statusCode}");
-      print("BODY ACCEPT = ${response.body}");
-
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      print("ERROR ACCEPT = $e");
       return false;
     }
   }
 
   Future<bool> rejectPartage(int partageId, String token) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         Uri.parse("$baseUrl/api/partages-suivi/$partageId/reject"),
         headers: authHeaders(token),
       );
@@ -432,7 +442,7 @@ class Api {
   // Fabrice | 2026-05-05T04:56:37Z | Liste les partages GET /api/partages-suivi.
   Future<List<dynamic>> getPartagesSuivi(String token) async {
     try {
-      final response = await http.get(
+      final response = await _get(
         Uri.parse("$baseUrl/api/partages-suivi"),
         headers: authHeaders(token),
       );
@@ -445,10 +455,52 @@ class Api {
     }
   }
 
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String token,
+  }) async {
+    try {
+      final response = await _post(
+        Uri.parse("$baseUrl/api/auth/change-password"),
+        headers: authHeaders(token),
+        body: jsonEncode({
+          "currentPassword": currentPassword,
+          "newPassword": newPassword,
+        }),
+      );
+      return response.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile({
+    required String prenom,
+    required String nom,
+    required String telephone,
+    required String token,
+  }) async {
+    try {
+      final response = await _put(
+        Uri.parse("$baseUrl/api/auth/profile"),
+        headers: authHeaders(token),
+        body: jsonEncode({
+          "prenom": prenom,
+          "nom": nom,
+          "telephone": telephone,
+        }),
+      );
+      return response.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Fabrice | 2026-05-05T04:47:29Z | GET /api/users/{id} nécessite un JWT valide.
   Future<Map<String, dynamic>?> getUser(int id, String token) async {
     try {
-      final response = await http.get(
+      final response = await _get(
         Uri.parse("$baseUrl/api/users/$id"),
         headers: authHeaders(token),
       );
