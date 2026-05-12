@@ -77,8 +77,7 @@ class TrText extends StatelessWidget {
 
       TranslationCache.set(text, lang, translated);
       return translated;
-    } catch (e) {
-      debugPrint("Erreur traduction: $e");
+    } catch (_) {
       return text;
     }
   }

@@ -14,6 +14,8 @@ import '../../provider/aine_provider.dart';
 import '../../provider/rappel_provider.dart';
 import '../../provider/appointment_provider.dart';
 import '../../provider/partage_provider.dart';
+import '../../provider/settings_provider.dart';
+import '../../widgets/app_background.dart';
 import '../auth/post_logout_transition_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -25,7 +27,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  // Fabrice | 2026-05-05T04:56:37Z | Précharge médicaments, rappels, partages, RDV et suggestions IA après connexion.
   @override
   void initState() {
     super.initState();
@@ -69,6 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final aines = context.watch<AineProvider>();
     final rappelProvider = context.watch<RappelProvider>();
     final appointments = context.watch<AppointmentProvider>();
+    final settings = context.watch<SettingsProvider>();
 
     final bool isProcheSansAine = auth.isAidant && aines.selectedAine == null;
 
@@ -127,15 +129,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
+      backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
       drawer: _buildDrawer(context, auth),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF004E92), Color(0xFF000428)],
-          ),
-        ),
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [

@@ -1,9 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../provider/auth_provider.dart';
+import '../../provider/settings_provider.dart';
 import '../../widgets/tr_text.dart';
+import '../../widgets/app_background.dart';
 
 class CreateAdminPage extends StatefulWidget {
   const CreateAdminPage({super.key});
@@ -21,9 +23,19 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // Aîné-specific
+  final _numeroController = TextEditingController();
+  final _rueController = TextEditingController();
+  final _villeController = TextEditingController();
+  final _codePostalController = TextEditingController();
+  final _provinceController = TextEditingController(text: 'NB');
+  DateTime? _dateNaissance;
+
   String _selectedRole = "AIDANT";
   bool _obscurePassword = true;
   bool _isLoading = false;
+
+  bool get _isAine => _selectedRole == "AINE";
 
   @override
   void dispose() {
@@ -32,14 +44,42 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
     _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _numeroController.dispose();
+    _rueController.dispose();
+    _villeController.dispose();
+    _codePostalController.dispose();
+    _provinceController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_isAine && _dateNaissance == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text("Veuillez sélectionner votre date de naissance.",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        backgroundColor: const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: const EdgeInsets.all(24),
+      ));
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     final auth = context.read<AuthProvider>();
+
+    final adresse = _isAine
+        ? {
+            'numero': _numeroController.text.trim(),
+            'rue': _rueController.text.trim(),
+            'ville': _villeController.text.trim(),
+            'codePostal': _codePostalController.text.trim(),
+            'province': _provinceController.text.trim(),
+          }
+        : null;
 
     final success = await auth.register(
       firstName: _firstNameController.text.trim(),
@@ -48,6 +88,8 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
       password: _passwordController.text.trim(),
       phone: _phoneController.text.trim(),
       role: _selectedRole,
+      dateNaissance: _dateNaissance,
+      adresse: adresse,
     );
 
     setState(() => _isLoading = false);
@@ -93,57 +135,12 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF000428),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF004E92), Color(0xFF000428)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            // Orb haut-droit
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFF004E92).withValues(alpha: 0.5),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Orb bas-gauche
-            Positioned(
-              bottom: 80,
-              left: -60,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.04),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            SafeArea(
+      backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
+      body: AppBackground(
+            child: SafeArea(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
@@ -168,6 +165,12 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
                       _buildPersonalCard(),
                       const SizedBox(height: 16),
 
+                      // ─── Champs spécifiques aîné ───────────
+                      if (_isAine) ...[
+                        _buildAineCard(),
+                        const SizedBox(height: 16),
+                      ],
+
                       // ─── Mot de passe ──────────────────────
                       _buildPasswordCard(),
                       const SizedBox(height: 28),
@@ -181,8 +184,6 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
                 ),
               ),
             ),
-          ],
-        ),
       ),
     );
   }
@@ -513,6 +514,99 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
           ),
           validator: (v) =>
               v == null || v.length < 6 ? "Minimum 6 caractères" : null,
+        ),
+      ],
+    );
+  }
+
+  // ─── AÎNÉ CARD ─────────────────────────────────────────────────────────────
+
+  Widget _buildAineCard() {
+    final ddnLabel = _dateNaissance == null
+        ? 'Sélectionner'
+        : '${_dateNaissance!.day.toString().padLeft(2, '0')}/${_dateNaissance!.month.toString().padLeft(2, '0')}/${_dateNaissance!.year}';
+
+    return _buildGlassCard(
+      sectionIcon: Icons.cake_outlined,
+      sectionTitle: 'Informations aîné',
+      children: [
+        GestureDetector(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _dateNaissance ?? DateTime(1950),
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+              builder: (context, child) => Theme(
+                data: ThemeData.dark().copyWith(
+                  colorScheme: const ColorScheme.dark(
+                    primary: Color(0xFF7DC4FF),
+                    onSurface: Colors.white,
+                    surface: Color(0xFF0A1628),
+                  ),
+                ),
+                child: child!,
+              ),
+            );
+            if (picked != null) setState(() => _dateNaissance = picked);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _dateNaissance == null
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : const Color(0xFF7DC4FF).withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.cake_outlined,
+                    color: Colors.white.withValues(alpha: 0.35), size: 19),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Date de naissance',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.4),
+                              fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 2),
+                      Text(ddnLabel,
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: _dateNaissance == null
+                                  ? Colors.white.withValues(alpha: 0.3)
+                                  : const Color(0xFF7DC4FF))),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded,
+                    color: Colors.white.withValues(alpha: 0.3), size: 20),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        _buildRow(
+          left: _buildField(_numeroController, 'N°', Icons.tag_rounded),
+          right: _buildField(_provinceController, 'Province', Icons.map_outlined),
+        ),
+        const SizedBox(height: 14),
+        _buildField(_rueController, 'Rue', Icons.signpost_outlined,
+            cap: TextCapitalization.words),
+        const SizedBox(height: 14),
+        _buildRow(
+          left: _buildField(_villeController, 'Ville', Icons.location_city_rounded,
+              cap: TextCapitalization.words),
+          right: _buildField(_codePostalController, 'Code postal',
+              Icons.local_post_office_outlined),
         ),
       ],
     );

@@ -1,13 +1,15 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../provider/aine_provider.dart';
+import '../../provider/settings_provider.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/partage_provider.dart';
 import '../../models/partage_suivi.dart';
 import 'aine_detail_screen.dart';
 import '../../widgets/tr_text.dart';
+import '../../widgets/app_background.dart';
 
 class ListAineScreen extends StatefulWidget {
   const ListAineScreen({super.key});
@@ -112,6 +114,7 @@ class _ListAineScreenState extends State<ListAineScreen> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    final settings = context.watch<SettingsProvider>();
 
     final aineProvider = context.watch<AineProvider>();
     final partageProv = context.watch<PartageProvider>();
@@ -140,15 +143,8 @@ class _ListAineScreenState extends State<ListAineScreen> {
     final hasSelection = _selectedIds.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF000428),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF004E92), Color(0xFF000428)],
-          ),
-        ),
+      backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [

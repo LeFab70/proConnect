@@ -11,4 +11,6 @@ public class Medicament
     public long AineId { get; set; }
     public bool IsActive { get; set; } = true;
     public bool IsDeleted { get; set; }
+    public DateTime? LastTakenAt { get; set; }
+    public DateTime? MissedAt { get; set; }
 }

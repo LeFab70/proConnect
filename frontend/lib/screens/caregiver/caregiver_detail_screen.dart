@@ -1,13 +1,15 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/caregiver.dart';
 import '../../models/partage_suivi.dart';
 import '../../provider/auth_provider.dart';
+import '../../provider/settings_provider.dart';
 import '../../provider/partage_provider.dart';
 import 'add_caregiver_screen.dart';
 import '../../widgets/tr_text.dart';
+import '../../widgets/app_background.dart';
 
 class CaregiverDetailScreen extends StatelessWidget {
   final Caregiver caregiver;
@@ -75,6 +77,7 @@ class CaregiverDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    final settings = context.watch<SettingsProvider>();
 
     final auth = context.watch<AuthProvider>();
     final partageProvider = context.watch<PartageProvider>();
@@ -92,55 +95,9 @@ class CaregiverDetailScreen extends StatelessWidget {
             .toUpperCase();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF000428),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF004E92), Color(0xFF000428)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            // Orb haut-droit
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFF004E92).withValues(alpha: 0.5),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Orb bas-gauche
-            Positioned(
-              bottom: 100,
-              left: -60,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.04),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            SafeArea(
+      backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
+      body: AppBackground(
+            child: SafeArea(
               child: Column(
                 children: [
                   _buildHeader(context),
@@ -178,8 +135,6 @@ class CaregiverDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
       ),
     );
   }

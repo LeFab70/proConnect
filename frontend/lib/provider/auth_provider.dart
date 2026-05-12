@@ -17,6 +17,8 @@ class AuthProvider with ChangeNotifier {
   int? _userId;
   String? _errorMessage;
   String? _profilePicture;
+  DateTime? _dateNaissance;
+  String? _pays;
 
   int _nbDemandes = 0;
 
@@ -32,6 +34,8 @@ class AuthProvider with ChangeNotifier {
   String? get prenom => _firstName;
   String? get nom => _lastName;
   String? get telephone => _telephone;
+  DateTime? get dateNaissance => _dateNaissance;
+  String? get pays => _pays;
 
   String get fullName {
     final value = '${_firstName ?? ''} ${_lastName ?? ''}'.trim();
@@ -87,6 +91,13 @@ class AuthProvider with ChangeNotifier {
       _lastName =
           result["lastName"]?.toString() ?? result["nom"]?.toString() ?? "";
 
+      _telephone = result["telephone"]?.toString();
+
+      final rawDdn = result["dateNaissance"]?.toString();
+      if (rawDdn != null && rawDdn.isNotEmpty) {
+        _dateNaissance = DateTime.tryParse(rawDdn);
+      }
+
       _role = result["role"]?.toString().trim().toUpperCase();
       _userId = _parseInt(result["userId"]);
       _profilePicture = result["profilePicture"]?.toString();
@@ -108,9 +119,13 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString("email", _email!);
       await prefs.setString("firstName", _firstName ?? "");
       await prefs.setString("lastName", _lastName ?? "");
+      await prefs.setString("telephone", _telephone ?? "");
       await prefs.setString("role", _role!);
       if (_userId != null) await prefs.setInt("userId", _userId!);
       await prefs.setString("profilePicture", _profilePicture ?? "");
+      if (_dateNaissance != null) {
+        await prefs.setString("dateNaissance", _dateNaissance!.toIso8601String());
+      }
       await prefs.setBool("isAuth", true);
 
       return true;
@@ -131,6 +146,8 @@ class AuthProvider with ChangeNotifier {
     required String password,
     required String phone,
     required String role,
+    DateTime? dateNaissance,
+    Map<String, dynamic>? adresse,
   }) async {
     if (_isLoading) return false;
 
@@ -148,6 +165,8 @@ class AuthProvider with ChangeNotifier {
         email: email.trim().toLowerCase(),
         password: password,
         role: normalizedRole,
+        dateNaissance: dateNaissance,
+        adresse: adresse,
       );
 
       if (result["success"] != true) {
@@ -170,6 +189,8 @@ class AuthProvider with ChangeNotifier {
           result["nom"]?.toString() ??
           lastName.trim();
 
+      _telephone = result["telephone"]?.toString() ?? phone.trim();
+
       _role = result["role"]?.toString().trim().toUpperCase() ?? normalizedRole;
       _userId = _parseInt(result["userId"]);
       _profilePicture = result["profilePicture"]?.toString();
@@ -191,6 +212,7 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString("email", _email!);
       await prefs.setString("firstName", _firstName ?? "");
       await prefs.setString("lastName", _lastName ?? "");
+      await prefs.setString("telephone", _telephone ?? "");
       await prefs.setString("role", _role!);
       if (_userId != null) await prefs.setInt("userId", _userId!);
       await prefs.setString("profilePicture", _profilePicture ?? "");
@@ -219,6 +241,8 @@ class AuthProvider with ChangeNotifier {
     final profilePicture = prefs.getString("profilePicture");
     final isAuth = prefs.getBool("isAuth") ?? false;
     final userId = prefs.getInt("userId");
+    final ddnRaw = prefs.getString("dateNaissance");
+    final pays = prefs.getString("pays");
 
     if (!isAuth ||
         token == null ||
@@ -238,6 +262,8 @@ class AuthProvider with ChangeNotifier {
     _profilePicture = (profilePicture == null || profilePicture.isEmpty)
         ? null
         : profilePicture;
+    _dateNaissance = ddnRaw != null ? DateTime.tryParse(ddnRaw) : null;
+    _pays = (pays == null || pays.isEmpty) ? null : pays;
     _isAuthenticated = true;
 
     notifyListeners();
@@ -333,6 +359,13 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setPays(String pays) async {
+    _pays = pays.isEmpty ? null : pays;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("pays", pays);
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -348,6 +381,8 @@ class AuthProvider with ChangeNotifier {
     _telephone = null;
     _errorMessage = null;
     _profilePicture = null;
+    _dateNaissance = null;
+    _pays = null;
     _nbDemandes = 0;
 
     notifyListeners();
@@ -365,6 +400,8 @@ class AuthProvider with ChangeNotifier {
     _userId = null;
     _errorMessage = null;
     _profilePicture = null;
+    _dateNaissance = null;
+    _pays = null;
     _nbDemandes = 0;
 
     notifyListeners();

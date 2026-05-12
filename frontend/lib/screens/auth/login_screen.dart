@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../provider/auth_provider.dart';
+import '../../provider/settings_provider.dart';
+import '../../widgets/app_background.dart';
 import '../../widgets/tr_text.dart';
 import 'post_login_transition_screen.dart';
 
@@ -64,14 +66,10 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF004E92), Color(0xFF000428)],
-          ),
-        ),
+      backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
+      body: AppBackground(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'secrets.dart';
@@ -34,7 +33,6 @@ class Api {
   Future<http.Response> _delete(Uri uri, {Map<String, String>? headers}) =>
       http.delete(uri, headers: headers).timeout(_timeout);
 
-  // Fabrice | 2026-05-05T04:47:29Z | Appelle POST /api/auth/login puis déduit rôle et prénom pour AuthProvider.
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await _post(
@@ -78,7 +76,6 @@ class Api {
     }
   }
 
-  // Fabrice | 2026-05-05T04:47:29Z | Enchaîne /api/auth/me, /api/aines et /api/proches-aidants pour le rôle UI.
   Future<Map<String, dynamic>> _fetchLoginProfile(
     String token,
     String emailLower,
@@ -111,7 +108,10 @@ class Api {
         if (m["email"]?.toString().toLowerCase() == matchEmail) {
           return {
             "userId": userId ?? _parseId(m["id"]),
-            "firstName": m["prenom"] ?? matchEmail.split("@").first,
+            "firstName": m["prenom"]?.toString() ?? matchEmail.split("@").first,
+            "lastName": m["nom"]?.toString() ?? "",
+            "telephone": m["telephone"]?.toString() ?? "",
+            "dateNaissance": m["dateNaissance"]?.toString(),
             "role": "AINE",
           };
         }
@@ -129,7 +129,9 @@ class Api {
         if (m["email"]?.toString().toLowerCase() == matchEmail) {
           return {
             "userId": userId ?? _parseId(m["id"]),
-            "firstName": m["prenom"] ?? matchEmail.split("@").first,
+            "firstName": m["prenom"]?.toString() ?? matchEmail.split("@").first,
+            "lastName": m["nom"]?.toString() ?? "",
+            "telephone": m["telephone"]?.toString() ?? "",
             "role": "AIDANT",
           };
         }
@@ -145,7 +147,9 @@ class Api {
         final u = jsonDecode(uResp.body) as Map<String, dynamic>;
         return {
           "userId": userId,
-          "firstName": u["prenom"] ?? matchEmail.split("@").first,
+          "firstName": u["prenom"]?.toString() ?? matchEmail.split("@").first,
+          "lastName": u["nom"]?.toString() ?? "",
+          "telephone": u["telephone"]?.toString() ?? "",
           "role": "AIDANT",
         };
       }
@@ -154,6 +158,8 @@ class Api {
     return {
       "userId": userId,
       "firstName": matchEmail.split("@").first,
+      "lastName": "",
+      "telephone": "",
       "role": "AIDANT",
     };
   }
@@ -164,7 +170,6 @@ class Api {
     return int.tryParse(value.toString());
   }
 
-  // Fabrice | 2026-05-05T04:47:29Z | Inscription StandardUser puis même enrichissement que le login.
   Future<Map<String, dynamic>> register({
     required String nom,
     required String prenom,
@@ -172,19 +177,26 @@ class Api {
     required String email,
     required String password,
     String? role,
+    DateTime? dateNaissance,
+    Map<String, dynamic>? adresse,
   }) async {
     try {
+      final requestBody = <String, dynamic>{
+        "nom": nom,
+        "prenom": prenom,
+        "telephone": telephone,
+        "email": email.trim(),
+        "password": password,
+        if (role != null && role.trim().isNotEmpty) "role": role.trim(),
+        if (dateNaissance != null)
+          "dateNaissance":
+              "${dateNaissance.year.toString().padLeft(4, '0')}-${dateNaissance.month.toString().padLeft(2, '0')}-${dateNaissance.day.toString().padLeft(2, '0')}",
+        if (adresse != null) "adresse": adresse,
+      };
       final response = await _post(
         Uri.parse("$baseUrl/api/auth/register"),
         headers: headers(),
-        body: jsonEncode({
-          "nom": nom,
-          "prenom": prenom,
-          "telephone": telephone,
-          "email": email.trim(),
-          "password": password,
-          if (role != null && role.trim().isNotEmpty) "role": role.trim(),
-        }),
+        body: jsonEncode(requestBody),
       );
 
       if (response.statusCode == 400) {
@@ -240,25 +252,21 @@ class Api {
   // AÎNÉS (Aines)
   // ======================================================
 
-  // Fabrice | 2026-05-05T04:47:29Z | Liste les aînés via la route ASP.NET /api/aines.
   Future<List<dynamic>> getAines(String token) async {
     try {
       final response = await _get(
         Uri.parse("$baseUrl/api/aines"),
         headers: authHeaders(token),
       );
-
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
       }
       return [];
-    } catch (e) {
-      debugPrint("Erreur GET Aines: $e");
+    } catch (_) {
       return [];
     }
   }
 
-  // Fabrice | 2026-05-05T04:47:29Z | Crée un aîné (admin API uniquement si JWT Admin).
   Future<bool> registerAine({
     required Map<String, dynamic> data,
     required String token,
@@ -269,11 +277,8 @@ class Api {
         headers: authHeaders(token),
         body: jsonEncode(data),
       );
-
-      debugPrint("Status Code Aine: ${response.statusCode}");
       return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      debugPrint("Erreur POST Aine: $e");
+    } catch (_) {
       return false;
     }
   }
@@ -340,8 +345,7 @@ class Api {
         body: jsonEncode(body),
       );
       return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      debugPrint("Erreur POST générique : $e");
+    } catch (_) {
       return false;
     }
   }
@@ -370,8 +374,7 @@ class Api {
         headers: authHeaders(token),
       );
       return response.statusCode == 200 || response.statusCode == 204;
-    } catch (e) {
-      debugPrint("Erreur DELETE : $e");
+    } catch (_) {
       return false;
     }
   }
@@ -380,7 +383,6 @@ class Api {
   // AUTRES (Partages, Users)
   // ======================================================
 
-  // Fabrice | 2026-05-05T04:47:29Z | Corps aligné sur UpsertPartageSuiviRequestDto (autorisation Pascal côté API).
   Future<bool> upsertPartage(PartageSuivi partage, String token) async {
     try {
       final response = await _post(
@@ -439,7 +441,6 @@ class Api {
     }
   }
 
-  // Fabrice | 2026-05-05T04:56:37Z | Liste les partages GET /api/partages-suivi.
   Future<List<dynamic>> getPartagesSuivi(String token) async {
     try {
       final response = await _get(
@@ -497,22 +498,17 @@ class Api {
     }
   }
 
-  // Fabrice | 2026-05-05T04:47:29Z | GET /api/users/{id} nécessite un JWT valide.
   Future<Map<String, dynamic>?> getUser(int id, String token) async {
     try {
       final response = await _get(
         Uri.parse("$baseUrl/api/users/$id"),
         headers: authHeaders(token),
       );
-
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
-
-      debugPrint("Erreur getUser: Status ${response.statusCode}");
       return null;
-    } catch (e) {
-      debugPrint("Exception getUser: $e");
+    } catch (_) {
       return null;
     }
   }

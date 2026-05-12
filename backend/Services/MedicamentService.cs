@@ -28,7 +28,9 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
                 UrlPhoto = m.UrlPhoto,
                 AineId = m.AineId,
                 IsActive = m.IsActive,
-                IsDeleted = m.IsDeleted
+                IsDeleted = m.IsDeleted,
+                LastTakenAt = m.LastTakenAt,
+                MissedAt = m.MissedAt
             })
             .ToListAsync();
     }
@@ -67,7 +69,9 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
                 UrlPhoto = m.UrlPhoto,
                 AineId = m.AineId,
                 IsActive = m.IsActive,
-                IsDeleted = m.IsDeleted
+                IsDeleted = m.IsDeleted,
+                LastTakenAt = m.LastTakenAt,
+                MissedAt = m.MissedAt
             })
             .ToListAsync(ct);
     }
@@ -87,7 +91,9 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
                 UrlPhoto = m.UrlPhoto,
                 AineId = m.AineId,
                 IsActive = m.IsActive,
-                IsDeleted = m.IsDeleted
+                IsDeleted = m.IsDeleted,
+                LastTakenAt = m.LastTakenAt,
+                MissedAt = m.MissedAt
             })
             .FirstOrDefaultAsync();
     }

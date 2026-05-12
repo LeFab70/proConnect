@@ -22,6 +22,8 @@ class MedicationProvider with ChangeNotifier {
 
   final Map<String, Timer> _monitoringTimers = {};
 
+  Timer? _midnightTimer;
+
   bool _isLoading = false;
   String _error = '';
 
@@ -86,6 +88,7 @@ class MedicationProvider with ChangeNotifier {
         ..addAll(list);
 
       _error = '';
+      _scheduleMidnightReset();
     } catch (_) {
       _error = 'Erreur lors du chargement des médicaments';
     } finally {
@@ -199,6 +202,27 @@ class MedicationProvider with ChangeNotifier {
       _monitoringTimers[medicationId]?.cancel();
       _monitoringTimers.remove(medicationId);
     }
+  }
+
+  void _scheduleMidnightReset() {
+    _midnightTimer?.cancel();
+    final now = DateTime.now();
+    final nextMidnight = DateTime(now.year, now.month, now.day + 1);
+    final delay = nextMidnight.difference(now);
+    _midnightTimer = Timer(delay, _resetDailyStatus);
+  }
+
+  void _resetDailyStatus() {
+    _takenLocal.clear();
+    _statusLocal.clear();
+    _lastTakenAtLocal.clear();
+    _missedAtLocal.clear();
+    for (final timer in _monitoringTimers.values) {
+      timer.cancel();
+    }
+    _monitoringTimers.clear();
+    notifyListeners();
+    _scheduleMidnightReset();
   }
 
   Future<bool> updateMedication(
@@ -482,22 +506,19 @@ class MedicationProvider with ChangeNotifier {
   }
 
   void reset() {
+    _midnightTimer?.cancel();
+    _midnightTimer = null;
+
     for (final timer in _monitoringTimers.values) {
       timer.cancel();
     }
 
     _monitoringTimers.clear();
-
     _medications.clear();
-
     _takenLocal.clear();
-
     _statusLocal.clear();
-
     _lastTakenAtLocal.clear();
-
     _missedAtLocal.clear();
-
     _error = '';
 
     notifyListeners();
@@ -505,10 +526,10 @@ class MedicationProvider with ChangeNotifier {
 
   @override
   void dispose() {
+    _midnightTimer?.cancel();
     for (final timer in _monitoringTimers.values) {
       timer.cancel();
     }
-
     super.dispose();
   }
 }

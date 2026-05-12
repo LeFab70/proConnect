@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,7 +7,9 @@ import 'package:country_picker/country_picker.dart' as cp;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../provider/auth_provider.dart';
+import '../../provider/settings_provider.dart';
 import '../../widgets/tr_text.dart';
+import '../../widgets/app_background.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -49,6 +51,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _emailController.text = auth.email ?? "";
         _securiteActivee = prefs.getBool('security_enabled') ?? false;
         _methodeSecurite = prefs.getString('security_method') ?? 'aucune';
+        if (auth.dateNaissance != null) _selectedDate = auth.dateNaissance!;
+        final savedPays = auth.pays;
+        if (savedPays != null && savedPays.isNotEmpty) {
+          _selectedCountry = savedPays;
+        }
       });
     });
   }
@@ -71,9 +78,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (pickedFile != null) {
         setState(() => _image = File(pickedFile.path));
       }
-    } catch (e) {
-      debugPrint("Erreur image: $e");
-    }
+    } catch (_) {}
   }
 
   void _showCountryPicker() {
@@ -310,6 +315,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       if (_image != null) await auth.updateProfilePicture(_image!.path);
 
+      await auth.setPays(_selectedCountry);
+
       final ok = await auth.updateProfile(
         prenom: _prenomController.text.trim(),
         nom: _nomController.text.trim(),
@@ -342,56 +349,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    final settings = context.watch<SettingsProvider>();
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF000428),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF004E92), Color(0xFF000428)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFF004E92).withValues(alpha: 0.5),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 100,
-              left: -60,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.04),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            SafeArea(
+      backgroundColor: AppBackground.scaffoldColor(settings.isDarkMode),
+      body: AppBackground(
+            child: SafeArea(
               child: Column(
                 children: [
                   _buildHeader(context),
@@ -420,8 +384,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
             ),
-          ],
-        ),
       ),
     );
   }
