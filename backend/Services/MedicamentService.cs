@@ -33,45 +33,6 @@ public class MedicamentService(AppDbContext db) : IMedicamentService
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<MedicamentResponseDto>> GetForUser(long userId, string[] roles, CancellationToken ct = default)
-    {
-        var roleSet = new HashSet<string>(roles.Select(r => r.Trim().ToUpperInvariant()));
-        var isAine = roleSet.Contains("AINE");
-
-        IQueryable<Medicament> q = _db.Medicaments.AsNoTracking().Where(m => !m.IsDeleted);
-
-        if (isAine)
-        {
-            q = q.Where(m => m.AineId == userId);
-        }
-        else
-        {
-            var aineIds = await _db.PartagesSuivi.AsNoTracking()
-                .Where(p => p.ProcheAidantId == userId && p.Statut == "actif")
-                .Select(p => p.AineId)
-                .Distinct()
-                .ToListAsync(ct);
-
-            q = q.Where(m => aineIds.Contains(m.AineId));
-        }
-
-        return await q
-            .OrderBy(m => m.Id)
-            .Select(m => new MedicamentResponseDto
-            {
-                Id = m.Id,
-                Nom = m.Nom,
-                Marque = m.Marque,
-                Dosage = m.Dosage,
-                Frequence = m.Frequence,
-                UrlPhoto = m.UrlPhoto,
-                AineId = m.AineId,
-                IsActive = m.IsActive,
-                IsDeleted = m.IsDeleted
-            })
-            .ToListAsync(ct);
-    }
-
     public async Task<MedicamentResponseDto?> GetById(long id)
     {
         return await _db.Medicaments

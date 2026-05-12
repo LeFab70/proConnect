@@ -104,9 +104,7 @@ class RappelProvider with ChangeNotifier {
   Future<bool> addRappel(Rappel rappel, AuthProvider auth) async {
     final existeDeja = _rappels.any((r) {
       if (rappel.rendezVousMedicalId != null) {
-        // Un rappel différent (autre heure) pour le même RDV est autorisé.
-        return r.rendezVousMedicalId == rappel.rendezVousMedicalId &&
-            r.heureDebut == rappel.heureDebut;
+        return r.rendezVousMedicalId == rappel.rendezVousMedicalId;
       }
 
       if (rappel.medicamentId != null) {
@@ -302,8 +300,7 @@ class RappelProvider with ChangeNotifier {
   Future<bool> addRappelLocalOnly(Rappel rappel) async {
     final existeDeja = _rappels.any((r) {
       if (rappel.rendezVousMedicalId != null) {
-        return r.rendezVousMedicalId == rappel.rendezVousMedicalId &&
-            r.heureDebut == rappel.heureDebut;
+        return r.rendezVousMedicalId == rappel.rendezVousMedicalId;
       }
 
       if (rappel.medicamentId != null) {

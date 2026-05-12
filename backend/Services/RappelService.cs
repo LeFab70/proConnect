@@ -34,49 +34,10 @@ public class RappelService(AppDbContext db) : IRappelService
 
     public async Task<IReadOnlyList<RappelResponseDto>> GetAll()
     {
-        var rows = await _db.Rappels.AsNoTracking().OrderBy(r => r.Id).ToListAsync();
-        return rows.Select(Map).ToList();
-    }
-
-    public async Task<IReadOnlyList<RappelResponseDto>> GetForUser(long userId, string[] roles, CancellationToken ct = default)
-    {
-        var roleSet = new HashSet<string>(roles.Select(r => r.Trim().ToUpperInvariant()));
-        var isAine = roleSet.Contains("AINE");
-
-        // Collect the aîné IDs accessible to this user.
-        List<long> aineIds;
-        if (isAine)
-        {
-            aineIds = [userId];
-        }
-        else
-        {
-            aineIds = await _db.PartagesSuivi.AsNoTracking()
-                .Where(p => p.ProcheAidantId == userId && p.Statut == "actif")
-                .Select(p => p.AineId)
-                .Distinct()
-                .ToListAsync(ct);
-        }
-
-        // Rappels liés à un médicament de ces aînés.
-        var medIds = await _db.Medicaments.AsNoTracking()
-            .Where(m => !m.IsDeleted && aineIds.Contains(m.AineId))
-            .Select(m => m.Id)
-            .ToListAsync(ct);
-
-        // Rappels liés à un RDV de ces aînés.
-        var rdvIds = await _db.RendezVousMedicaux.AsNoTracking()
-            .Where(r => aineIds.Contains(r.AineId))
-            .Select(r => r.Id)
-            .ToListAsync(ct);
-
-        var rows = await _db.Rappels.AsNoTracking()
-            .Where(r =>
-                (r.MedicamentId != null && medIds.Contains(r.MedicamentId.Value)) ||
-                (r.RendezVousMedicalId != null && rdvIds.Contains(r.RendezVousMedicalId.Value)))
+        var rows = await _db.Rappels
+            .AsNoTracking()
             .OrderBy(r => r.Id)
-            .ToListAsync(ct);
-
+            .ToListAsync();
         return rows.Select(Map).ToList();
     }
 

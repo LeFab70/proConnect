@@ -12,94 +12,42 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
 {
     private readonly AppDbContext _db = db; // Injection du contexte de base de données
 
-    public async Task<IReadOnlyList<PartageSuiviResponseDto>> GetAll()
+    public async Task<IReadOnlyList<PartageSuiviResponseDto>> GetAll() // Récupère tous les partages de suivi
     {
-        return await (
-            from p in _db.PartagesSuivi.AsNoTracking()
-            join aine in _db.Users.AsNoTracking() on p.AineId equals aine.Id
-            join proche in _db.Users.AsNoTracking() on p.ProcheAidantId equals proche.Id into procheGroup
-            from proche in procheGroup.DefaultIfEmpty()
-            orderby p.Id
-            select new PartageSuiviResponseDto
+        return await _db.PartagesSuivi
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .Select(p => new PartageSuiviResponseDto
             {
                 Id = p.Id,
                 Autorisation = p.Autorisation,
                 Relation = p.Relation,
                 AineId = p.AineId,
-                AineNom = aine.Nom,
-                AinePrenom = aine.Prenom,
                 ProcheAidantId = p.ProcheAidantId,
-                ProcheNom = proche != null ? proche.Nom : null,
-                ProchePrenom = proche != null ? proche.Prenom : null,
                 ProcheEmail = p.ProcheEmail,
                 Statut = p.Statut,
                 CreatedAtUtc = p.CreatedAtUtc
-            }
-        ).ToListAsync();
-    }
-
-    public async Task<IReadOnlyList<PartageSuiviResponseDto>> GetForUser(long userId, string userEmail, string[] roles, CancellationToken ct = default)
-    {
-        var roleSet = new HashSet<string>(roles.Select(r => r.Trim().ToUpperInvariant()));
-        var isAine = roleSet.Contains("AINE");
-        var emailLower = userEmail?.Trim().ToLowerInvariant() ?? "";
-
-        var baseQuery = from p in _db.PartagesSuivi.AsNoTracking()
-                        join aine in _db.Users.AsNoTracking() on p.AineId equals aine.Id
-                        join proche in _db.Users.AsNoTracking() on p.ProcheAidantId equals proche.Id into procheGroup
-                        from proche in procheGroup.DefaultIfEmpty()
-                        select new { p, aine, proche };
-
-        var filtered = isAine
-            ? baseQuery.Where(x => x.p.AineId == userId)
-            : baseQuery.Where(x =>
-                x.p.ProcheAidantId == userId ||
-                (x.p.ProcheEmail != null && x.p.ProcheEmail.ToLower() == emailLower));
-
-        return await filtered
-            .OrderBy(x => x.p.Id)
-            .Select(x => new PartageSuiviResponseDto
-            {
-                Id = x.p.Id,
-                Autorisation = x.p.Autorisation,
-                Relation = x.p.Relation,
-                AineId = x.p.AineId,
-                AineNom = x.aine.Nom,
-                AinePrenom = x.aine.Prenom,
-                ProcheAidantId = x.p.ProcheAidantId,
-                ProcheNom = x.proche != null ? x.proche.Nom : null,
-                ProchePrenom = x.proche != null ? x.proche.Prenom : null,
-                ProcheEmail = x.p.ProcheEmail,
-                Statut = x.p.Statut,
-                CreatedAtUtc = x.p.CreatedAtUtc
             })
-            .ToListAsync(ct);
+            .ToListAsync();
     }
 
-    public async Task<PartageSuiviResponseDto?> GetById(long id)
+    public async Task<PartageSuiviResponseDto?> GetById(long id) // Récupère un partage de suivi par son ID
     {
-        return await (
-            from p in _db.PartagesSuivi.AsNoTracking()
-            where p.Id == id
-            join aine in _db.Users.AsNoTracking() on p.AineId equals aine.Id
-            join proche in _db.Users.AsNoTracking() on p.ProcheAidantId equals proche.Id into procheGroup
-            from proche in procheGroup.DefaultIfEmpty()
-            select new PartageSuiviResponseDto
+        return await _db.PartagesSuivi
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => new PartageSuiviResponseDto
             {
                 Id = p.Id,
                 Autorisation = p.Autorisation,
                 Relation = p.Relation,
                 AineId = p.AineId,
-                AineNom = aine.Nom,
-                AinePrenom = aine.Prenom,
                 ProcheAidantId = p.ProcheAidantId,
-                ProcheNom = proche != null ? proche.Nom : null,
-                ProchePrenom = proche != null ? proche.Prenom : null,
                 ProcheEmail = p.ProcheEmail,
                 Statut = p.Statut,
                 CreatedAtUtc = p.CreatedAtUtc
-            }
-        ).FirstOrDefaultAsync();
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<IdResponseDto> Create(UpsertPartageSuiviRequestDto dto) // Crée un nouveau partage de suivi
@@ -119,14 +67,16 @@ public class PartageSuiviService(AppDbContext db) : IPartageSuiviService
         return new IdResponseDto { Id = entity.Id };
     }
 
-    public async Task<bool> Update(long id, UpsertPartageSuiviRequestDto dto)
+    public async Task<bool> Update(long id, UpsertPartageSuiviRequestDto dto) // Met à jour un partage de suivi existant
     {
         var entity = await _db.PartagesSuivi.FirstOrDefaultAsync(p => p.Id == id);
         if (entity == null) return false;
 
-        // Seuls l'autorisation et la relation peuvent être modifiées — jamais les IDs ni le statut.
         entity.Autorisation = dto.Autorisation;
         entity.Relation = dto.Relation;
+        entity.AineId = dto.AineId;
+        entity.ProcheAidantId = dto.ProcheAidantId;
+        entity.ProcheEmail = string.IsNullOrWhiteSpace(dto.ProcheEmail) ? entity.ProcheEmail : dto.ProcheEmail.Trim().ToLowerInvariant();
 
         await _db.SaveChangesAsync();
         return true;

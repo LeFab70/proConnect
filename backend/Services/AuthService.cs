@@ -119,19 +119,6 @@ public class AuthService(AppDbContext db, IEmailService email) : IAuthService
         return true;
     }
 
-    public async Task<bool> ChangePassword(long userId, ChangePasswordRequestDto dto)
-    {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null) return false;
-
-        var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, dto.CurrentPassword);
-        if (result == PasswordVerificationResult.Failed) return false;
-
-        user.PasswordHash = _hasher.HashPassword(user, dto.NewPassword);
-        await _db.SaveChangesAsync();
-        return true;
-    }
-
     private static string GenerateToken()
     {
         var bytes = RandomNumberGenerator.GetBytes(32);

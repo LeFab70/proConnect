@@ -25,6 +25,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  Timer? _partageRefreshTimer;
   // Fabrice | 2026-05-05T04:56:37Z | Précharge médicaments, rappels, partages, RDV et suggestions IA après connexion.
   @override
   void initState() {
@@ -56,6 +57,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       auth.setNbDemandes(nbDemandes);
 
       await context.read<ActivityProvider>().fetchAIActivities(auth);
+
+      _startPartageAutoRefresh();
     });
   }
 
@@ -528,12 +531,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final raw = auth.firstName?.trim();
                   final goodbye =
                       (raw == null || raw.isEmpty) ? null : raw;
-                  context.read<MedicationProvider>().reset();
-                  context.read<RappelProvider>().clear();
-                  context.read<AppointmentProvider>().clearAppointments();
-                  context.read<PartageProvider>().clearPartages();
-                  context.read<CaregiverProvider>().clearCaregivers();
-                  await context.read<AineProvider>().reset();
                   await auth.logout();
                   if (!mounted) return;
                   navigator.pushAndRemoveUntil(
@@ -966,8 +963,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return n;
   }
 
+  void _startPartageAutoRefresh() {
+    _partageRefreshTimer?.cancel();
+
+    _partageRefreshTimer = Timer.periodic(const Duration(seconds: 15), (
+      _,
+    ) async {
+      if (!mounted) return;
+
+      final auth = context.read<AuthProvider>();
+      if (auth.token == null) return;
+
+      final partageProvider = context.read<PartageProvider>();
+
+      await partageProvider.fetchPartages(auth);
+      await context.read<RappelProvider>().fetchRappels(auth);
+
+      if (!mounted) return;
+
+      final nbDemandes = auth.isAine
+          ? partageProvider.countReponsesPourAine(auth)
+          : partageProvider.countDemandesPourProche(auth);
+      auth.setNbDemandes(nbDemandes);
+    });
+  }
+
   @override
   void dispose() {
+    _partageRefreshTimer?.cancel();
     super.dispose();
   }
 }

@@ -4,12 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../../widgets/tr_text.dart';
 import '../../provider/auth_provider.dart';
-import '../../provider/aine_provider.dart';
-import '../../provider/caregiver_provider.dart';
-import '../../provider/medication_provider.dart';
-import '../../provider/appointment_provider.dart';
-import '../../provider/partage_provider.dart';
-import '../../provider/rappel_provider.dart';
 import '../../provider/settings_provider.dart';
 import '../auth/post_logout_transition_screen.dart';
 
@@ -573,13 +567,8 @@ class SettingsScreen extends StatelessWidget {
 
     if (confirm == true && context.mounted) {
       final raw = auth.firstName?.trim();
-      final firstName = (raw == null || raw.isEmpty) ? null : raw;
-      context.read<MedicationProvider>().reset();
-      context.read<RappelProvider>().clear();
-      context.read<AppointmentProvider>().clearAppointments();
-      context.read<PartageProvider>().clearPartages();
-      context.read<CaregiverProvider>().clearCaregivers();
-      await context.read<AineProvider>().reset();
+      final firstName =
+          (raw == null || raw.isEmpty) ? null : raw;
       await auth.logout();
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(

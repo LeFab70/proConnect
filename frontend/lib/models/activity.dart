@@ -72,9 +72,10 @@ class ActiviteIA {
   }
 
   static int _parseInt(dynamic value) {
-    if (value == null) return 0;
+    if (value == null) return DateTime.now().millisecondsSinceEpoch;
     if (value is int) return value;
-    return int.tryParse(value.toString()) ?? 0;
+    return int.tryParse(value.toString()) ??
+        DateTime.now().millisecondsSinceEpoch;
   }
 
   static double _parseDouble(dynamic value) {

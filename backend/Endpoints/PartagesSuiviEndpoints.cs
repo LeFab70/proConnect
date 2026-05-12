@@ -14,7 +14,7 @@ public static class PartagesSuiviEndpoints
 
         route.MapGet("/", GetAll)
             .Produces<IReadOnlyList<PartageSuiviResponseDto>>(StatusCodes.Status200OK)
-            .WithSummary("Récupère les partages de suivi de l'utilisateur connecté");
+            .WithSummary("Récupère tous les partages de suivi");
         route.MapGet("/{id:long}", GetById)
             .Produces<PartageSuiviResponseDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
@@ -22,7 +22,7 @@ public static class PartagesSuiviEndpoints
 
         route.MapPost("/", Create)
             .Produces(StatusCodes.Status201Created)
-            .WithSummary("Crée un partage de suivi (aîné uniquement)");
+            .WithSummary("Crée un partage de suivi");
 
         route.MapPost("/{id:long}/accept", Accept)
             .Produces(StatusCodes.Status204NoContent)
@@ -37,7 +37,7 @@ public static class PartagesSuiviEndpoints
         route.MapPut("/{id:long}", Update)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
-            .WithSummary("Met à jour un partage de suivi (aîné propriétaire uniquement)");
+            .WithSummary("Met à jour un partage de suivi");
 
         route.MapDelete("/{id:long}", Delete)
             .Produces(StatusCodes.Status204NoContent)
@@ -45,16 +45,9 @@ public static class PartagesSuiviEndpoints
             .WithSummary("Supprime un partage de suivi");
     }
 
-    private static async Task<IResult> GetAll(
-        ClaimsPrincipal user,
-        IPartageSuiviService svc,
-        CancellationToken ct)
+    private static async Task<IResult> GetAll(IPartageSuiviService svc)
     {
-        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
-        var email = user.FindFirstValue(ClaimTypes.Email) ?? "";
-        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
-        var items = await svc.GetForUser(userId, email, roles, ct);
+        var items = await svc.GetAll();
         return Results.Ok(items);
     }
 
@@ -64,26 +57,8 @@ public static class PartagesSuiviEndpoints
         return r == null ? Results.NotFound() : Results.Ok(r);
     }
 
-    private static async Task<IResult> Create(
-        UpsertPartageSuiviRequestDto dto,
-        ClaimsPrincipal user,
-        IPartageSuiviService svc,
-        CancellationToken ct)
+    private static async Task<IResult> Create(UpsertPartageSuiviRequestDto dto, IPartageSuiviService svc)
     {
-        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
-        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value.Trim().ToUpperInvariant()).ToArray();
-
-        // Seul un aîné peut créer un partage; forcer son propre ID comme AineId.
-        if (roles.Contains("AINE"))
-        {
-            dto.AineId = userId;
-        }
-        else
-        {
-            return Results.Forbid();
-        }
-
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
 
@@ -150,8 +125,6 @@ public static class PartagesSuiviEndpoints
         AppDbContext db,
         CancellationToken ct)
     {
-        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
         var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value.Trim().ToUpperInvariant()).ToArray();
         if (!roles.Contains("AIDANT")) return Results.Forbid();
 
@@ -162,16 +135,6 @@ public static class PartagesSuiviEndpoints
         {
             return Results.Conflict(new { message = "Invitation déjà traitée." });
         }
-
-        // Vérifier que l'invitation cible bien cet aidant
-        var emailLower = user.FindFirstValue(ClaimTypes.Email)?.Trim().ToLowerInvariant();
-        var emailMatch = !string.IsNullOrWhiteSpace(emailLower) &&
-                         !string.IsNullOrWhiteSpace(entity.ProcheEmail) &&
-                         string.Equals(entity.ProcheEmail.Trim().ToLowerInvariant(), emailLower, StringComparison.OrdinalIgnoreCase);
-        var idMatch = entity.ProcheAidantId != null && entity.ProcheAidantId == userId;
-        var unboundInvite = entity.ProcheAidantId == null && !string.IsNullOrWhiteSpace(entity.ProcheEmail);
-
-        if (!(emailMatch || idMatch || unboundInvite)) return Results.Forbid();
 
         entity.Statut = "refuse";
         try
@@ -186,55 +149,17 @@ public static class PartagesSuiviEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> Update(
-        long id,
-        UpsertPartageSuiviRequestDto dto,
-        ClaimsPrincipal user,
-        IPartageSuiviService svc,
-        AppDbContext db,
-        CancellationToken ct)
+    private static async Task<IResult> Update(long id, UpsertPartageSuiviRequestDto dto, IPartageSuiviService svc)
     {
-        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
-
         var validation = DtoValidation.Validate(dto);
         if (validation != null) return validation;
-
-        // Seul l'aîné propriétaire peut modifier un partage.
-        var aineId = await db.PartagesSuivi.AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => (long?)p.AineId)
-            .FirstOrDefaultAsync(ct);
-        if (aineId == null) return Results.NotFound();
-        if (aineId.Value != userId) return Results.Forbid();
 
         var ok = await svc.Update(id, dto);
         return ok ? Results.NoContent() : Results.NotFound();
     }
 
-    private static async Task<IResult> Delete(
-        long id,
-        ClaimsPrincipal user,
-        IPartageSuiviService svc,
-        AppDbContext db,
-        CancellationToken ct)
+    private static async Task<IResult> Delete(long id, IPartageSuiviService svc)
     {
-        var idRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(idRaw, out var userId)) return Results.Unauthorized();
-        var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value.Trim().ToUpperInvariant()).ToArray();
-
-        var entity = await db.PartagesSuivi.AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new { p.AineId, p.ProcheAidantId })
-            .FirstOrDefaultAsync(ct);
-        if (entity == null) return Results.NotFound();
-
-        // L'aîné peut supprimer ses propres partages; le proche peut quitter un partage actif.
-        bool canDelete =
-            (roles.Contains("AINE") && entity.AineId == userId) ||
-            (roles.Contains("AIDANT") && entity.ProcheAidantId == userId);
-        if (!canDelete) return Results.Forbid();
-
         var ok = await svc.Delete(id);
         return ok ? Results.NoContent() : Results.NotFound();
     }

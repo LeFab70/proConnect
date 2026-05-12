@@ -109,19 +109,18 @@ class CaregiverProvider with ChangeNotifier {
     _error = '';
 
     try {
-      if (auth.token == null) return false;
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      final ok = await _api.put("/api/proches-aidants/$id", data, auth.token!);
-      if (!ok) {
-        _error = "Mise à jour refusée par le serveur";
+      final index = _caregivers.indexWhere((c) => c.id == id);
+
+      if (index == -1) {
+        _error = "Proche introuvable";
         return false;
       }
 
-      final index = _caregivers.indexWhere((c) => c.id == id);
-      if (index != -1) {
-        _caregivers[index] = Caregiver.fromJson({...data, 'id': id});
-        notifyListeners();
-      }
+      _caregivers[index] = Caregiver.fromJson({...data, 'id': id});
+
+      notifyListeners();
       return true;
     } catch (e) {
       _error = "Erreur lors de la modification du proche";
@@ -136,15 +135,10 @@ class CaregiverProvider with ChangeNotifier {
     _error = '';
 
     try {
-      if (auth.token == null) return false;
-
-      final ok = await _api.delete("/api/proches-aidants/$id", auth.token!);
-      if (!ok) {
-        _error = "Suppression refusée par le serveur";
-        return false;
-      }
+      await Future.delayed(const Duration(milliseconds: 500));
 
       _caregivers.removeWhere((c) => c.id == id);
+
       notifyListeners();
       return true;
     } catch (e) {
