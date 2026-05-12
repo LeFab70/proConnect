@@ -45,9 +45,7 @@ class RappelProvider with ChangeNotifier {
       _sort();
       await _syncNotifications();
       notifyListeners();
-    } catch (e) {
-      debugPrint('Erreur fetchRappels: $e');
-    }
+    } catch (_) {}
   }
 
   Future<void> _syncNotifications() async {
@@ -141,7 +139,6 @@ class RappelProvider with ChangeNotifier {
         return true;
       }
 
-      // Connecté mais échec API : ne pas simuler un rappel local (id 0) — le lien serveur manquerait.
       return false;
     }
 

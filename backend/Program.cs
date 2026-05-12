@@ -68,25 +68,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-// Keycloak (ancien) — gardé en commentaire pour référence
-// var keycloakAuthority = Environment.GetEnvironmentVariable("KEYCLOAK__AUTHORITY");
-// var keycloakAudience = Environment.GetEnvironmentVariable("KEYCLOAK__AUDIENCE");
-// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//     .AddJwtBearer(options =>
-//     {
-//         options.Authority = keycloakAuthority;
-//         options.Audience = keycloakAudience;
-//         options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-//         options.TokenValidationParameters = new TokenValidationParameters
-//         {
-//             ValidateIssuer = true,
-//             ValidateAudience = true,
-//             ValidateLifetime = true,
-//             ValidateIssuerSigningKey = true,
-//             NameClaimType = "preferred_username"
-//         };
-//     });
-
 // Auth locale (JWT signé)
 var jwtKey = Environment.GetEnvironmentVariable("JWT__Key");
 if (string.IsNullOrWhiteSpace(jwtKey))

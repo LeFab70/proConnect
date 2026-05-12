@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/caregiver.dart';
+import '../../models/partage_suivi.dart';
 import '../../provider/caregiver_provider.dart';
 import '../../provider/partage_provider.dart';
 import '../../provider/auth_provider.dart';
@@ -70,7 +71,18 @@ class _PartageScreenState extends State<PartageScreen> {
     final caregiverProv = context.watch<CaregiverProvider>();
     final partageProv = context.watch<PartageProvider>();
     final isAineConnecte = auth.isAine;
-    final caregivers = caregiverProv.caregivers;
+    final aineId = auth.currentUserLocalId ?? 0;
+
+    // Seulement les proches sans lien actif ou en attente avec cet aîné.
+    final dejeLies = partageProv.partages
+        .where((p) =>
+            p.aineId == aineId &&
+            p.statut != StatutPartage.refuse)
+        .map((p) => p.procheAidantId)
+        .toSet();
+    final caregivers = caregiverProv.caregivers
+        .where((c) => !dejeLies.contains(c.id))
+        .toList();
 
     final dropdownValue = caregivers.any((c) => c.id == _selectedProcheId)
         ? _selectedProcheId

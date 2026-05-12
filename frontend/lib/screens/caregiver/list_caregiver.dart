@@ -154,23 +154,28 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
 
     final caregiverProvider = context.watch<CaregiverProvider>();
     final partageProv = context.watch<PartageProvider>();
-    final auth = context.read<AuthProvider>();
+    final auth = context.watch<AuthProvider>();
     final currentId = auth.currentUserLocalId ?? 0;
 
-    final listAffichage = caregiverProvider.caregivers.map((caregiver) {
-      PartageSuivi? partage;
-      for (final p in partageProv.partages) {
-        if (p.aineId == currentId && p.procheAidantId == caregiver.id) {
-          partage = p;
-          break;
-        }
-      }
-      return {
-        'caregiver': caregiver,
-        'statut': partage?.statut,
-        'aUnPartage': partage != null,
-      };
-    }).toList();
+    // Pour un aîné : seulement les proches ayant un lien (partage) avec lui.
+    // Pour un admin/autre : toute la liste avec statut partage.
+    final listAffichage = caregiverProvider.caregivers
+        .map((caregiver) {
+          PartageSuivi? partage;
+          for (final p in partageProv.partages) {
+            if (p.aineId == currentId && p.procheAidantId == caregiver.id) {
+              partage = p;
+              break;
+            }
+          }
+          return {
+            'caregiver': caregiver,
+            'statut': partage?.statut,
+            'aUnPartage': partage != null,
+          };
+        })
+        .where((item) => !auth.isAine || (item['aUnPartage'] as bool))
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFF000428),
@@ -235,25 +240,36 @@ class _ListCaregiverScreenState extends State<ListCaregiverScreen> {
         ),
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddCaregiverScreen()),
-          );
-        },
-        backgroundColor: Colors.white,
-        elevation: 12,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: const Icon(Icons.person_add_alt_1_rounded, color: Color(0xFF004E92)),
-        label: const Text(
-          "Ajouter un proche",
-          style: TextStyle(
-            color: Color(0xFF004E92),
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
+      // Aîné → "Partager mon suivi" (invitation via partage, pas création de compte)
+      // Autre → "Ajouter un proche" (création de compte, opération admin)
+      floatingActionButton: auth.isAine
+          ? FloatingActionButton.extended(
+              onPressed: () => Navigator.pushNamed(context, '/partageAine'),
+              backgroundColor: Colors.white,
+              elevation: 12,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              icon: const Icon(Icons.share_rounded, color: Color(0xFF004E92)),
+              label: const Text(
+                "Partager mon suivi",
+                style: TextStyle(color: Color(0xFF004E92), fontWeight: FontWeight.w800),
+              ),
+            )
+          : FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AddCaregiverScreen()),
+                );
+              },
+              backgroundColor: Colors.white,
+              elevation: 12,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              icon: const Icon(Icons.person_add_alt_1_rounded, color: Color(0xFF004E92)),
+              label: const Text(
+                "Ajouter un proche",
+                style: TextStyle(color: Color(0xFF004E92), fontWeight: FontWeight.w800),
+              ),
+            ),
     );
   }
 

@@ -20,12 +20,7 @@ public static class SeedData
                           string.Equals(seedVar, "yes", StringComparison.OrdinalIgnoreCase);
         if (!seedEnabled) return;
 
-        // Seed cleaned: reset and recreate ONLY the minimal dataset used by the app.
-        // - 7 aînés (see list below), with max 3 médicaments each
-        // - only the dev accounts as ProcheAidant (kayleb, fabrice, perez, grace)
-        // - PartageSuivi links: each dev follows 2-3 aînés
-        //
-        // WARNING: this deletes all existing rows in core tables.
+        // Réinitialisation complète pour la démo.
         await db.Database.ExecuteSqlRawAsync("""
             DELETE FROM rappels;
             DELETE FROM partages_suivi;
@@ -34,118 +29,161 @@ public static class SeedData
             DELETE FROM users;
             """, ct);
 
-        static string Unsplash(string keyword, int sig) =>
-            $"https://source.unsplash.com/featured/600x600?{Uri.EscapeDataString(keyword)}&sig={sig}";
+        var plain = Environment.GetEnvironmentVariable("SEED_PASSWORD") ?? "Password123!";
 
-        var toAddUsers = new List<User>();
+        // ── Utilisateurs ────────────────────────────────────────────────────────
 
-        // Dev comptes (ProcheAidant)
-        toAddUsers.Add(new ProcheAidant { Nom = "Kouonang", Prenom = "Fabrice", Telephone = "506-000-0001", Email = "fabrice@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "10", Rue = "Rue Elmwood", Ville = "Moncton", Province = "NB", CodePostal = "E1A1A1" } });
-        toAddUsers.Add(new ProcheAidant { Nom = "Aubie", Prenom = "Kayleb", Telephone = "506-000-0002", Email = "kayleb@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "22", Rue = "Main St", Ville = "Dieppe", Province = "NB", CodePostal = "E1A2B2" } });
-        toAddUsers.Add(new ProcheAidant { Nom = "Perez", Prenom = "Perez", Telephone = "506-000-0003", Email = "perez@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "5", Rue = "Rue Church", Ville = "Moncton", Province = "NB", CodePostal = "E1A3C3" } });
-        toAddUsers.Add(new ProcheAidant { Nom = "Grace", Prenom = "Grace", Telephone = "506-000-0004", Email = "grace@proconnect.local", PasswordHash = "temp", Adresse = new Adresse { Numero = "18", Rue = "King St", Ville = "Riverview", Province = "NB", CodePostal = "E1B1B1" } });
+        var aine = new Aine
+        {
+            Nom = "Roy",
+            Prenom = "David",
+            Telephone = "506-555-0100",
+            Email = "david.roy@demo.local",
+            PasswordHash = "temp",
+            DateNaissance = new DateOnly(1942, 10, 3),
+            Docteur = "Dr. Robichaud",
+            NumeroTelephoneDocteur = "506-555-0199",
+            Adresse = new Adresse
+            {
+                Numero = "9",
+                Rue = "Rue du Parc",
+                Ville = "Riverview",
+                Province = "NB",
+                CodePostal = "E1B2C2"
+            }
+        };
 
-        // Aînés de test demandés
-        toAddUsers.Add(new Aine { Nom = "Boudreau", Prenom = "Jeol", Telephone = "333-333-1001", Email = "joel.boudreau@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1948, 5, 12), Adresse = new Adresse { Numero = "123", Rue = "Rue Principale", Ville = "Moncton", Province = "NB", CodePostal = "E1A1A1" }, Docteur = "Dr. Mimiche", NumeroTelephoneDocteur = "506-783-4567" });
-        toAddUsers.Add(new Aine { Nom = "Roy", Prenom = "David", Telephone = "333-333-1002", Email = "david.roy@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1942, 10, 3), Adresse = new Adresse { Numero = "9", Rue = "Rue du Parc", Ville = "Riverview", Province = "NB", CodePostal = "E1B2C2" }, Docteur = "Dr. Nguyen", NumeroTelephoneDocteur = "506-111-2222" });
-        toAddUsers.Add(new Aine { Nom = "Wouatcha", Prenom = "Paul", Telephone = "333-333-1003", Email = "paul.wouatcha@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1950, 2, 19), Adresse = new Adresse { Numero = "44", Rue = "Rue Victoria", Ville = "Dieppe", Province = "NB", CodePostal = "E1A9Z9" }, Docteur = "Dr. Patel", NumeroTelephoneDocteur = "506-222-3333" });
-        toAddUsers.Add(new Aine { Nom = "Trembley", Prenom = "Michel", Telephone = "333-333-1004", Email = "michel.trembley@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1939, 7, 7), Adresse = new Adresse { Numero = "61", Rue = "Rue Champlain", Ville = "Moncton", Province = "NB", CodePostal = "E1C1C1" }, Docteur = "Dr. Singh", NumeroTelephoneDocteur = "506-333-4444" });
-        toAddUsers.Add(new Aine { Nom = "Ndiaye", Prenom = "Ghislain", Telephone = "333-333-1005", Email = "ghislain.ndiaye@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1946, 1, 22), Adresse = new Adresse { Numero = "14", Rue = "Rue St-George", Ville = "Moncton", Province = "NB", CodePostal = "E1C2C2" }, Docteur = "Dr. Brown", NumeroTelephoneDocteur = "506-555-6666" });
-        toAddUsers.Add(new Aine { Nom = "Robichaud", Prenom = "Michel", Telephone = "333-333-1006", Email = "michel.robichaud@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1940, 9, 5), Adresse = new Adresse { Numero = "200", Rue = "Rue Mountain", Ville = "Moncton", Province = "NB", CodePostal = "E1C3C3" }, Docteur = "Dr. White", NumeroTelephoneDocteur = "506-777-8888" });
-        toAddUsers.Add(new Aine { Nom = "Kamla", Prenom = "Brice", Telephone = "333-333-1007", Email = "brice.kamla@proconnect.local", PasswordHash = "temp", DateNaissance = new DateOnly(1944, 3, 15), Adresse = new Adresse { Numero = "88", Rue = "Rue Acadie", Ville = "Dieppe", Province = "NB", CodePostal = "E1A5E5" }, Docteur = "Dr. Martin", NumeroTelephoneDocteur = "506-999-0000" });
+        var proche1 = new ProcheAidant
+        {
+            Nom = "Kouonang",
+            Prenom = "Fabrice",
+            Telephone = "506-555-0201",
+            Email = "fabrice.kouonang@demo.local",
+            PasswordHash = "temp",
+            Adresse = new Adresse
+            {
+                Numero = "10",
+                Rue = "Rue Elmwood",
+                Ville = "Moncton",
+                Province = "NB",
+                CodePostal = "E1A1A1"
+            }
+        };
 
-        if (toAddUsers.Count > 0) db.Users.AddRange(toAddUsers);
+        var proche2 = new ProcheAidant
+        {
+            Nom = "Boudreau",
+            Prenom = "Kayleb",
+            Telephone = "506-555-0202",
+            Email = "kayleb.boudreau@demo.local",
+            PasswordHash = "temp",
+            Adresse = new Adresse
+            {
+                Numero = "22",
+                Rue = "Main St",
+                Ville = "Dieppe",
+                Province = "NB",
+                CodePostal = "E1A2B2"
+            }
+        };
 
+        db.Users.AddRange(aine, proche1, proche2);
         await db.SaveChangesAsync(ct);
 
-        var plain = Environment.GetEnvironmentVariable("SEED_PASSWORD") ?? "Password123!";
-        var toUpdate = await db.Users.ToListAsync(ct);
-        foreach (var u in toUpdate)
+        // Hachage des mots de passe
+        foreach (var u in await db.Users.ToListAsync(ct))
         {
             if (u.PasswordHash == "temp")
-            {
                 u.PasswordHash = hasher.HashPassword(u, plain);
-            }
         }
         await db.SaveChangesAsync(ct);
 
-        var aines = await db.Aines.AsNoTracking().OrderBy(x => x.Id).ToListAsync(ct);
-        if (aines.Count > 0)
-        {
-            var sig = 1;
-            foreach (var aine in aines)
-            {
-                var meds = new List<Medicament>
-                {
-                    new() { Nom = "Vitamine D", Marque = "D-Vit", Dosage = "1000 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("vitamin pills", sig++), AineId = aine.Id, IsActive = true, IsDeleted = false },
-                    new() { Nom = "Aspirine", Marque = "Bayer", Dosage = "81 MG", Frequence = "1x/jour", UrlPhoto = Unsplash("medicine bottle", sig++), AineId = aine.Id, IsActive = true, IsDeleted = false },
-                    new() { Nom = "Metformine", Marque = "Generic", Dosage = "500 MG", Frequence = "2x/jour", UrlPhoto = Unsplash("pharmacy pills", sig++), AineId = aine.Id, IsActive = true, IsDeleted = false },
-                };
+        // ── Médicaments ─────────────────────────────────────────────────────────
 
-                db.Medicaments.AddRange(meds.Take(3));
+        var today = DateTime.UtcNow.Date;
+
+        var meds = new List<Medicament>
+        {
+            new() { Nom = "Metoprolol",   Marque = "Lopressor",  Dosage = "50 MG",   Frequence = "2x/jour",  AineId = aine.Id, IsActive = true, IsDeleted = false },
+            new() { Nom = "Ramipril",     Marque = "Altace",     Dosage = "5 MG",    Frequence = "1x/jour",  AineId = aine.Id, IsActive = true, IsDeleted = false },
+            new() { Nom = "Atorvastatine",Marque = "Lipitor",    Dosage = "20 MG",   Frequence = "1x/soir",  AineId = aine.Id, IsActive = true, IsDeleted = false },
+            new() { Nom = "Vitamine D",   Marque = "Generic",    Dosage = "1000 UI", Frequence = "1x/jour",  AineId = aine.Id, IsActive = true, IsDeleted = false },
+        };
+
+        db.Medicaments.AddRange(meds);
+        await db.SaveChangesAsync(ct);
+
+        // ── Rappels ─────────────────────────────────────────────────────────────
+
+        var priseHeure = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
+        var priseDate  = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        db.Rappels.AddRange(
+            new Rappel
+            {
+                DateDebut = priseDate,
+                HeureDebut = priseHeure,
+                MinutesAvantRappel = 15,
+                Type = "Medicament",
+                Actif = true,
+                MedicamentId = meds[0].Id
+            },
+            new Rappel
+            {
+                DateDebut = priseDate,
+                HeureDebut = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(3)),
+                MinutesAvantRappel = 10,
+                Type = "Medicament",
+                Actif = true,
+                MedicamentId = meds[1].Id
             }
-        }
+        );
+
+        // ── Rendez-vous ─────────────────────────────────────────────────────────
+
+        db.RendezVousMedicaux.AddRange(
+            new RendezVousMedical
+            {
+                Docteur = "Dr. Robichaud",
+                Lieu = new Adresse { Numero = "330", Rue = "Av. Université", Ville = "Moncton", Province = "NB", CodePostal = "E1C2Z6" },
+                DateHeure = DateTime.UtcNow.Date.AddDays(7).AddHours(10),
+                Notes = "Suivi cardiologie — apporter la liste des médicaments.",
+                AineId = aine.Id
+            },
+            new RendezVousMedical
+            {
+                Docteur = "Dr. Robichaud",
+                Lieu = new Adresse { Numero = "100", Rue = "Rue St-George", Ville = "Moncton", Province = "NB", CodePostal = "E1C1T7" },
+                DateHeure = DateTime.UtcNow.Date.AddDays(14).AddHours(8).AddMinutes(30),
+                Notes = "Prise de sang — à jeun depuis minuit.",
+                AineId = aine.Id
+            }
+        );
 
         await db.SaveChangesAsync(ct);
 
-        if (!await db.Rappels.AnyAsync(ct))
-        {
-            var med = await db.Medicaments.AsNoTracking().FirstOrDefaultAsync(ct);
-            if (med != null)
-            {
-                var when = DateTime.UtcNow.AddHours(6);
-                db.Rappels.Add(new Rappel
-                {
-                    DateDebut = DateOnly.FromDateTime(when),
-                    HeureDebut = TimeOnly.FromDateTime(when),
-                    MinutesAvantRappel = 15,
-                    Type = "Medicament",
-                    Actif = true,
-                    MedicamentId = med.Id
-                });
-            }
-        }
+        // ── Partages ─────────────────────────────────────────────────────────────
 
-        // PartageSuivi: link dev comptes to 2-3 aînés
-        var paFabrice = await db.ProchesAidants.AsNoTracking()
-            .FirstAsync(p => p.Email == "fabrice@proconnect.local", ct);
-        var paKayleb = await db.ProchesAidants.AsNoTracking()
-            .FirstAsync(p => p.Email == "kayleb@proconnect.local", ct);
-        var paPerez = await db.ProchesAidants.AsNoTracking()
-            .FirstAsync(p => p.Email == "perez@proconnect.local", ct);
-        var paGrace = await db.ProchesAidants.AsNoTracking()
-            .FirstAsync(p => p.Email == "grace@proconnect.local", ct);
-
-        // Ensure stable ordering of aînés
-        var a = aines;
-        if (a.Count >= 7)
-        {
-            PartageSuivi Link(string autorisation, string relation, long aineId, long procheAidantId) => new()
+        db.PartagesSuivi.AddRange(
+            new PartageSuivi
             {
-                Autorisation = autorisation,
-                Relation = relation,
-                AineId = aineId,
-                ProcheAidantId = procheAidantId,
+                Autorisation = "Ecriture",
+                Relation = "Fille",
+                AineId = aine.Id,
+                ProcheAidantId = proche1.Id,
                 Statut = "actif",
                 CreatedAtUtc = DateTime.UtcNow
-            };
-
-            db.PartagesSuivi.AddRange(
-                Link("Ecriture", "Dev", a[0].Id, paFabrice.Id),
-                Link("Lecture", "Dev", a[1].Id, paFabrice.Id),
-                Link("Lecture", "Dev", a[2].Id, paFabrice.Id),
-
-                Link("Lecture", "Dev", a[2].Id, paKayleb.Id),
-                Link("Ecriture", "Dev", a[3].Id, paKayleb.Id),
-                Link("Lecture", "Dev", a[4].Id, paKayleb.Id),
-
-                Link("Lecture", "Dev", a[4].Id, paPerez.Id),
-                Link("Lecture", "Dev", a[5].Id, paPerez.Id),
-
-                Link("Ecriture", "Dev", a[6].Id, paGrace.Id),
-                Link("Lecture", "Dev", a[0].Id, paGrace.Id)
-            );
-        }
+            },
+            new PartageSuivi
+            {
+                Autorisation = "Lecture",
+                Relation = "Ami",
+                AineId = aine.Id,
+                ProcheAidantId = proche2.Id,
+                Statut = "actif",
+                CreatedAtUtc = DateTime.UtcNow
+            }
+        );
 
         await db.SaveChangesAsync(ct);
     }

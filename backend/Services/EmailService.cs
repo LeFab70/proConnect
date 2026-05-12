@@ -4,11 +4,10 @@ using backend.Services.Interfaces;
 
 namespace backend.Services;
 
-public class EmailService : IEmailService
+public class EmailService(ILogger<EmailService> logger) : IEmailService
 {
     public async Task SendAsync(string toEmail, string subject, string body)
     {
-        // SMTP config (optional). If not configured, fallback to console.
         var host = Environment.GetEnvironmentVariable("SMTP__HOST");
         var portStr = Environment.GetEnvironmentVariable("SMTP__PORT");
         var user = Environment.GetEnvironmentVariable("SMTP__USER");
@@ -17,12 +16,7 @@ public class EmailService : IEmailService
 
         if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(portStr) || string.IsNullOrWhiteSpace(from))
         {
-            Console.WriteLine("=== EMAIL (fallback console) ===");
-            Console.WriteLine($"To: {toEmail}");
-            Console.WriteLine($"Subject: {subject}");
-            Console.WriteLine(body);
-            Console.WriteLine("=== END EMAIL ===");
-            await Task.CompletedTask;
+            logger.LogInformation("EMAIL (SMTP non configuré) — To: {To} | Subject: {Subject}", toEmail, subject);
             return;
         }
 

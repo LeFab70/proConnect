@@ -3,10 +3,7 @@ namespace backend.Models;
 
 public abstract class User
 {
-    public long Id { get; set; } // Identifiant unique de l'utilisateur, généré automatiquement par la base de données
-    // Keycloak (ancien) — gardé en commentaire pour référence
-    // public string? KeycloakId { get; set; } // claim "sub"
-
+    public long Id { get; set; }
     public required string Nom { get; set; } // Nom de famille de l'utilisateur, requis pour tous les types d'utilisateurs
     public required string Prenom { get; set; } // Prénom de l'utilisateur, requis pour tous les types d'utilisateurs
     public required string Telephone { get; set; } // Numéro de téléphone de l'utilisateur, requis pour tous les types d'utilisateurs

@@ -363,6 +363,12 @@ class _DemandesRecuesScreenState extends State<DemandesRecuesScreen> {
 
                           if (!context.mounted) return;
 
+                          if (ok) {
+                            await context.read<AineProvider>().fetchAines(auth);
+                          }
+
+                          if (!context.mounted) return;
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(

@@ -8,8 +8,6 @@ import 'package:flutter/foundation.dart';
 class AppointmentService {
   final Api _api = Api();
 
-  // Fabrice | 2026-05-05T04:47:29Z | Endpoints alignés sur MapRendezVousMedicaux (/api/rendez-vous-medicaux).
-
   /// PostgreSQL/Npgsql attend un instant UTC pour `timestamptz`. Normalise ici pour
   /// tous les appelants (évite les 500 si une écran oublie `.toUtc()` ou si l'APK est ancien).
   static Map<String, dynamic> _payloadWithUtcDateHeure(Map<String, dynamic> data) {
