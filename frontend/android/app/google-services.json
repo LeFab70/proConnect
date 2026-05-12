@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "631103498588",
+    "project_id": "proconnectnb",
+    "storage_bucket": "proconnectnb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:631103498588:android:232528e9ba33ee6513b999",
+        "android_client_info": {
+          "package_name": "com.example.proconnectnb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDABfMjscrLwjcosYEijkAkD-f3eod8x7g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

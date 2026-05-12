@@ -27,6 +27,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  Timer? _refreshTimer;
   @override
   void initState() {
     super.initState();
@@ -57,6 +58,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       auth.setNbDemandes(nbDemandes);
 
       await context.read<ActivityProvider>().fetchAIActivities(auth);
+      _refreshTimer?.cancel();
+      _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+        await _refreshDashboardData();
+      });
     });
   }
 
@@ -125,7 +130,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final activityData = isProcheSansAine ? null : activity.todayActivity;
 
-    final rappelsDuJour = isProcheSansAine ? [] : rappelProvider.rappelsDuJour;
+    final rappelsDuJour = isProcheSansAine
+        ? []
+        : rappelProvider.rappelsDuJour.where((r) {
+            if (auth.isAine) {
+              return true;
+            }
+
+            if (aines.selectedAine == null) {
+              return false;
+            }
+
+            final selectedAineId = aines.selectedAine!.id;
+
+            // RAPPEL MÉDICAMENT
+            if (r.medicamentId != null) {
+              try {
+                final med = meds.medications.firstWhere(
+                  (m) =>
+                      m.id == r.medicamentId.toString() ||
+                      int.tryParse(m.id) == r.medicamentId,
+                );
+
+                return med.aineId == selectedAineId;
+              } catch (_) {
+                return false;
+              }
+            }
+
+            // RAPPEL RDV
+            if (r.rendezVousMedicalId != null) {
+              final rdv = appointments.getAppointmentById(
+                r.rendezVousMedicalId!,
+              );
+
+              return rdv?.aineId == selectedAineId;
+            }
+
+            return false;
+          }).toList();
 
     return Scaffold(
       key: _scaffoldKey,
@@ -759,7 +802,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _medicationTile(BuildContext context, dynamic med) {
-    // final isTaken = med.isTaken;
     final isActive = med.isActive;
 
     return Opacity(
@@ -783,7 +825,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ? Colors.red
                   : const Color(0xFFFFB547),
             ),
+
             const SizedBox(width: 12),
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -797,6 +841,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       decoration: isActive ? null : TextDecoration.lineThrough,
                     ),
                   ),
+
                   Row(
                     children: [
                       Text(
@@ -807,6 +852,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+
                       TrText(
                         !isActive
                             ? "désactivé"
@@ -826,25 +872,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
+
             if (isActive)
               IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
+
                 icon: Icon(
                   med.status == 'pris'
                       ? Icons.check_circle
                       : med.status == 'nonPris'
                       ? Icons.cancel
                       : Icons.radio_button_unchecked,
+
                   color: med.status == 'pris'
                       ? const Color(0xFF61B66D)
                       : med.status == 'nonPris'
                       ? Colors.red
                       : const Color(0xFFFFB547),
+
                   size: 22,
                 ),
-                onPressed: () =>
-                    context.read<MedicationProvider>().toggleTaken(med.id),
+
+                onPressed: () async {
+                  final auth = context.read<AuthProvider>();
+
+                  await context.read<MedicationProvider>().toggleTaken(
+                    med.id,
+                    auth: auth,
+                  );
+                },
               )
             else
               const TrText(
@@ -1043,8 +1100,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return n;
   }
 
+  Future<void> _refreshDashboardData() async {
+    if (!mounted) return;
+
+    final auth = context.read<AuthProvider>();
+    if (auth.token == null || auth.token!.isEmpty) return;
+
+    await Future.wait([
+      context.read<MedicationProvider>().fetchMedications(auth),
+      context.read<RappelProvider>().fetchRappels(auth),
+      context.read<AppointmentProvider>().fetchAppointments(auth),
+    ]);
+  }
+
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     super.dispose();
   }
 }

@@ -7,8 +7,10 @@ environment:
   sdk: ^3.10.7
 
 dependencies:
+  cloud_firestore: ^6.4.0
   country_picker: ^2.0.27
   device_preview_plus: ^2.6.2
+  firebase_core: ^4.8.0
   flutter:
     sdk: flutter
   flutter_dotenv: ^6.0.1

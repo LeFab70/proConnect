@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/medication.dart';
+import '../services/firebase_demo_sync_service.dart';
 import '../services/medication_service.dart';
 import '../services/notification_service.dart';
 import 'auth_provider.dart';
@@ -13,13 +14,9 @@ class MedicationProvider with ChangeNotifier {
   final List<Medication> _medications = [];
 
   final Map<String, bool> _takenLocal = {};
-
   final Map<String, String> _statusLocal = {};
-
   final Map<String, DateTime?> _lastTakenAtLocal = {};
-
   final Map<String, DateTime?> _missedAtLocal = {};
-
   final Map<String, Timer> _monitoringTimers = {};
 
   Timer? _midnightTimer;
@@ -28,7 +25,6 @@ class MedicationProvider with ChangeNotifier {
   String _error = '';
 
   bool get isLoading => _isLoading;
-
   String get error => _error;
 
   Medication _withOverlay(Medication m) {
@@ -64,13 +60,13 @@ class MedicationProvider with ChangeNotifier {
   }
 
   double get adherenceRate {
-    final validMeds =
-        medications.where((m) => m.isActive && !m.isDeleted).toList();
+    final validMeds = medications
+        .where((m) => m.isActive && !m.isDeleted)
+        .toList();
 
     if (validMeds.isEmpty) return 0.0;
 
     final takenCount = validMeds.where((m) => m.status == 'pris').length;
-
     return takenCount / validMeds.length;
   }
 
@@ -87,6 +83,17 @@ class MedicationProvider with ChangeNotifier {
         ..clear()
         ..addAll(list);
 
+      for (final med in _medications) {
+        final demoStatus = await FirebaseDemoSyncService.getMedicationStatus(
+          med.id,
+        );
+
+        if (demoStatus != null) {
+          _statusLocal[med.id] = demoStatus;
+          _takenLocal[med.id] = demoStatus == 'pris';
+        }
+      }
+
       _error = '';
       _scheduleMidnightReset();
     } catch (_) {
@@ -97,50 +104,65 @@ class MedicationProvider with ChangeNotifier {
     }
   }
 
-  /// =========================
-  /// MÉDICAMENT PRIS / NON PRIS
-  /// =========================
+  Future<void> toggleTaken(String id, {AuthProvider? auth}) async {
+    final index = _medications.indexWhere((m) => m.id == id);
+    if (index == -1) return;
 
-  void toggleTaken(String id) {
-    final med = getMedicationById(id);
-
-    if (med == null) return;
-
+    final med = _withOverlay(_medications[index]);
     final current = med.isTaken;
 
-    /// MÉDICAMENT PRIS
-    if (!current) {
-      _takenLocal[id] = true;
+    final bool newIsTaken = !current;
+    final String newStatus = newIsTaken ? 'pris' : 'enAttente';
+    final DateTime? nowTaken = newIsTaken ? DateTime.now() : null;
 
-      _statusLocal[id] = 'pris';
+    _takenLocal[id] = newIsTaken;
+    _statusLocal[id] = newStatus;
+    _lastTakenAtLocal[id] = nowTaken;
+    _missedAtLocal[id] = null;
 
-      _lastTakenAtLocal[id] = DateTime.now();
+    debugPrint("FIREBASE WRITE START");
 
-      _missedAtLocal[id] = null;
+    await FirebaseDemoSyncService.saveMedicationStatus(
+      medicationId: id,
+      status: newStatus,
+    );
 
+    debugPrint("FIREBASE WRITE DONE");
+
+    if (newIsTaken) {
       _cancelMonitoring(id);
-
-      NotificationService.cancelMedicationNotifications(id);
-    }
-    /// RETOUR EN ATTENTE
-    else {
-      _takenLocal[id] = false;
-
-      _statusLocal[id] = 'enAttente';
-
-      _lastTakenAtLocal[id] = null;
-
-      _missedAtLocal[id] = null;
-
+      await NotificationService.cancelMedicationNotifications(id);
+    } else {
       _startMedicationMonitoring(id, med.name);
     }
 
     notifyListeners();
-  }
 
-  /// =========================
-  /// SURVEILLANCE 1H
-  /// =========================
+    final token = auth?.token;
+    final mid = int.tryParse(id);
+
+    if (token == null || token.isEmpty || mid == null) {
+      return;
+    }
+
+    final updated = _medications[index].copyWith(
+      isTaken: newIsTaken,
+      status: newStatus,
+      lastTakenAt: nowTaken,
+      missedAt: null,
+    );
+
+    final ok = await _service.updateMedicament(mid, updated.toJson(), token);
+
+    if (ok) {
+      _medications[index] = updated;
+      _error = '';
+      notifyListeners();
+    } else {
+      _error = "Impossible de synchroniser le statut du médicament";
+      notifyListeners();
+    }
+  }
 
   void _startMedicationMonitoring(String medicationId, String medicationName) {
     _cancelMonitoring(medicationId);
@@ -159,13 +181,11 @@ class MedicationProvider with ChangeNotifier {
         return;
       }
 
-      /// Si pris avant 1h → stop
       if (med.isTaken || med.status == 'pris') {
         timer.cancel();
         return;
       }
 
-      /// Notification toutes les 10 minutes
       await NotificationService.showMedicationReminder(
         id: medicationId.hashCode + elapsedMinutes,
         title: 'Médicament non confirmé',
@@ -173,16 +193,17 @@ class MedicationProvider with ChangeNotifier {
             'Le médicament "$medicationName" n’a toujours pas été marqué comme pris.',
       );
 
-      /// Après 1h
       if (elapsedMinutes >= 60) {
         _takenLocal[medicationId] = false;
-
         _statusLocal[medicationId] = 'nonPris';
-
         _missedAtLocal[medicationId] = DateTime.now();
 
-        timer.cancel();
+        await FirebaseDemoSyncService.saveMedicationStatus(
+          medicationId: medicationId,
+          status: 'nonPris',
+        );
 
+        timer.cancel();
         notifyListeners();
 
         await NotificationService.showMedicationReminder(
@@ -217,9 +238,11 @@ class MedicationProvider with ChangeNotifier {
     _statusLocal.clear();
     _lastTakenAtLocal.clear();
     _missedAtLocal.clear();
+
     for (final timer in _monitoringTimers.values) {
       timer.cancel();
     }
+
     _monitoringTimers.clear();
     notifyListeners();
     _scheduleMidnightReset();
@@ -265,7 +288,7 @@ class MedicationProvider with ChangeNotifier {
           return true;
         }
 
-        _error = 'Mise à jour refusée (droits admin requis côté API)';
+        _error = 'Mise à jour refusée côté API';
         notifyListeners();
         return false;
       }
@@ -293,6 +316,10 @@ class MedicationProvider with ChangeNotifier {
           _missedAtLocal.remove(id);
           _cancelMonitoring(id);
 
+          await FirebaseDemoSyncService.deleteMedicationStatus(
+            medicationId: id,
+          );
+
           if (auth != null) {
             await fetchMedications(auth);
           } else {
@@ -302,7 +329,7 @@ class MedicationProvider with ChangeNotifier {
           return true;
         }
 
-        _error = 'Suppression refusée (droits admin requis côté API)';
+        _error = 'Suppression refusée côté API';
         notifyListeners();
         return false;
       }
@@ -317,6 +344,8 @@ class MedicationProvider with ChangeNotifier {
       _missedAtLocal.remove(id);
       _cancelMonitoring(id);
 
+      await FirebaseDemoSyncService.deleteMedicationStatus(medicationId: id);
+
       if (_medications.length < initialLength) {
         notifyListeners();
         return true;
@@ -330,16 +359,13 @@ class MedicationProvider with ChangeNotifier {
 
   Future<bool> toggleActive(String id, bool value, AuthProvider auth) async {
     final index = _medications.indexWhere((m) => m.id == id);
-
     if (index == -1) return false;
 
     final token = auth.token;
-
     final mid = int.tryParse(id);
 
     if (token != null && token.isNotEmpty && mid != null) {
       final cur = _medications[index];
-
       final updated = cur.copyWith(isActive: value);
 
       final ok = await _service.updateMedicament(mid, updated.toJson(), token);
@@ -347,69 +373,83 @@ class MedicationProvider with ChangeNotifier {
       if (ok) {
         _medications[index] = updated;
 
-        /// ACTIVATION
         if (value) {
           _statusLocal[id] = 'enAttente';
           _takenLocal[id] = false;
           _missedAtLocal[id] = null;
           _lastTakenAtLocal[id] = null;
+
+          await FirebaseDemoSyncService.saveMedicationStatus(
+            medicationId: id,
+            status: 'enAttente',
+          );
+
           _startMedicationMonitoring(id, updated.name);
-        }
-        /// DÉSACTIVATION — on efface les overrides locaux pour laisser
-        /// l'UI afficher l'état réel (isActive = false) sans statut parasite.
-        else {
+        } else {
           _cancelMonitoring(id);
           _statusLocal.remove(id);
           _takenLocal.remove(id);
           _missedAtLocal.remove(id);
           _lastTakenAtLocal.remove(id);
+
+          await FirebaseDemoSyncService.saveMedicationStatus(
+            medicationId: id,
+            status: 'inactif',
+          );
+
           await NotificationService.cancelMedicationNotifications(id);
         }
 
         notifyListeners();
-
         return true;
       }
 
-      _error = 'Synchronisation impossible (vérifie les droits API)';
-
+      _error = 'Synchronisation impossible';
       notifyListeners();
-
       return false;
     }
 
     _medications[index] = _medications[index].copyWith(isActive: value);
 
-    /// ACTIVATION
     if (value) {
       _statusLocal[id] = 'enAttente';
       _takenLocal[id] = false;
       _missedAtLocal[id] = null;
       _lastTakenAtLocal[id] = null;
+
+      await FirebaseDemoSyncService.saveMedicationStatus(
+        medicationId: id,
+        status: 'enAttente',
+      );
+
       _startMedicationMonitoring(id, _medications[index].name);
-    }
-    /// DÉSACTIVATION — même logique : effacer les overrides
-    else {
+    } else {
       _cancelMonitoring(id);
       _statusLocal.remove(id);
       _takenLocal.remove(id);
       _missedAtLocal.remove(id);
       _lastTakenAtLocal.remove(id);
+
+      await FirebaseDemoSyncService.saveMedicationStatus(
+        medicationId: id,
+        status: 'inactif',
+      );
     }
 
     notifyListeners();
-
     return true;
   }
 
   void renewMedication(String id) {
     _takenLocal[id] = false;
-
     _statusLocal[id] = 'enAttente';
-
     _lastTakenAtLocal[id] = null;
-
     _missedAtLocal[id] = null;
+
+    FirebaseDemoSyncService.saveMedicationStatus(
+      medicationId: id,
+      status: 'enAttente',
+    );
 
     final med = getMedicationById(id);
 
@@ -501,7 +541,6 @@ class MedicationProvider with ChangeNotifier {
 
   void clearError() {
     _error = '';
-
     notifyListeners();
   }
 
@@ -527,9 +566,11 @@ class MedicationProvider with ChangeNotifier {
   @override
   void dispose() {
     _midnightTimer?.cancel();
+
     for (final timer in _monitoringTimers.values) {
       timer.cancel();
     }
+
     super.dispose();
   }
 }
